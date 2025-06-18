@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Pembuat Laporan Harian</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+        }
+        .container {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            max-width: 600px;
+            margin: auto;
+        }
+        h1, h2 {
+            color: #0056b3;
+            text-align: center;
+        }
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+        }
+        input[type="date"],
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: calc(100% - 22px);
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+        .section-header {
+            background-color: #e2eafc;
+            padding: 10px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+            font-weight: bold;
+        }
+        .input-group {
+            margin-bottom: 15px;
+        }
+        .input-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .input-row label {
+            margin-bottom: 0;
+            white-space: nowrap;
+        }
+        .input-row select,
+        .input-row input {
+            flex-grow: 1;
+            margin-bottom: 0;
+        }
+        button {
+            background-color: #28a745;
+            color: white;
+            padding: 12px 20px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            width: 100%;
+            margin-bottom: 10px;
+        }
+        button:hover {
+            background-color: #218838;
+        }
+        #outputReport {
+            width: calc(100% - 22px);
+            height: 150px;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #f9f9f9;
+            margin-top: 20px;
+            resize: vertical;
+        }
+        .whatsapp-button {
+            background-color: #25D366;
+            margin-top: 10px;
+        }
+        .whatsapp-button:hover {
+            background-color: #1DA851;
+        }
+        .note {
+            font-size: 0.9em;
+            color: #666;
+            margin-top: 15px;
+            text-align: center;
+        }
+        .static-department { /* Gaya untuk teks departemen statis */
+            text-align: center;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin-bottom: 20px;
+            color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Aplikasi Pembuat Laporan Harian</h1>
+        <p class="note">Isi detail laporan Anda di bawah ini dan hasilkan teks untuk WhatsApp.</p>
+
+        <label for="reportDate">Tanggal Laporan:</label>
+        <input type="date" id="reportDate" value="<?php echo date('Y-m-d'); ?>">
+
+        <div class="static-department">QUALITY ASSY 2</div>
+
+        <hr>
+
+        <h2>1. Quality Round Check</h2>
+        <div class="section-header">Target: <input type="number" id="qrcTarget" step="0.01" value="0.5" style="width: 80px; display: inline-block;"></div>
+        <div class="input-group">
+            <div class="input-row">
+                <label for="qrcShift">Shift:</label>
+                <select id="qrcShift">
+                    <option value="Night">Night</option>
+                    <option value="Day">Day</option>
+                </select>
+                <label for="qrcActual">Aktual:</label>
+                <input type="text" id="qrcActual" placeholder="Contoh: 316:28">
+            </div>
+            <label for="qrcResult">Hasil Perhitungan:</label>
+            <input type="number" id="qrcResult" readonly>
+            <label for="qrcProblem1">Pareto Problem 1:</label>
+            <input type="text" id="qrcProblem1" placeholder="Contoh: Fr & Rr Emblem Peel Off (T/nempel)">
+            <label for="qrcProblem2">Pareto Problem 2:</label>
+            <input type="text" id="qrcProblem2" placeholder="Contoh: Disc Wheel Chip paint">
+            <label for="qrcProblem3">Pareto Problem 3:</label>
+            <input type="text" id="qrcProblem3" placeholder="Contoh: Opening Trim Fr Door Rh Waving">
+        </div>
+
+        <hr>
+
+        <h2>2. Dome Running</h2>
+        <div class="section-header">Target: <input type="number" id="drTarget" step="0.01" value="0.08" style="width: 80px; display: inline-block;"></div>
+        <div class="input-group">
+            <div class="input-row">
+                <label for="drShift">Shift:</label>
+                <select id="drShift">
+                    <option value="Night">Night</option>
+                    <option value="Day">Day</option>
+                </select>
+                <label for="drActual">Aktual:</label>
+                <input type="text" id="drActual" placeholder="Contoh: 143:20">
+            </div>
+            <label for="drResult">Hasil Perhitungan:</label>
+            <input type="number" id="drResult" readonly>
+            <label for="drProblem1">Pareto Problem 1:</label>
+            <input type="text" id="drProblem1" placeholder="Contoh: Emblem Back Door Not Fix">
+            <label for="drProblem2">Pareto Problem 2:</label>
+            <input type="text" id="drProblem2" placeholder="Contoh: Opening Trim Fr Door Rh Melintir">
+            <label for="drProblem3">Pareto Problem 3:</label>
+            <input type="text" id="drProblem3" placeholder="Contoh: Screw Fr Door Scuff Rh Kendor">
+        </div>
+
+        <button onclick="generateReport()">Buat Laporan</button>
+
+        <textarea id="outputReport" placeholder="Laporan akan muncul di sini..." readonly></textarea>
+
+        <button class="whatsapp-button" onclick="sendToWhatsApp()">Kirim ke WhatsApp</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // Set default date to today
+            const today = new Date();
+            const year = today.getFullYear();
+            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months start at 0!
+            const day = String(today.getDate()).padStart(2, '0');
+            document.getElementById('reportDate').value = `${year}-${month}-${day}`;
+
+            // Add event listeners for calculation
+            document.getElementById('qrcActual').addEventListener('input', calculateQRC);
+            document.getElementById('drActual').addEventListener('input', calculateDR);
+        });
+
+        function calculateRatio(inputString) {
+            const parts = inputString.split(':');
+            if (parts.length === 2) {
+                const numerator = parseFloat(parts[0]);
+                const denominator = parseFloat(parts[1]);
+                if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
+                    return (numerator / denominator).toFixed(2);
+                }
+            }
+            return ''; // Return empty string if invalid input
+        }
+
+        function calculateQRC() {
+            const qrcActual = document.getElementById('qrcActual').value;
+            document.getElementById('qrcResult').value = calculateRatio(qrcActual);
+        }
+
+        function calculateDR() {
+            const drActual = document.getElementById('drActual').value;
+            document.getElementById('drResult').value = calculateRatio(drActual);
+        }
+
+        function generateReport() {
+            const reportDate = new Date(document.getElementById('reportDate').value);
+            const options = { day: 'numeric', month: 'long', year: 'numeric' };
+            const formattedDate = reportDate.toLocaleDateString('id-ID', options);
+
+            const reportDepartment = "QUALITY ASSY 2"; // Departemen sekarang statis
+
+            // Section 1: Quality Round Check
+            const qrcTarget = parseFloat(document.getElementById('qrcTarget').value);
+            const qrcShift = document.getElementById('qrcShift').value;
+            const qrcActualInput = document.getElementById('qrcActual').value;
+            const qrcResult = parseFloat(document.getElementById('qrcResult').value);
+            const qrcProblem1 = document.getElementById('qrcProblem1').value;
+            const qrcProblem2 = document.getElementById('qrcProblem2').value;
+            const qrcProblem3 = document.getElementById('qrcProblem3').value;
+
+            let qrcStatus = '';
+            if (!isNaN(qrcResult)) {
+                qrcStatus = qrcResult <= qrcTarget ? '✅' : '❌';
+            }
+
+            let qrcProblemsText = '';
+            if (qrcProblem1 || qrcProblem2 || qrcProblem3) {
+                qrcProblemsText += '    - Pareto Problem:\n';
+                if (qrcProblem1) qrcProblemsText += `        a. ${qrcProblem1}\n`;
+                if (qrcProblem2) qrcProblemsText += `        b. ${qrcProblem2}\n`;
+                if (qrcProblem3) qrcProblemsText += `        c. ${qrcProblem3}\n`;
+            }
+
+            // Section 2: Dome Running
+            const drTarget = parseFloat(document.getElementById('drTarget').value);
+            const drShift = document.getElementById('drShift').value;
+            const drActualInput = document.getElementById('drActual').value;
+            const drResult = parseFloat(document.getElementById('drResult').value);
+            const drProblem1 = document.getElementById('drProblem1').value;
+            const drProblem2 = document.getElementById('drProblem2').value;
+            const drProblem3 = document.getElementById('drProblem3').value;
+
+            let drStatus = '';
+            if (!isNaN(drResult)) {
+                drStatus = drResult <= drTarget ? '✅' : '❌';
+            }
+
+            let drProblemsText = '';
+            if (drProblem1 || drProblem2 || drProblem3) {
+                drProblemsText += '    - Pareto Problem:\n';
+                if (drProblem1) drProblemsText += `        a. ${drProblem1}\n`;
+                if (drProblem2) drProblemsText += `        b. ${drProblem2}\n`;
+                if (drProblem3) drProblemsText += `        c. ${drProblem3}\n`;
+            }
+
+            let reportText = `DAILY ACTIVITY REPORT\n`;
+            reportText += `${reportDepartment.toUpperCase()}\n`;
+            reportText += `Tanggal : ${formattedDate}\n\n`;
+
+            reportText += `1. Quality Round Check (Target : ${qrcTarget})\n`;
+            reportText += `    • ${qrcShift} : ${qrcActualInput}= ${isNaN(qrcResult) ? '' : qrcResult} ${qrcStatus}\n`;
+            reportText += qrcProblemsText;
+
+            reportText += `\n2. Dome Running (Target : ${drTarget})\n`;
+            reportText += `    • ${drShift} : ${drActualInput}= ${isNaN(drResult) ? '' : drResult} ${drStatus}\n`;
+            reportText += drProblemsText;
+
+            document.getElementById('outputReport').value = reportText;
+        }
+
+        function sendToWhatsApp() {
+            const reportText = document.getElementById('outputReport').value;
+            if (reportText) {
+                const encodedText = encodeURIComponent(reportText);
+                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
+                window.open(whatsappUrl, '_blank');
+            } else {
+                alert('Mohon buat laporan terlebih dahulu sebelum mengirim ke WhatsApp.');
+            }
+        }
+    </script>
+</body>
+</html>
