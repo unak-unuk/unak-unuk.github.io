@@ -3,266 +3,1252 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Laporan Harian Unit</title>
+    <title>PRIMBON OF INDIKATOR</title>
+    <!-- Google Fonts untuk kesan klasik/buku -->
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        * {
+            box-sizing: border-box;
             margin: 0;
-            padding: 20px;
-            background-color: #f0f2f5;
+            padding: 0;
+        }
+
+        body {
+            background-color: #2b2b2b;
+            font-family: 'Merriweather', serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
             color: #333;
         }
-        .container {
+
+        /* Wadah Utama Buku */
+        .book-container {
+            width: 90vw;
             max-width: 850px;
-            margin: 20px auto;
-            background-color: #ffffff;
-            padding: 30px;
-            border-radius: 12px;
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+            height: 80vh;
+            max-height: 600px;
+            perspective: 1500px;
+            position: relative;
         }
-        h1, h2 {
-            color: #007bff;
+
+        .book {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+        }
+
+        /* Halaman Buku */
+        .page {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            transform-origin: left;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.645, 0.045, 0.355, 1);
+            background-color: #fdfbf7;
+            box-shadow: inset 0 0 30px rgba(0,0,0,0.05), 0 5px 15px rgba(0,0,0,0.3);
+            border-radius: 4px 8px 8px 4px;
+            display: flex;
+            flex-direction: column;
+            backface-visibility: hidden;
+            overflow-y: auto;
+            padding: 30px 40px;
+        }
+
+        /* Efek Tekstur Kertas Buku Lama */
+        .page::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; bottom: 0; width: 25px;
+            background: linear-gradient(to right, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.01) 100%);
+            pointer-events: none;
+        }
+
+        /* Halaman Cover Khusus */
+        .cover {
+            background: linear-gradient(135deg, #f2ead8, #dfd2bc);
+            color: #2c2c2c;
             text-align: center;
-            margin-bottom: 25px;
+            justify-content: center;
+            align-items: center;
+            border: 5px solid #8c7355;
+            z-index: 100;
         }
-        .section-header {
-            background-color: #e9f5ff;
+
+        .cover h1 {
+            font-family: 'Cinzel', serif;
+            font-size: clamp(1.8rem, 4vw, 2.8rem);
+            margin-bottom: 15px;
+            letter-spacing: 2px;
+            color: #3b3024;
+        }
+
+        .cover .motivasi {
+            font-style: italic;
+            font-size: clamp(0.9rem, 2vw, 1.1rem);
+            color: #594a3c;
+            margin-bottom: 40px;
+            max-width: 80%;
+            line-height: 1.6;
+        }
+
+        .cover .instruction {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            background: rgba(140, 115, 85, 0.15);
             padding: 10px 20px;
-            border-radius: 8px;
+            border-radius: 20px;
+            color: #4a3c2e;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.6; }
+            50% { opacity: 1; }
+            100% { opacity: 0.6; }
+        }
+
+        /* Konten Halaman */
+        h2.page-title {
+            font-family: 'Cinzel', serif;
+            font-size: 1.5rem;
             margin-bottom: 20px;
-            font-weight: bold;
-            color: #0056b3;
+            border-bottom: 2px solid #8c7355;
+            padding-bottom: 8px;
+            color: #3b3024;
+        }
+
+        .search-box {
+            margin-bottom: 20px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 15px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            border: 1px solid #c7b9a9;
+            border-radius: 6px;
+            background: #fff;
+            outline: none;
+            transition: border-color 0.3s;
+        }
+
+        .search-box input:focus {
+            border-color: #8c7355;
+            box-shadow: 0 0 5px rgba(140, 115, 85, 0.3);
+        }
+
+        .search-results {
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.6;
+            background: #f4efe6;
+            padding: 15px;
+            border-radius: 6px;
+            min-height: 100px;
+            border-left: 4px solid #8c7355;
+        }
+
+        .search-results p {
+            margin-bottom: 10px;
+        }
+
+        .search-results p:last-child {
+            margin-bottom: 0;
+        }
+
+        /* Halaman Catatan (Notes) */
+        .notes-area {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            resize: none;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.95rem;
+            line-height: 1.8;
+            outline: none;
+            background-image: linear-gradient(#e0d7cb 1px, transparent 1px);
+            background-size: 100% 32px;
+            padding-top: 5px;
+        }
+
+        /* Navigasi / Nomor Halaman */
+        .page-footer {
+            margin-top: auto;
             display: flex;
             justify-content: space-between;
             align-items: center;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: 600;
-        }
-        input[type="date"],
-        select,
-        input[type="text"],
-        textarea {
-            width: calc(100% - 22px);
-            padding: 12px;
-            margin-bottom: 15px;
-            border: 1px solid #ced4da;
-            border-radius: 6px;
-            font-size: 1rem;
-            box-sizing: border-box;
-        }
-        textarea {
-            resize: vertical;
-            min-height: 60px;
-        }
-        .input-group {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 15px;
-        }
-        .input-group > div {
-            flex: 1;
-        }
-        .input-group.item-input {
-            align-items: flex-end;
-        }
-        .input-group.item-input button {
-            margin-bottom: 15px;
-        }
-        button {
-            background-color: #007bff;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: background-color 0.2s ease;
-        }
-        button:hover {
-            background-color: #0056b3;
-        }
-        .btn-green {
-            background-color: #28a745;
-        }
-        .btn-green:hover {
-            background-color: #218838;
-        }
-        .btn-red {
-            background-color: #dc3545;
-        }
-        .btn-red:hover {
-            background-color: #c82333;
-        }
-        .btn-yellow {
-            background-color: #ffc107;
-            color: #333;
-        }
-        .btn-yellow:hover {
-            background-color: #e0a800;
-        }
-        .btn-secondary {
-            background-color: #6c757d;
-        }
-        .btn-secondary:hover {
-            background-color: #5a6268;
-        }
-        .whatsapp-btn {
-            background-color: #25D366;
-            margin-top: 20px;
-            width: 100%;
-        }
-        .whatsapp-btn:hover {
-            background-color: #1DA851;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.8rem;
+            color: #888;
+            padding-top: 15px;
+            border-top: 1px dashed #e0d7cb;
         }
 
-        .report-items-container {
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            padding: 15px;
-            margin-bottom: 20px;
-            background-color: #fdfdfd;
+        /* Kelas untuk Halaman yang Telah Dibuka */
+        .page.flipped {
+            transform: rotateY(-180deg);
         }
-        .report-item-entry {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-            border-bottom: 1px dashed #eee;
-        }
-        .report-item-entry:last-child {
-            border-bottom: none;
-        }
-        .report-item-entry span {
-            flex: 1;
-            padding: 5px 0;
-        }
-        .report-item-entry .actions {
-            display: flex;
-            gap: 5px;
-        }
-        .report-item-entry .actions button {
-            padding: 6px 10px;
-            font-size: 0.85rem;
-        }
-        .status-ok { color: green; font-weight: bold; }
-        .status-kendur { color: red; font-weight: bold; }
 
-        .report-card {
-            background-color: #e6f7ff;
-            border: 1px solid #b3d9ff;
-            padding: 20px;
-            margin-bottom: 15px;
-            border-radius: 10px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-        .report-card p {
-            margin: 5px 0;
-            line-height: 1.5;
-        }
-        .report-card ul {
-            list-style: none;
-            padding: 0;
-            margin-top: 10px;
-        }
-        .report-card ul li {
-            margin-bottom: 5px;
-            padding-left: 15px;
-            position: relative;
-        }
-        .report-card ul li::before {
-            content: '•';
-            color: #007bff;
-            position: absolute;
-            left: 0;
-        }
-        .report-card .report-actions {
-            text-align: right;
-            margin-top: 15px;
-        }
-        .report-card .report-actions button {
-            padding: 8px 15px;
-            font-size: 0.9rem;
-            margin-left: 10px;
-        }
-        #noReportsMessage {
-            text-align: center;
-            color: #6c757d;
-            margin-top: 30px;
-            font-style: italic;
+        /* Responsif untuk Layar HP */
+        @media (max-width: 600px) {
+            .book-container {
+                width: 95vw;
+                height: 85vh;
+            }
+            .page {
+                padding: 20px;
+            }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Aplikasi Laporan Harian Unit</h1>
 
-        <div class="section-header">
-            <span>Input Laporan Baru</span>
-        </div>
-        <div class="input-group">
-            <div>
-                <label for="reportDate">Tanggal:</label>
-                <input type="date" id="reportDate" required>
+    <div class="book-container" id="bookContainer">
+        <div class="book" id="book">
+            
+            <!-- COVER -->
+            <div class="page cover" style="z-index: 10;">
+                <h1>PRIMBON <br> OF <br> INDIKATOR</h1><br><br><br>
+                <div class="motivasi">"Ilmu iku kalakone kanti laku"</div>
+                <div class="instruction">Usap layar ke kanan / ke kiri untuk buka & balik buku</div>
             </div>
-            <div>
-                <label for="reportShift">Shift:</label>
-                <select id="reportShift" required>
-                    <option value="A">A</option>
-                    <option value="B">B</option>
-                    <option value="C">C</option>
-                </select>
+
+            <!-- HALAMAN 1: INDIKATOR ENGINE -->
+            <div class="page" style="z-index: 9;" data-page="1">
+                <h2 class="page-title">Indikator Efi</h2>
+                <div class="search-box">
+                    <input type="number" class="obd-input" data-category="engine" placeholder="Ketik kode OBD EFI..." data-target="results-1">
+                </div>
+                <div class="search-results" id="results-1">
+                    <em>Ketik kode di atas untuk melihat arti indikator Engine...</em>
+                </div>
+                <div class="page-footer">
+                    <span>Engine System</span>
+                    <span>Hal 1</span>
+                </div>
             </div>
-        </div>
 
-        <div class="section-header">
-            <span>Detail Item Laporan</span>
-        </div>
-        <div class="input-group item-input">
-            <div>
-                <label for="unitName">Unit:</label>
-                <input type="text" id="unitName" placeholder="Contoh: UX 12345" required>
+            <!-- HALAMAN 2: INDIKATOR ABS -->
+            <div class="page" style="z-index: 8;" data-page="2">
+                <h2 class="page-title">Indikator ABS</h2>
+                <div class="search-box">
+                    <input type="number" class="obd-input" data-category="abs" placeholder="Ketik kode OBD ABS..." data-target="results-2">
+                </div>
+                <div class="search-results" id="results-2">
+                    <em>Ketik kode di atas untuk melihat arti indikator ABS...</em>
+                </div>
+                <div class="page-footer">
+                    <span>ABS System</span>
+                    <span>Hal 2</span>
+                </div>
             </div>
-        </div>
-        <div class="input-group item-input">
-            <div>
-                <label for="itemDescription">Deskripsi:</label>
-                <input type="text" id="itemDescription" placeholder="Contoh: screw sunvisor" required>
+
+            <!-- HALAMAN 3: AIRBAG -->
+            <div class="page" style="z-index: 7;" data-page="3">
+                <h2 class="page-title">Indikator Airbag</h2>
+                <div class="search-box">
+                    <input type="number" class="obd-input" data-category="airbag" placeholder="Ketik kode OBD Airbag..." data-target="results-3">
+                </div>
+                <div class="search-results" id="results-3">
+                    <em>Ketik kode di atas untuk melihat arti indikator Airbag...</em>
+                </div>
+                <div class="page-footer">
+                    <span>Airbag SRS</span>
+                    <span>Hal 3</span>
+                </div>
             </div>
-        </div>
-        <div class="input-group item-input">
-            <div>
-                <label for="itemStatus">Status:</label>
-                <select id="itemStatus" required>
-                    <option value="OK">OK</option>
-                    <option value="NG">NG</option>
-                </select>
+
+            <!-- HALAMAN 4: EPS -->
+            <div class="page" style="z-index: 6;" data-page="4">
+                <h2 class="page-title">Indikator EPS</h2>
+                <div class="search-box">
+                    <input type="number" class="obd-input" data-category="eps" placeholder="Ketik kode OBD EPS..." data-target="results-4">
+                </div>
+                <div class="search-results" id="results-4">
+                    <em>Ketik kode di atas untuk melihat arti indikator EPS...</em>
+                </div>
+                <div class="page-footer">
+                    <span>Electric Power Steering</span>
+                    <span>Hal 4</span>
+                </div>
             </div>
-        </div>
-        <div class="input-group item-input">
-            <button id="addItemBtn">Tambah Item</button>
-        </div>
 
-        <div class="report-items-container" id="currentReportItemsContainer">
-            <p id="noCurrentItemsMessage" style="text-align: center; color: #6c757d;">Belum ada item laporan.</p>
-        </div>
-        <input type="hidden" id="editingReportId" value="">
-        <button id="saveReportBtn" class="btn-green">Simpan Laporan Lengkap</button>
-        <button id="cancelEditReportBtn" class="btn-secondary" style="display: none;">Batal Edit Laporan</button>
+            <!-- HALAMAN 5: IMMOBILIZER -->
+            <div class="page" style="z-index: 5;" data-page="5">
+                <h2 class="page-title">Indikator Immobilizer</h2>
+                <div class="search-box">
+                    <input type="text" class="obd-input" data-category="immobilizer" placeholder="Ketik kode Immobilizer..." data-target="results-5">
+                </div>
+                <div class="search-results" id="results-5">
+                    <em>Ketik kode di atas untuk melihat arti indikator Immobilizer...</em>
+                </div>
+                <div class="page-footer">
+                    <span>Immobilizer</span>
+                    <span>Hal 5</span>
+                </div>
+            </div>
 
+            <!-- HALAMAN 6: CATATAN 1 -->
+            <div class="page" style="z-index: 4;" data-page="6">
+                <h2 class="page-title">Catatan</h2>
+                <p>Registrasi remote key less manual<br>Pastikan!<br>* Kontak Off<br>* Pintu depan kanan terbuka<br>langkah-langkah<br>1. Colokan OBD<br>2. Tekan tombol star stop (On-Acc-Off-On-Acc-Off)<br>3. Tutup pintu-buka pintu-tutup pintu-buka pintu (respon hazard menyala)<br>4. Tempelkan lambang pada remote ke tombol star stop (CDL bergerak 2x)<br>5. Cabut OBD<br>6. Cek fungsi remote</p>
+                <!--<textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>-->
+                <div class="page-footer">
+                    <span>Catatan Bebas</span>
+                    <span>Hal 6</span>
+                </div>
+            </div>
 
-        <hr style="margin: 40px 0;">
+            <!-- HALAMAN 7: CATATAN 2 -->
+            <div class="page" style="z-index: 3;" data-page="7">
+                <h2 class="page-title">Catatan</h2>
+                <p>Registrasi Remote kunci manual<br>Pastikan!<br>* Kontak Off<br>* Pintu depan kanan terbuka<br>langkah-langkah<br>1. Cabut kunci kontak<br>2. Cabut soket fuse box (1 menit)<br>3. Sambung soket fuse box<br>4. Colok kunci kontak dan cabut lagi<br>5. Lock-Unlock CDL 3x<br>6. Tutup pintu dan buka lagi (respon Hazard menyala)<br>7. Tekan tahan tombol unlock remote 1 samapai CDL bergerak 2x<br>8. Tekan tahan tombol unlock remote 2 samapai CDL bergerak 2x<br>9. Cek fungsi remote</p>
+                <!--<textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>-->
+                <div class="page-footer">
+                    <span>Catatan Bebas</span>
+                    <span>Hal 7</span>
+                </div>
+            </div>
 
-        <div class="section-header">
-            <span>Daftar Laporan Tersimpan</span>
-        </div>
-        <div id="savedReportsContainer">
-            <p id="noSavedReportsMessage">Belum ada laporan tersimpan. Buat laporan pertama Anda!</p>
+            <!-- HALAMAN 8: CATATAN 3 -->
+            <div class="page" style="z-index: 2;" data-page="8">
+                <h2 class="page-title">Catatan</h2>
+                <p>Kode error OBD standard Assembling<br>- EFI ngeblink konstan<br>- Immoby ngeblink konstan<br>- ABS kode 85, 86, 87, 88<br>- Air bag kode 51, 51<br>- TPMS kode 91, 98<br></p>
+                <!--<textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>-->
+                <div class="page-footer">
+                    <span>Catatan Bebas</span>
+                    <span>Hal 8</span>
+                </div>
+            </div>
+
+            <!-- HALAMAN 9: CATATAN 4 -->
+            <div class="page" style="z-index: 1;" data-page="9">
+                <h2 class="page-title">Catatan Servis 4</h2>
+                <textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>
+                <div class="page-footer">
+                    <span>Catatan Bebas</span>
+                    <span>Hal 9</span>
+                </div>
+            </div>
+
+            <!-- HALAMAN 10: CATATAN 5 -->
+            <div class="page" style="z-index: 0;" data-page="10">
+                <h2 class="page-title">Catatan Servis 5</h2>
+                <textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>
+                <div class="page-footer">
+                    <span>Catatan Bebas</span>
+                    <span>Hal 10</span>
+                </div>
+            </div>
+
         </div>
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        // Database Kode OBD yang Diklasifikasikan Berdasarkan Kategori Indikator
+        const classifiedDatabase = {
+            engine: {
+                "39": [
+                    "P0010 - IN VVT OCV short/open"
+                ],
+                "59": [
+                    "P0011 - IN VVT - Timing over - Advanced",
+                    "P0012 - IN VVT - Timing over - Retarded"
+                ],
+                "18":[
+                    "P0016 - VVT Correlation"
+                    ],
+                "27":[
+                    "P0037 - Rr 02 heater circuit",
+                    "P0038 - Rr O2 heater over current"
+                    ],
+                "46":[
+                    "P0070 - Outside air temperature sensor"],
+                "31":[
+                    "P0107 - Low/ intake air pressure sensor low",
+                    "P0108 - High/ intake air pressure sensor low"
+                    ],
+                "24":[
+                    "P0112 - Low/Intake air temperature sensor low",
+                    "P0113 - High/Intake air temperature sensor high"
+                    ],
+                "22":[
+                    "P0115 - Engine coolant temperature sensor open",
+                    "P0116 - Engine coolant temperature sensor stack",
+                    "P0117 - Low/Engine coolant temperature sensor low",
+                    "P0118 - High/Engine coolant temperature high ",
+                    "P0642 - CVT sensor power supply system"
+                    ],
+                    "12": [
+"P0340 - Cam sensor position open",
+"P0342 - Low input/Cam sensor position low",
+"P0343 - High input/Cam sensor position high"
+],
+"13": [
+"P0335 - Crank sensor open",
+"P0339 - Crank sensor intermittent"
+],
+"21": [
+"P0135 - A/F sensor heater"
+],
+"25": [
+"P0171 - Fuel system to lean"
+],
+"26": [
+"P0172 - Fuel system to rich"
+],
+"27": [
+"P0136 - RR O2 sensor VA ratio large",
+"P0137 - RR O2 sensor element crack",
+"P0138 - RR O2 sensor short",
+"P0141 - RR O2 sensor heater spec deadline"
+],
+"39": [
+"P0515 - Battery temperature sensor"
+],
+"41": [
+"P0120 - Throttle sensor no.1 open",
+"P0121 - Throttle sensor no.1 out range",
+"P0122 - Throttle sensor no.1 low",
+"P0123 - Throttle sensor no.1 high",
+"P0220 - Throttle sensor no.2 open",
+"P0222 - Throttle sensor no.2 low",
+"P0223 - Throttle sensor no.2 high"
+],
+"42": [
+"P0500 - Vehicle speed sensor"
+],
+"43": [
+"P0617 - Starter relay high"
+],
+"44": [
+"P0535 - A/C evaporator temperature sensor"
+],
+"47": [
+"P0530 - A/C refrigerant pressure sensor"
+],
+"51": [
+"P0504 - Brake switch correlation"
+],
+"52": [
+"P0327 - Sensor 1/Knock sensor low",
+"P0328 - Sensor 1/Knock sensor high"
+],
+"54": [
+"P0575 - C/C stop lamp circuit",
+"P0575 - C/C cancel circuit"
+],
+"83": [
+"P0603 - EEPROM read/write error"
+],
+"89": [
+"P0604 - Normal RAM error",
+"P0606 - Control CPU error",
+"P060A - Monitoring CPU error",
+"P060B - A/D processing circuit error",
+"P060D - Accelerator sensor circuit error",
+"P060E - Throttle /brake switch circuit error",
+"P062F - EEPORM error",
+    "P102D - O2 sensor heater",
+    "P1607 - Cruise control CPU error",
+    "P2118 - Throttle actuator supply voltage error",
+    "P2119 - Throttle control system error",
+    "U0164 - Lost communication with auto A/C ECU",
+"P0657 - Actuator supply voltage circuit error"
+],
+"93": [
+"P0300 - Random cylinder misfire detected",
+"P0301 - Cylinder 1 misfire detected",
+"P0302 - Cylinder 2 misfire detected",
+"P0303 - Cylinder 3 misfire detected",
+"P0304 - Cylinder 4 misfire detected"
+],
+"94": [
+"P0420 - Bank 1/ Catalyst deterioration",
+"P0443 - Purge control valve"
+],
+"95": [
+"P0572 - Brake pedal switch low",
+"P0573 - Brake pedal switch high",
+"P0724 - Brake switch"
+],
+"96": [
+"P0560 - Battery voltage"
+],
+"97": [
+"P0200 - Random injector",
+"PO201 - Cylinder #10 injector",
+"PO202 - Cylinder #20 injector",
+"PO203 - Cylinder #30 injector",
+"PO204 - Cylinder #40 injector"
+],
+"98": [
+"P0557 - Brake booster sensor low",
+"P0558 - Brake booster sensor high"
+],
+
+  "55": [
+    "P1546 - Starter control output"
+  ],
+  "A7": [
+    "P1550 - Battery current sensor",
+    "P161A - Alternator LIN communication error"
+  ],
+  "00": [
+    "P1603 - Engine stall",
+    "P1604 - Engine start defect",
+    "P1605 - Iddle speed unstable"
+  ],
+  "41": [
+    "P2102 - Throttle motor low",
+    "P2103 - Throttle motor high",
+    "P2111 - Throttle control system stuck open",
+    "P2112 - Throttle control system stuck close",
+    "P2135 - Throttle sensor No.1/2 correlation"
+  ],
+  "B9": [
+    "P2109 - Throttle sensor/motor performance"
+  ],
+  "19": [
+    "P2120 - Acceleration sensor No.1 open",
+    "P2121 - Acceleration sensor out of range",
+    "P2122 - Acceleration sensor No.1 low",
+    "P2123 - Acceleration sensor No.1 high",
+    "P2125 - Acceleration sensor No.2 open",
+    "P2127 - Acceleration sensor No.2 low",
+    "P2128 - Acceleration sensor No.2 high",
+    "P2138 - Acceleration sensor No.1/2 correlation"
+  ],
+  "21": [
+    "P2195 - A/F sensor rationality error lean",
+    "P2196 - A/F sensor rationality error rich",
+    "P2237 - A/F sensor open (B1S1)",
+    "P2238 - A/F sensor + voltage error (B1S1)",
+    "P2239 - A/F sensor + voltage error (B1S1)",
+    "P2252 - A/F sensor - voltage error (B1S1)",
+    "P2253 - A/F sensor - voltage error (B1S1)",
+    "P2A00 - A/F sensor sensor slow response",
+    "P0562 - CVT battery system"
+  ],
+  "A5": [
+    "P2226 - Atmospheric pressure sensor"
+  ],
+  "98": [
+    "C1263 - Ejector VSV high",
+    "C1264 - Ejector VSV low"
+  ],
+  "A2": [
+    "U0129 - Lost communication with brake ECU",
+    "U0155 - Lost communication with meter ECU"
+  ],
+  "8E": [
+    "U0142 - Lost communication with body ECU"
+  ],
+  "8D": [
+    "U0151 - Lost communication with A/B ECU"
+  ],
+  "8A": [
+    "U0166 - Lost communication with PTC ECU"
+  ],
+  "81": [
+    "U0167 - Lost communication with immobilizer"
+  ],
+  "8C": [
+    "U0235 - Lost communication with SCM ECU"
+  ],
+  "37": [
+    "P0500 - CVT vehicle speed siignal"
+  ],
+
+  "56": [
+    "P0705 - CVT shift position multiple"
+  ],
+  "38": [
+    "P0712 - CVT oil temperature sensor low"
+  ],
+  "38": [
+    "P0713 - CVT oil temperature sensor high"
+  ],
+  "72": [
+    "P0741 - CVT lock up system"
+  ],
+  "63": [
+    "P2759 - CVT SL 1 solenoid",
+    "P2759 - SL 1 solenoid fail"
+  ],
+  "64": [
+    "P0778 - CVT SL 2 solenoid"
+  ],
+  "39": [
+    "P0841 - CVT sec oil pressure sensor",
+    "P0842 - CVT sec oil pressure sensor low",
+    "P0843 - CVT sec oil pressure sensor high"
+  ],
+  "31": [
+    "P084B - CVT pri oil pressure sensor",
+    "P084C - CVT pri oil pressure sensor low",
+    "P084D - CVT pri oil pressure sensor high"
+  ],
+  "66": [
+    "P099B - CVT SR solenoid low",
+    "P099C - CVT SR solenoid high"
+  ],
+  "42": [
+    "P2747 - CVT sec rotation sensor"
+  ],
+  "41": [
+    "P2767 - CVT pri rotation sensor"
+  ],
+  "65": [
+    "P2764 - CVT DSU solenoid low",
+    "P2763 - CVT DSU solenoid high"
+  ],
+  "61": [
+    "P2822 - CVT SLP solenoid"
+  ],
+  "62": [
+    "P282B - CVT SLS solenoid"
+  ],
+  "57": [
+    "P0957 - CVT manual mode SW fail (manual mode SW has been set)"
+  ],
+  "35": [
+    "P1585 - G sensor failure"
+  ],
+  "33": [
+    "P1749 - ABS (VSC) speed abnormality"
+  ],
+  "74": [
+    "P2874 - Forward clutch (C2) ON control failure"
+  ],
+  "75": [
+    "P2875 - Forward clutch (C1) ON control failure"
+  ],
+  "76": [
+    "P2876 - Reverse brake ON control failure"
+  ],
+  "77": [
+    "P2877 - Forward clutch (C2) OFF control failure"
+  ],
+  "78": [
+    "P2878 - Forward clutch (C1) OFF control failure"
+  ],
+  "79": [
+    "P2879 - Reverse brake OFF control failure"
+  ],
+  "71": [
+    "P287A - Shift control error"
+  ],
+  "36": [
+    "P0218 - ATF oil temperature abnormality (high oil temperature failure)"
+  ],
+  "21": [
+    "P0722 - Transmission output shaft rotation sensor abnormality"
+  ],
+  "58": [
+    "P0828 - Up/down SW fail (when there is up/down SW)"
+  ],
+  "73": [
+    "P287B - Clutch switching failure"
+  ],
+  "82": [
+    "U0100 - EFI receive failover"
+  ],
+  "84": [
+    "U1103 - Inter-run reception fail"
+  ],
+  "89": [
+    "U0129 - ABS reception fail"
+  ],
+  "-": [
+    "P16A1 - High load detection of CVT"
+  ]
+
+            },
+            abs: {
+"11": [
+    "C0278 - Disconnection of solenoid relay"
+  ],
+  "12": [
+    "C0279 - Short circuit of solenoid relay"
+  ],
+  "13": [
+    "C0273 - Disconnection / Short circuit of motor relay"
+  ],
+  "14": [
+    "C0273 - Disconnection / Short circuit of motor relay"
+  ],
+  "15": [
+    "C1241 - Voltage drop / Over voltage of power source"
+  ],
+  "16": [
+    "C1241 - Voltage drop / Over voltage of power source",
+    "C1241 - Voltage drop / Over voltage of power source"
+  ],
+  "18": [
+    "C1361 - Short circuit of failsafe relay"
+  ],
+  "19": [
+    "U0126 - Communication failure of steering angle sensor"
+  ],
+  "21": [
+    "C0200 - Disconnection / Short circuit / Power source failure of FR wheel speed sensor"
+  ],
+  "22": [
+    "C0205 - Disconnection / Short circuit / Power source failure of FL wheel speed sensor"
+  ],
+  "23": [
+    "C0210 - Disconnection / Short circuit / Power source failure of RR wheel speed sensor"
+  ],
+  "24": [
+    "C0215 - Disconnection / Short circuit / Power source failure of RL wheel speed sensor"
+  ],
+  "25": [
+    "C1235 - Revolution failure / ABS continous operating failure of FR wheel speed sensor"
+  ],
+  "26": [
+    "C1236 - Revolution failure / ABS continous operating failure of FL wheel speed sensor"
+  ],
+  "27": [
+    "C1238 - Revolution failure / ABS continous operating failure of RR wheel speed sensor"
+  ],
+  "28": [
+    "C1239 - Revolution failure / ABS continous operating failure of RL wheel speed sensor"
+  ],
+  "29": [
+    "C1237 - Revolution failure / ABS continous operating failure of unspecified wheel speed sensor"
+  ],
+  "31": [
+    "C1245 - Output failure longitudinal acceleration sensor"
+  ],
+  "32": [
+    "C1244 - Disconnection / Short circuit / Communication failure of longitudinal acceleration sensor"
+  ],
+  "33": [
+    "C0365 - Failure of lateral acceleration sensor"
+  ],
+  "35": [
+    "C1233 - Failure of yaw late sensor"
+  ],
+  "36": [
+    "U0123 - Communication failure of yaw late sensor"
+  ],
+  "37": [
+    "C1231 - Disconnection/short circuit of steering angle sensor, failure of steering angle sensor"
+  ],
+  "38": [
+    "C1381 - Power source failure of yaw late sensor and lateral acceleration sensor"
+  ],
+  "39": [
+    "C1249 - Disconnection of stop switch"
+  ],
+  "41": [
+    "C1202 - Master reservoir level failure/Communication failure of meter/Communication failure of body ECU"
+  ],
+  "43": [
+    "C1246 - Disconnect/short circuit/output failure of M/C pressure sensor"
+  ],
+  "49": [
+    "U0100 - Communication failure of EFI ECU"
+  ],
+  "51": [
+    "C1251 - No rotate failure/Disconnection of motor"
+  ],
+  "52": [
+    "C0226 - Failure of ABS solenoid FR"
+  ],
+  "54": [
+    "C0236 - Failure of ABS solenoids FL"
+  ],
+  "56": [
+    "C0246 - Failure of ABS solenoid RR"
+  ],
+  "58": [
+    "C0256 - Failure of ABS solenoid RL"
+  ],
+  "61": [
+    "C1225 - Disconnection/short circuit of master cut solenoid"
+  ],
+  "62": [
+    "C13A2 - Failure of ignition switch"
+  ],
+  "63": [
+    "C1227 - Disconnection/short circuit of reservoir cut solenoid"
+  ],
+  "64": [
+    "C1320 - Failure of absorbing solenoid"
+  ],
+  "65": [
+    "C13A5 - Failure of motor current monitor"
+  ],
+  "66": [
+    "C1380 - Failure of stop lamp relay"
+  ],
+  "67": [
+    "C13A6 - Failure of motor disconnection/short circuit"
+  ],
+  "68": [
+    "C13A7 - Actuator failure"
+  ],
+  "69": [
+    "C13AA - High temperature detection"
+  ],
+  "71": [
+    "C13B0 - ECU internal failure"
+  ],
+  "72": [
+    "C13B4 - Failure of EPB SW disconnection/short"
+  ],
+  "73": [
+    "C1207 - Failure of shift signal/communication failure of transmission ECU",
+    "C1207 - Failure of shift signal/communication failure of transmission ECU"
+  ],
+  "74": [
+    "U0293 - Communication failure of HV ECU"
+  ],
+  "75": [
+    "U0155 - Communication failure of meter"
+  ],
+  "76": [
+    "U1101 - Communication failure of inter vehicle ECU"
+  ],
+  "77": [
+    "C1300 - ECU internal failure"
+  ],
+  "78": [
+    "C1203 - Communication failure of EFI/ECT ECU/Identifying signal failure"
+  ],
+  "79": [
+    "U0073 - CAN communication failure"
+  ],
+  "81": [
+    "C1271 - Incomplete of output signal check of FR wheel speed sensor"
+  ],
+  "82": [
+    "C1272 - Incomplete of output signal check of FL wheel speed sensor"
+  ],
+  "83": [
+    "C1273 - Incomplete of output signal check of RR wheel speed sensor"
+  ],
+  "84": [
+    "C1274 - Incomplete of output signal check of RL wheel speed sensor"
+  ],
+  "85": [
+    "C1275 - Incomplete of revolution check of FR wheel speed sensor"
+  ],
+  "86": [
+    "C1276 - Incomplete of revolution check of FL wheel speed sensor"
+  ],
+  "87": [
+    "C1277 - Incomplete of revolution check of RR wheel speed sensor"
+  ],
+  "88": [
+    "C1278 - Incomplete of revolution check of RL wheel speed sensor"
+  ],
+  "89": [
+    "C1270 - Incomplete of system information recording"
+  ],
+  "91": [
+    "C1279 - Incomplete of output signal check of longitudinal acceleration sensor"
+  ],
+  "92": [
+    "C1322 - Incomplete of output signal check of lateral acceleration sensor",
+    "C1322 - Incomplete of output signal check of lateral acceleration sensor"
+  ],
+  "93": [
+    "C1210 - Incomplete of offset recording of acceleration sensor"
+  ],
+  "94": [
+    "C1394 - Incomplete of output signal check of steering angle sensor"
+  ],
+  "95": [
+    "C1281 - Incomplete of output signal check/offset recording of M/C pressure sensor"
+  ],
+  "96": [
+    "C1396 - Incomplete of shift signal check",
+    "C1396 - Incomplete of shift signal check"
+  ],
+  "97": [
+    "C1322 - Incomplete of output signal check of lateral acceleration sensor"
+  ],
+  "98": [
+    "C1328 - Incomplete of stop lamp switch check",
+    "C1328 - Incomplete of stop lamp switch check",
+    "C1328 - Incomplete of stop lamp switch check",
+    "C1328 - Incomplete of stop lamp switch check",
+    "C1328 - Incomplete of stop lamp switch check",
+    "C1328 - Incomplete of stop lamp switch check"
+  ],
+  "99": [
+    "C1327 - Incomplete of offset recording of lateral acceleration sensor"
+  ]
+            },
+            airbag: {
+"51": [
+    "B1802 - Driver side front air bag squib - GND Short",
+    "B1803 - Driver side front air bag squib - Power short",
+    "B1800 - Driver side front air bag squib - Wire harness short",
+    "B1801 - Driver side front air bag squib - Wire harness open"
+  ],
+  "52": [
+    "B1807 - Passenger side front air bag squib - GND Short",
+    "B1808 - Passenger side front air bag squib - Power short",
+    "B1805 - Passenger side front air bag squib - Wire harness short",
+    "B1806 - Passenger side front air bag squib - Wire harness open"
+  ],
+  "73": [
+    "B1902 - RH side pretension squib - GND Short",
+    "B1903 - RH side pretension squib - Power short",
+    "B1900 - RH side pretension squib - Wire harness short",
+    "B1901 - RH side pretension squib - Wire harness open"
+  ],
+  "74": [
+    "B1907 - LH side pretension squib - GND Short",
+    "B1908 - LH side pretension squib - Power short",
+    "B1905 - LH side pretension squib - Wire harness short",
+    "B1906 - LH side pretension squib - Wire harness open"
+  ],
+  "64": [
+    "B1862 - Driver side knee air bag squib - GND Short",
+    "B1863 - Driver side knee air bag squib - Power short",
+    "B1860 - Driver side knee air bag squib - Wire harness short",
+    "B1861 - Driver side knee air bag squib - Wire harness open"
+  ],
+  "65": [
+    "B1867 - Passenger side knee air bag squib - GND Short",
+    "B1868 - Passenger side knee air bag squib - Power short",
+    "B1865 - Passenger side knee air bag squib - Wire harness short",
+    "B1866 - Passenger side knee air bag squib - Wire harness open"
+  ],
+  "55": [
+    "B1822 - Right side front side air bag squib - GND Short",
+    "B1823 - Right side front side air bag squib - Power short",
+    "B1820 - Right side front side air bag squib - Wire harness short",
+    "B1821 - Right side front side air bag squib - Wire harness open"
+  ],
+  "56": [
+    "B1827 - Left side front side air bag squib - GND Short",
+    "B1828 - Left side front side air bag squib - Power short",
+    "B1825 - Left side front side air bag squib - Wire harness short",
+    "B1826 - Left side front side air bag squib - Wire harness open"
+  ],
+  "57": [
+    "B1832 - RH side curtain air bag squib - GND Short",
+    "B1833 - RH side curtain air bag squib - Power short",
+    "B1830 - RH side curtain air bag squib - Wire harness short",
+    "B1831 - RH side curtain air bag squib - Wire harness open"
+  ],
+  "58": [
+    "B1837 - LH side curtain air bag squib - GND Short",
+    "B1838 - LH side curtain air bag squib - Power short",
+    "B1835 - LH side curtain air bag squib - Wire harness short",
+    "B1836 - LH side curtain air bag squib - Wire harness open"
+  ],
+  "75": [
+    "B1912 - Right side lap outer pretension squib - GND Short",
+    "B1913 - Right side lap outer pretension squib - Power short",
+    "B1910 - Right side lap outer pretension squib - Wire harness short",
+    "B1911 - Right side lap outer pretension squib - Wire harness open"
+  ],
+  "76": [
+    "B1917 - Left side lap outer pretension squib - GND Short",
+    "B1918 - Left side lap outer pretension squib - Power short",
+    "B1915 - Left side lap outer pretension squib - Wire harness short",
+    "B1916 - Left side lap outer pretension squib - Wire harness open"
+  ],
+  "77": [
+    "B1922 - Right side rear pretension squib - GND Short",
+    "B1923 - Right side rear pretension squib - Power short",
+    "B1920 - Right side rear pretension squib - Wire harness short",
+    "B1921 - Right side rear pretension squib - Wire harness open"
+  ],
+  "78": [
+    "B1927 - Left side rear pretension squib - GND Short",
+    "B1928 - Left side rear pretension squib - Power short",
+    "B1925 - Left side rear pretension squib - Wire harness short",
+    "B1926 - Left side rear pretension squib - Wire harness open"
+  ],
+  "31": [
+    "B1000 - ECU - Fault"
+  ],
+  "13": [
+    "B1610 - Right side electric front sensor - Sensor fault"
+  ],
+  "83": [
+    "B1612 - Right side electric front sensor - Communication Intrp",
+    "B1613 - Right side electric front sensor - Abn Initialization"
+  ],
+  "19": [
+    "B161E - Right side electric front sensor - ID Fault"
+  ],
+  "14": [
+    "B1615 - Left side electric front sensor - Sensor fault"
+  ],
+  "84": [
+    "B1616 - Left side electric front sensor - Communication Intrp",
+    "B1618 - Left side electric front sensor - Abn Initialization"
+  ],
+  "29": [
+    "B161F - Left side electric front sensor - ID Fault"
+  ],
+  "21": [
+    "B1620 - Right side B-pillar sensor - Sensor fault"
+  ],
+  "81": [
+    "B1622 - Right side B-pillar sensor - Communication Intrp",
+    "B1623 - Right side B-pillar sensor - Abn Initialization",
+    "B1632 - Right side C-Pillar sensor - Communication Intrp",
+    "B1633 - Right side C-Pillar sensor - Abn Initialization"
+  ],
+  "91": [
+    "B162E - Right side B-pillar sensor - ID Fault"
+  ],
+  "22": [
+    "B1625 - Left side B-pillar sensor - Sensor fault"
+  ],
+  "82": [
+    "B1627 - Left side B-pillar sensor - Communication Intrp",
+    "B1628 - Left side B-pillar sensor - Abn Initialization",
+    "B1637 - Left side C-Pillar sensor - Communication Intrp",
+    "B1638 - Left side C-Pillar sensor - Abn Initialization"
+  ],
+  "92": [
+    "B162F - Left side B-pillar sensor - ID Fault"
+  ],
+  "23": [
+    "B1630 - Right side C-Pillar sensor - Sensor fault"
+  ],
+  "93": [
+    "B163E - Right side C-Pillar sensor - ID Fault"
+  ],
+  "24": [
+    "B1635 - Left side C-Pillar sensor - Sensor fault"
+  ],
+  "94": [
+    "B163F - Left side C-Pillar sensor - ID Fault"
+  ],
+  "33": [
+    "B1651 - Passenger side air bag cutoff switch - GND Short / Power short / Wire harness short"
+  ],
+  "34": [
+    "B1652 - Connector - Half connecting"
+  ],
+  "39": [
+    "B1010 - CARINFO - Verification fault"
+  ]
+            },
+            eps: {
+"11": [
+    "C1511 - Torque sensor 1 Error"
+  ],
+  "12": [
+    "C1512 - Torque sensor 2 Error"
+  ],
+  "13": [
+    "C1513 - Excessive deviation of torque sensor"
+  ],
+  "14": [
+    "C1514 - Torque sensor power supply error"
+  ],
+  "23": [
+    "C1523 - Motor terminal 1 error"
+  ],
+  "24": [
+    "C1524 - Motor terminal 2 error"
+  ],
+  "31": [
+    "C1531 - CPU error"
+  ],
+  "32": [
+    "C1532 - ECU error"
+  ],
+  "33": [
+    "C1533 - Temperature sensor error"
+  ],
+  "34": [
+    "C1534 - EEPROM error"
+  ],
+  "41": [
+    "C1541 - Vehicle speed error"
+  ],
+  "47": [
+    "C0051 - Steering angle sensor error"
+  ],
+  "48": [
+    "U0416 - VSC communication error"
+  ],
+  "52": [
+    "C1552 - PIG power suply error"
+  ],
+  "53": [
+    "C1553 - Over voltage error"
+  ],
+  "54": [
+    "C1554 - Power suply relay error"
+  ],
+  "55": [
+    "C1555 - Motor relay error"
+  ],
+  "57": [
+    "C1557 - Current limit storage at overheating projtection"
+  ],
+  "61": [
+    "U0100 - EFI communication error"
+  ],
+  "62": [
+    "U0155 - Meter communication error"
+  ],
+  "64": [
+    "U0121 - ABS communication error"
+  ],
+  "65": [
+    "U0126 - Steering communication error"
+  ],
+  "66": [
+    "U023A - SCM communication error"
+  ],
+  "71": [
+    "C1571 - Vehicle speed test unfinished (tes code)"
+  ],
+  "73": [
+    "C1573 - Engine rotation test unfinished (test code)"
+  ],
+  "81": [
+    "C1581 - Assistance map not select"
+  ]
+            },
+            immobilizer: {
+                "b2139": [
+                    "ID Mismatch / Key Authentication Failed (Kunci kontak tidak dikenali oleh modul immobilizer)."
+                ],
+                "54": [
+                    "Immobilizer Antenna Coil Malfunction (Antena ring di sekitar rumah kunci kontak rusak atau tidak tersambung)."
+                ]
+            }
+        };
+
+        // Logika Animasi Membalik Buku & Sentuhan (Swipe)
+        const pages = document.querySelectorAll('.page');
+        let currentPageIndex = 0;
+        const totalPages = pages.length;
+
+        function updateBook() {
+            pages.forEach((page, index) => {
+                if (index < currentPageIndex) {
+                    page.classList.add('flipped');
+                    page.style.zIndex = index;
+                } else {
+                    page.classList.remove('flipped');
+                    page.style.zIndex = totalPages - index;
+                }
+            });
+        }
+
+        function nextPage() {
+            if (currentPageIndex < totalPages - 1) {
+                currentPageIndex++;
+                updateBook();
+            }
+        }
+
+        function prevPage() {
+            if (currentPageIndex > 0) {
+                currentPageIndex--;
+                updateBook();
+            }
+        }
+
+        // Deteksi Gesture Sentuh / Usap Layar (Swipe) & Klik
+        let touchStartX = 0;
+        let touchEndX = 0;
+        const bookContainer = document.getElementById('bookContainer');
+
+        bookContainer.addEventListener('touchstart', (e) => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        bookContainer.addEventListener('touchend', (e) => {
+            touchEndX = e.changedTouches[0].screenX;
+            handleSwipe();
+        }, {passive: true});
+
+        let mouseStartX = 0;
+        bookContainer.addEventListener('mousedown', (e) => {
+            mouseStartX = e.clientX;
+        });
+
+        bookContainer.addEventListener('mouseup', (e) => {
+            let mouseEndX = e.clientX;
+            let diff = mouseEndX - mouseStartX;
+            if (Math.abs(diff) > 50) {
+                if (diff < 0) {
+                    nextPage();
+                } else {
+                    prevPage();
+                }
+            }
+        });
+
+        function handleSwipe() {
+            let diff = touchEndX - touchStartX;
+            if (Math.abs(diff) > 50) {
+                if (diff < 0) {
+                    nextPage();
+                } else {
+                    prevPage();
+                }
+            }
+        }
+
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight') {
+                nextPage();
+            } else if (e.key === 'ArrowLeft') {
+                prevPage();
+            }
+        });
+
+        // Fitur Pencarian Terklasifikasi Berdasarkan Kategori Input
+        const searchInputs = document.querySelectorAll('.obd-input');
+        searchInputs.forEach(input => {
+            input.addEventListener('input', (e) => {
+                const query = e.target.value.trim().toLowerCase();
+                const category = e.target.getAttribute('data-category');
+                const targetId = e.target.getAttribute('data-target');
+                const resultContainer = document.getElementById(targetId);
+
+                if (query === '') {
+                    resultContainer.innerHTML = `<em>Ketik kode di atas untuk melihat arti indikator...</em>`;
+                    return;
+                }
+
+                // Ambil data spesifik berdasarkan kategori halaman tersebut
+                const categoryData = classifiedDatabase[category];
+
+                if (categoryData && categoryData[query]) {
+                    let results = categoryData[query];
+                    let htmlContent = `<p><strong>Kode OBD : ${query.toUpperCase()}</strong></p>`;
+                    
+                    // Otomatis membuat paragraf di bawahnya jika menghasilkan lebih dari satu hasil
+                    results.forEach((res, idx) => {
+                        htmlContent += `<p>${idx + 1}. ${res}</p>`;
+                    });
+                    
+                    resultContainer.innerHTML = htmlContent;
+                } else {
+                    resultContainer.innerHTML = `<p style="color: #b33939;">Kode <strong>"${query.toUpperCase()}"</strong> tidak ditemukan pada kategori ini. (Coba contoh kode di placeholder)</p>`;
+                }
+            });
+        });
+    </script>
 </body>
 </html>
