@@ -217,7 +217,7 @@
             
             <!-- COVER -->
             <div class="page cover" style="z-index: 10;">
-                <h1>PRIMBON <br> OF <br>ERROR CODE</h1><br><br><br>
+                <h1>PRIMBON<br>OF<br>ERROR CODE</h1><br><br><br>
                 <div class="motivasi">"Ilmu iku kalakone kanti laku"</div>
                 <div class="instruction">Usap layar ke kanan / ke kiri untuk buka & balik buku</div>
             </div>
@@ -226,13 +226,13 @@
             <div class="page" style="z-index: 9;" data-page="1">
                 <h2 class="page-title">Indikator Efi</h2>
                 <div class="search-box">
-                    <input type="number" class="obd-input" data-category="engine" placeholder="Ketik kode OBD EFI..." data-target="results-1">
+                    <input type="number" class="obd-input" data-category="engine" placeholder="Ketik kode OBD EFI (Cth : 47)..." data-target="results-1">
                 </div>
                 <div class="search-results" id="results-1">
-                    <em>Ketik kode di atas untuk melihat arti indikator Engine...</em>
+                    <em>Ketik kode di atas untuk melihat arti indikator Efi...</em>
                 </div>
                 <div class="page-footer">
-                    <span>Engine System</span>
+                    <span>Efi System</span>
                     <span>Hal 1</span>
                 </div>
             </div>
@@ -241,7 +241,7 @@
             <div class="page" style="z-index: 8;" data-page="2">
                 <h2 class="page-title">Indikator ABS</h2>
                 <div class="search-box">
-                    <input type="number" class="obd-input" data-category="abs" placeholder="Ketik kode OBD ABS..." data-target="results-2">
+                    <input type="number" class="obd-input" data-category="abs" placeholder="Ketik kode OBD ABS (Cth : 85)..." data-target="results-2">
                 </div>
                 <div class="search-results" id="results-2">
                     <em>Ketik kode di atas untuk melihat arti indikator ABS...</em>
@@ -256,7 +256,7 @@
             <div class="page" style="z-index: 7;" data-page="3">
                 <h2 class="page-title">Indikator Airbag</h2>
                 <div class="search-box">
-                    <input type="number" class="obd-input" data-category="airbag" placeholder="Ketik kode OBD Airbag..." data-target="results-3">
+                    <input type="number" class="obd-input" data-category="airbag" placeholder="Ketik kode OBD Airbag (Cth : 51)..." data-target="results-3">
                 </div>
                 <div class="search-results" id="results-3">
                     <em>Ketik kode di atas untuk melihat arti indikator Airbag...</em>
@@ -271,7 +271,7 @@
             <div class="page" style="z-index: 6;" data-page="4">
                 <h2 class="page-title">Indikator EPS</h2>
                 <div class="search-box">
-                    <input type="number" class="obd-input" data-category="eps" placeholder="Ketik kode OBD EPS..." data-target="results-4">
+                    <input type="number" class="obd-input" data-category="eps" placeholder="Ketik kode OBD EPS (Cth : 71)..." data-target="results-4">
                 </div>
                 <div class="search-results" id="results-4">
                     <em>Ketik kode di atas untuk melihat arti indikator EPS...</em>
@@ -286,7 +286,7 @@
             <div class="page" style="z-index: 5;" data-page="5">
                 <h2 class="page-title">Indikator Immobilizer</h2>
                 <div class="search-box">
-                    <input type="text" class="obd-input" data-category="immobilizer" placeholder="Ketik kode Immobilizer..." data-target="results-5">
+                    <input type="text" class="obd-input" data-category="immobilizer" placeholder="Ketik kode Immobilizer (Cth : 61)..." data-target="results-5">
                 </div>
                 <div class="search-results" id="results-5">
                     <em>Ketik kode di atas untuk melihat arti indikator Immobilizer...</em>
@@ -1127,11 +1127,18 @@
   ]
             },
             immobilizer: {
-                "b2139": [
-                    "ID Mismatch / Key Authentication Failed (Kunci kontak tidak dikenali oleh modul immobilizer)."
-                ],
-                "54": [
-                    "Immobilizer Antenna Coil Malfunction (Antena ring di sekitar rumah kunci kontak rusak atau tidak tersambung)."
+                "61": [
+                    "B2890 - Outside key free antena RH abnormality"
+                    ],
+                "62": [
+                    "B2891 - Outside key free antena LH abnormality"
+                    ],
+                    
+                "63": [
+                    "B2893 - Outside key free antena Back abnormality"
+                    ],
+                "19": [
+                    "B1244 - Auto light and solar radiation sensor abnofmality"
                 ]
             }
         };
