@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>CATATAN AJAIB</title>
+    <title>Catatan ajaib</title>
     <!-- Google Fonts untuk kesan klasik/buku -->
     <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700&family=Merriweather:ital,wght@0,300;0,400;0,700;1,300&family=Poppins:wght@300;400;500&display=swap" rel="stylesheet">
     <style>
@@ -78,7 +78,7 @@
             justify-content: center;
             align-items: center;
             border: 5px solid #8c7355;
-            z-index: 100;
+            z-index: 20;
         }
 
         .cover h1 {
@@ -118,14 +118,16 @@
         h2.page-title {
             font-family: 'Cinzel', serif;
             font-size: 1.5rem;
-            margin-bottom: 20px;
+            margin-bottom: 15px;
             border-bottom: 2px solid #8c7355;
-            padding-bottom: 8px;
+            padding-bottom: 6px;
             color: #3b3024;
+            flex-shrink: 0;
         }
 
         .search-box {
-            margin-bottom: 20px;
+            margin-bottom: 15px;
+            flex-shrink: 0;
         }
 
         .search-box input {
@@ -145,6 +147,7 @@
             box-shadow: 0 0 5px rgba(140, 115, 85, 0.3);
         }
 
+        /* Area Hasil Pencarian */
         .search-results {
             font-family: 'Poppins', sans-serif;
             font-size: 0.95rem;
@@ -152,32 +155,174 @@
             background: #f4efe6;
             padding: 15px;
             border-radius: 6px;
-            min-height: 100px;
             border-left: 4px solid #8c7355;
+            flex-grow: 1;
+            overflow-y: auto;
+            margin-bottom: 15px;
         }
 
-        .search-results p {
-            margin-bottom: 10px;
+        .result-item {
+            padding: 10px 12px;
+            margin-bottom: 8px;
+            background: #fff;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            border: 1px solid #e0d7cb;
         }
 
-        .search-results p:last-child {
+        .result-item:hover {
+            background: #e8dfd1;
+            border-color: #8c7355;
+            transform: translateX(3px);
+        }
+
+        .result-item:last-child {
             margin-bottom: 0;
         }
 
-        /* Halaman Catatan (Notes) */
-        .notes-area {
-            width: 100%;
-            height: 100%;
-            background: transparent;
-            border: none;
-            resize: none;
+        /* Halaman Detail Problem (Disembunyikan dari Navigasi Normal) */
+        .page-detail {
+            display: none; /* Awalnya disembunyikan total */
+        }
+
+        .page-detail.active {
+            display: flex; /* Muncul hanya saat aktif */
+        }
+
+        .detail-container {
+            display: flex;
+            flex-direction: column;
+            flex-grow: 1;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .detail-content {
             font-family: 'Poppins', sans-serif;
             font-size: 0.95rem;
             line-height: 1.8;
+            background: #f4efe6;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #b33939;
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+
+        .btn-back {
+            display: inline-block;
+            background: #8c7355;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            border: none;
+            transition: background 0.2s;
+            flex-shrink: 0;
+            align-self: flex-start;
+        }
+
+        .btn-back:hover {
+            background: #6d583f;
+        }
+
+        /* Styling Halaman Catatan Servis (LocalStorage CRUD) */
+        .note-form {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+            flex-shrink: 0;
+        }
+
+        .note-input, .note-textarea {
+            width: 100%;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.9rem;
+            padding: 8px 12px;
+            border: 1px solid #c7b9a9;
+            border-radius: 4px;
+            background: #fff;
             outline: none;
-            background-image: linear-gradient(#e0d7cb 1px, transparent 1px);
-            background-size: 100% 32px;
-            padding-top: 5px;
+        }
+
+        .note-textarea {
+            resize: none;
+            height: 60px;
+        }
+
+        .btn-save-note {
+            background: #8c7355;
+            color: white;
+            border: none;
+            padding: 8px;
+            border-radius: 4px;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-save-note:hover {
+            background: #6d583f;
+        }
+
+        .notes-list-container {
+            flex-grow: 1;
+            overflow-y: auto;
+            background: #f4efe6;
+            padding: 10px;
+            border-radius: 6px;
+            border-left: 4px solid #8c7355;
+        }
+
+        .note-card {
+            background: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            border: 1px solid #e0d7cb;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .note-card h4 {
+            font-size: 0.95rem;
+            color: #3b3024;
+            margin-bottom: 4px;
+        }
+
+        .note-card p {
+            font-size: 0.85rem;
+            color: #555;
+            margin-bottom: 8px;
+            white-space: pre-line;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-action {
+            font-size: 0.75rem;
+            padding: 3px 8px;
+            border-radius: 3px;
+            border: none;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+        }
+
+        .btn-edit {
+            background: #3498db;
+            color: white;
+        }
+
+        .btn-delete {
+            background: #e74c3c;
+            color: white;
         }
 
         /* Navigasi / Nomor Halaman */
@@ -191,11 +336,28 @@
             color: #888;
             padding-top: 15px;
             border-top: 1px dashed #e0d7cb;
+            flex-shrink: 0;
         }
 
         /* Kelas untuk Halaman yang Telah Dibuka */
         .page.flipped {
             transform: rotateY(-180deg);
+        }
+
+        /* Styling Scrollbar */
+        .search-results::-webkit-scrollbar,
+        .detail-content::-webkit-scrollbar,
+        .notes-list-container::-webkit-scrollbar,
+        .page::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .search-results::-webkit-scrollbar-thumb,
+        .detail-content::-webkit-scrollbar-thumb,
+        .notes-list-container::-webkit-scrollbar-thumb,
+        .page::-webkit-scrollbar-thumb {
+            background-color: #c7b9a9;
+            border-radius: 4px;
         }
 
         /* Responsif untuk Layar HP */
@@ -215,33 +377,48 @@
     <div class="book-container" id="bookContainer">
         <div class="book" id="book">
             
-            <!-- COVER -->
-            <div class="page cover" style="z-index: 10;">
-                <h1>CATATAN<br>AJAIB</h1><br><br><br>
+            <!-- COVER (Hal 0) -->
+            <div class="page cover" data-index="0" style="z-index: 10;">
+                <h1>BUKU<br>CATATAN AJAIB</h1>
                 <div class="motivasi">"Ilmu iku kalakone kanti laku"</div>
                 <div class="instruction">Usap layar ke kanan / ke kiri untuk buka & balik buku</div>
             </div>
 
-            <!-- HALAMAN 1: INDIKATOR ENGINE -->
-            <div class="page" style="z-index: 9;" data-page="1">
+            <!-- HALAMAN 1: INDIKATOR ENGINE (Hal 1) -->
+            <div class="page" data-index="1" style="z-index: 9;">
                 <h2 class="page-title">Indikator Efi</h2>
                 <div class="search-box">
-                    <input type="number" class="obd-input" data-category="engine" placeholder="Ketik kode OBD EFI (Cth : 47)..." data-target="results-1">
+                    <input type="text" class="obd-input" data-category="engine" placeholder="Ketik kode OBD Efi (Contoh: 22, 21)..." data-target="results-1">
                 </div>
                 <div class="search-results" id="results-1">
                     <em>Ketik kode di atas untuk melihat arti indikator Efi...</em>
                 </div>
                 <div class="page-footer">
-                    <span>Efi System</span>
+                    <span>Engine System</span>
                     <span>Hal 1</span>
                 </div>
             </div>
 
-            <!-- HALAMAN 2: INDIKATOR ABS -->
-            <div class="page" style="z-index: 8;" data-page="2">
+            <!-- HALAMAN 1-DETAIL: ENGINE (Disembunyikan secara default) -->
+            <div class="page page-detail" id="detail-page-engine" data-index="2" style="z-index: 8;">
+                <h2 class="page-title" id="detail-title-engine">Uraian Problem Efi</h2>
+                <div class="detail-container">
+                    <div class="detail-content" id="detail-desc-engine">
+                        <em>Memuat uraian...</em>
+                    </div>
+                </div>
+                <button class="btn-back" onclick="closeDetail(1)">← Kembali ke Halaman Efi</button>
+                <div class="page-footer">
+                    <span>Detail Analisa Efi</span>
+                    <span>Hal 1 Detail</span>
+                </div>
+            </div>
+
+            <!-- HALAMAN 2: INDIKATOR ABS (Hal 2) -->
+            <div class="page" data-index="3" style="z-index: 7;">
                 <h2 class="page-title">Indikator ABS</h2>
                 <div class="search-box">
-                    <input type="number" class="obd-input" data-category="abs" placeholder="Ketik kode OBD ABS (Cth : 85)..." data-target="results-2">
+                    <input type="text" class="obd-input" data-category="abs" placeholder="Ketik kode ABS (Contoh: 85, 86)..." data-target="results-2">
                 </div>
                 <div class="search-results" id="results-2">
                     <em>Ketik kode di atas untuk melihat arti indikator ABS...</em>
@@ -252,11 +429,26 @@
                 </div>
             </div>
 
-            <!-- HALAMAN 3: AIRBAG -->
-            <div class="page" style="z-index: 7;" data-page="3">
+            <!-- HALAMAN 2-DETAIL: ABS (Disembunyikan secara default) -->
+            <div class="page page-detail" id="detail-page-abs" data-index="4" style="z-index: 6;">
+                <h2 class="page-title" id="detail-title-abs">Uraian Problem ABS</h2>
+                <div class="detail-container">
+                    <div class="detail-content" id="detail-desc-abs">
+                        <em>Memuat uraian...</em>
+                    </div>
+                </div>
+                <button class="btn-back" onclick="closeDetail(3)">← Kembali ke Halaman ABS</button>
+                <div class="page-footer">
+                    <span>Detail Analisa ABS</span>
+                    <span>Hal 2 Detail</span>
+                </div>
+            </div>
+
+            <!-- HALAMAN 3: AIRBAG (Hal 3) -->
+            <div class="page" data-index="5" style="z-index: 5;">
                 <h2 class="page-title">Indikator Airbag</h2>
                 <div class="search-box">
-                    <input type="number" class="obd-input" data-category="airbag" placeholder="Ketik kode OBD Airbag (Cth : 51)..." data-target="results-3">
+                    <input type="text" class="obd-input" data-category="airbag" placeholder="Ketik kode Airbag (Contoh: 51, 52)..." data-target="results-3">
                 </div>
                 <div class="search-results" id="results-3">
                     <em>Ketik kode di atas untuk melihat arti indikator Airbag...</em>
@@ -267,11 +459,26 @@
                 </div>
             </div>
 
-            <!-- HALAMAN 4: EPS -->
-            <div class="page" style="z-index: 6;" data-page="4">
+            <!-- HALAMAN 3-DETAIL: AIRBAG (Disembunyikan) -->
+            <div class="page page-detail" id="detail-page-airbag" data-index="6" style="z-index: 4;">
+                <h2 class="page-title" id="detail-title-airbag">Uraian Problem Airbag</h2>
+                <div class="detail-container">
+                    <div class="detail-content" id="detail-desc-airbag">
+                        <em>Memuat uraian...</em>
+                    </div>
+                </div>
+                <button class="btn-back" onclick="closeDetail(5)">← Kembali ke Halaman Airbag</button>
+                <div class="page-footer">
+                    <span>Detail Analisa Airbag</span>
+                    <span>Hal 3 Detail</span>
+                </div>
+            </div>
+
+            <!-- HALAMAN 4: EPS (Hal 4) -->
+            <div class="page" data-index="7" style="z-index: 3;">
                 <h2 class="page-title">Indikator EPS</h2>
                 <div class="search-box">
-                    <input type="number" class="obd-input" data-category="eps" placeholder="Ketik kode OBD EPS (Cth : 71)..." data-target="results-4">
+                    <input type="text" class="obd-input" data-category="eps" placeholder="Ketik kode EPS (Contoh: 71, 72)..." data-target="results-4">
                 </div>
                 <div class="search-results" id="results-4">
                     <em>Ketik kode di atas untuk melihat arti indikator EPS...</em>
@@ -282,11 +489,26 @@
                 </div>
             </div>
 
-            <!-- HALAMAN 5: IMMOBILIZER -->
-            <div class="page" style="z-index: 5;" data-page="5">
+            <!-- HALAMAN 4-DETAIL: EPS (Disembunyikan) -->
+            <div class="page page-detail" id="detail-page-eps" data-index="8" style="z-index: 2;">
+                <h2 class="page-title" id="detail-title-eps">Uraian Problem EPS</h2>
+                <div class="detail-container">
+                    <div class="detail-content" id="detail-desc-eps">
+                        <em>Memuat uraian...</em>
+                    </div>
+                </div>
+                <button class="btn-back" onclick="closeDetail(7)">← Kembali ke Halaman EPS</button>
+                <div class="page-footer">
+                    <span>Detail Analisa EPS</span>
+                    <span>Hal 4 Detail</span>
+                </div>
+            </div>
+
+            <!-- HALAMAN 5: IMMOBILIZER (Hal 5) -->
+            <div class="page" data-index="9" style="z-index: 1;">
                 <h2 class="page-title">Indikator Immobilizer</h2>
                 <div class="search-box">
-                    <input type="text" class="obd-input" data-category="immobilizer" placeholder="Ketik kode Immobilizer (Cth : 61)..." data-target="results-5">
+                    <input type="text" class="obd-input" data-category="immobilizer" placeholder="Ketik kode Immobilizer (Contoh: 61, 62)..." data-target="results-5">
                 </div>
                 <div class="search-results" id="results-5">
                     <em>Ketik kode di atas untuk melihat arti indikator Immobilizer...</em>
@@ -297,53 +519,90 @@
                 </div>
             </div>
 
-            <!-- HALAMAN 6: CATATAN 1 -->
-            <div class="page" style="z-index: 4;" data-page="6">
-                <h2 class="page-title">Catatan</h2>
-                <p>Registrasi remote key less manual<br>Pastikan!<br>* Kontak Off<br>* Pintu depan kanan terbuka<br>langkah-langkah<br>1. Colokan OBD<br>2. Tekan tombol star stop (On-Acc-Off-On-Acc-Off)<br>3. Tutup pintu-buka pintu-tutup pintu-buka pintu (respon hazard menyala)<br>4. Tempelkan lambang pada remote ke tombol star stop (CDL bergerak 2x)<br>5. Cabut OBD<br>6. Cek fungsi remote</p>
-                <!--<textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>-->
+            <!-- HALAMAN 5-DETAIL: IMMOBILIZER (Disembunyikan) -->
+            <div class="page page-detail" id="detail-page-immobilizer" data-index="10" style="z-index: 0;">
+                <h2 class="page-title" id="detail-title-immobilizer">Uraian Problem Immobilizer</h2>
+                <div class="detail-container">
+                    <div class="detail-content" id="detail-desc-immobilizer">
+                        <em>Memuat uraian...</em>
+                    </div>
+                </div>
+                <button class="btn-back" onclick="closeDetail(9)">← Kembali ke Halaman Immobilizer</button>
+                <div class="page-footer">
+                    <span>Detail Analisa Immobilizer</span>
+                    <span>Hal 5 Detail</span>
+                </div>
+            </div>
+
+            <!-- HALAMAN 6: CATATAN SERVIS 1 (Hal 6) -->
+            <div class="page" data-index="11">
+                <h2 class="page-title">Catatan 1</h2>
+                <div class="note-form">
+                    <input type="text" id="note-title-6" class="note-input" placeholder="Judul Catatan...">
+                    <textarea id="note-desc-6" class="note-textarea" placeholder="Tulis isi catatan servis..."></textarea>
+                    <button class="btn-save-note" onclick="saveNote(6)">Simpan Catatan Baru</button>
+                </div>
+                <div class="notes-list-container" id="notes-list-6"></div>
                 <div class="page-footer">
                     <span>Catatan Bebas</span>
                     <span>Hal 6</span>
                 </div>
             </div>
 
-            <!-- HALAMAN 7: CATATAN 2 -->
-            <div class="page" style="z-index: 3;" data-page="7">
-                <h2 class="page-title">Catatan</h2>
-                <p>Registrasi Remote kunci manual<br>Pastikan!<br>* Kontak Off<br>* Pintu depan kanan terbuka<br>langkah-langkah<br>1. Cabut kunci kontak<br>2. Cabut soket fuse box (1 menit)<br>3. Sambung soket fuse box<br>4. Colok kunci kontak dan cabut lagi<br>5. Lock-Unlock CDL 3x<br>6. Tutup pintu dan buka lagi (respon Hazard menyala)<br>7. Tekan tahan tombol unlock remote 1 samapai CDL bergerak 2x<br>8. Tekan tahan tombol unlock remote 2 samapai CDL bergerak 2x<br>9. Cek fungsi remote</p>
-                <!--<textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>-->
+            <!-- HALAMAN 7: CATATAN SERVIS 2 (Hal 7) -->
+            <div class="page" data-index="12">
+                <h2 class="page-title">Catatan 2 </h2>
+                <div class="note-form">
+                    <input type="text" id="note-title-7" class="note-input" placeholder="Judul Catatan...">
+                    <textarea id="note-desc-7" class="note-textarea" placeholder="Tulis isi catatan servis..."></textarea>
+                    <button class="btn-save-note" onclick="saveNote(7)">Simpan Catatan Baru</button>
+                </div>
+                <div class="notes-list-container" id="notes-list-7"></div>
                 <div class="page-footer">
                     <span>Catatan Bebas</span>
                     <span>Hal 7</span>
                 </div>
             </div>
 
-            <!-- HALAMAN 8: CATATAN 3 -->
-            <div class="page" style="z-index: 2;" data-page="8">
-                <h2 class="page-title">Catatan</h2>
-                <p>Kode error OBD standard Assembling<br>- EFI ngeblink konstan<br>- Immoby ngeblink konstan<br>- ABS kode 85, 86, 87, 88<br>- Air bag kode 51, 51<br>- TPMS kode 91, 98<br></p>
-                <!--<textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>-->
+            <!-- HALAMAN 8: CATATAN SERVIS 3 (Hal 8) -->
+            <div class="page" data-index="13">
+                <h2 class="page-title">Catatan 3</h2>
+                <div class="note-form">
+                    <input type="text" id="note-title-8" class="note-input" placeholder="Judul Catatan...">
+                    <textarea id="note-desc-8" class="note-textarea" placeholder="Tulis isi catatan servis..."></textarea>
+                    <button class="btn-save-note" onclick="saveNote(8)">Simpan Catatan Baru</button>
+                </div>
+                <div class="notes-list-container" id="notes-list-8"></div>
                 <div class="page-footer">
                     <span>Catatan Bebas</span>
                     <span>Hal 8</span>
                 </div>
             </div>
 
-            <!-- HALAMAN 9: CATATAN 4 -->
-            <div class="page" style="z-index: 1;" data-page="9">
-                <h2 class="page-title">Catatan Servis 4</h2>
-                <textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>
+            <!-- HALAMAN 9: CATATAN SERVIS 4 (Hal 9) -->
+            <div class="page" data-index="14">
+                <h2 class="page-title">Catatan 4</h2>
+                <div class="note-form">
+                    <input type="text" id="note-title-9" class="note-input" placeholder="Judul Catatan...">
+                    <textarea id="note-desc-9" class="note-textarea" placeholder="Tulis isi catatan servis..."></textarea>
+                    <button class="btn-save-note" onclick="saveNote(9)">Simpan Catatan Baru</button>
+                </div>
+                <div class="notes-list-container" id="notes-list-9"></div>
                 <div class="page-footer">
                     <span>Catatan Bebas</span>
                     <span>Hal 9</span>
                 </div>
             </div>
 
-            <!-- HALAMAN 10: CATATAN 5 -->
-            <div class="page" style="z-index: 0;" data-page="10">
-                <h2 class="page-title">Catatan Servis 5</h2>
-                <textarea class="notes-area" placeholder="Tulis catatan penting Anda di sini..."></textarea>
+            <!-- HALAMAN 10: CATATAN SERVIS 5 (Hal 10) -->
+            <div class="page" data-index="15">
+                <h2 class="page-title">Catatan 5</h2>
+                <div class="note-form">
+                    <input type="text" id="note-title-10" class="note-input" placeholder="Judul Catatan...">
+                    <textarea id="note-desc-10" class="note-textarea" placeholder="Tulis isi catatan servis..."></textarea>
+                    <button class="btn-save-note" onclick="saveNote(10)">Simpan Catatan Baru</button>
+                </div>
+                <div class="notes-list-container" id="notes-list-10"></div>
                 <div class="page-footer">
                     <span>Catatan Bebas</span>
                     <span>Hal 10</span>
@@ -354,796 +613,2132 @@
     </div>
 
     <script>
-        // Database Kode OBD yang Diklasifikasikan Berdasarkan Kategori Indikator
+        // Database Kode OBD
         const classifiedDatabase = {
-            engine: {
-                "39": [
-                    "P0010 - IN VVT OCV short/open"
-                ],
-                "59": [
-                    "P0011 - IN VVT - Timing over - Advanced",
-                    "P0012 - IN VVT - Timing over - Retarded"
-                ],
-                "18":[
-                    "P0016 - VVT Correlation"
-                    ],
-                "27":[
-                    "P0037 - Rr 02 heater circuit",
-                    "P0038 - Rr O2 heater over current"
-                    ],
-                "46":[
-                    "P0070 - Outside air temperature sensor"],
-                "31":[
-                    "P0107 - Low/ intake air pressure sensor low",
-                    "P0108 - High/ intake air pressure sensor low"
-                    ],
-                "24":[
-                    "P0112 - Low/Intake air temperature sensor low",
-                    "P0113 - High/Intake air temperature sensor high"
-                    ],
-                "22":[
-                    "P0115 - Engine coolant temperature sensor open",
-                    "P0116 - Engine coolant temperature sensor stack",
-                    "P0117 - Low/Engine coolant temperature sensor low",
-                    "P0118 - High/Engine coolant temperature high ",
-                    "P0642 - CVT sensor power supply system"
-                    ],
-                    "12": [
-"P0340 - Cam sensor position open",
-"P0342 - Low input/Cam sensor position low",
-"P0343 - High input/Cam sensor position high"
-],
-"13": [
-"P0335 - Crank sensor open",
-"P0339 - Crank sensor intermittent"
-],
-"21": [
-"P0135 - A/F sensor heater",
-"P2195 - A/F sensor rationality error lean",
-    "P2196 - A/F sensor rationality error rich",
-    "P2237 - A/F sensor open (B1S1)",
-    "P2238 - A/F sensor + voltage error (B1S1)",
-    "P2239 - A/F sensor + voltage error (B1S1)",
-    "P2252 - A/F sensor - voltage error (B1S1)",
-    "P2253 - A/F sensor - voltage error (B1S1)",
-    "P2A00 - A/F sensor sensor slow response",
-    "P0562 - CVT battery system",
-"P0722 - Transmission output shaft rotation sensor abnormality"
-],
-"25": [
-"P0171 - Fuel system to lean"
-],
-"26": [
-"P0172 - Fuel system to rich"
-],
-"27": [
-"P0136 - RR O2 sensor VA ratio large",
-"P0137 - RR O2 sensor element crack",
-"P0138 - RR O2 sensor short",
-"P0141 - RR O2 sensor heater spec deadline"
-],
-"39": [
-"P0515 - Battery temperature sensor"
-],
-"41": [
-"P0120 - Throttle sensor no.1 open",
-"P0121 - Throttle sensor no.1 out range",
-"P0122 - Throttle sensor no.1 low",
-"P0123 - Throttle sensor no.1 high",
-"P0220 - Throttle sensor no.2 open",
-"P0222 - Throttle sensor no.2 low",
-"P0223 - Throttle sensor no.2 high"
-],
-"42": [
-"P0500 - Vehicle speed sensor"
-],
-"43": [
-"P0617 - Starter relay high"
-],
-"44": [
-"P0535 - A/C evaporator temperature sensor"
-],
-"47": [
-"P0530 - A/C refrigerant pressure sensor"
-],
-"51": [
-"P0504 - Brake switch correlation"
-],
-"52": [
-"P0327 - Sensor 1/Knock sensor low",
-"P0328 - Sensor 1/Knock sensor high"
-],
-"54": [
-"P0575 - C/C stop lamp circuit",
-"P0575 - C/C cancel circuit"
-],
-"83": [
-"P0603 - EEPROM read/write error"
-],
-"89": [
-"P0604 - Normal RAM error",
-"P0606 - Control CPU error",
-"P060A - Monitoring CPU error",
-"P060B - A/D processing circuit error",
-"P060D - Accelerator sensor circuit error",
-"P060E - Throttle /brake switch circuit error",
-"P062F - EEPORM error",
-    "P102D - O2 sensor heater",
-    "P1607 - Cruise control CPU error",
-    "P2118 - Throttle actuator supply voltage error",
-    "P2119 - Throttle control system error",
-    "U0164 - Lost communication with auto A/C ECU",
-"U0129 - ABS reception fail",
-"P0657 - Actuator supply voltage circuit error"
-],
-"93": [
-"P0300 - Random cylinder misfire detected",
-"P0301 - Cylinder 1 misfire detected",
-"P0302 - Cylinder 2 misfire detected",
-"P0303 - Cylinder 3 misfire detected",
-"P0304 - Cylinder 4 misfire detected"
-],
-"94": [
-"P0420 - Bank 1/ Catalyst deterioration",
-"P0443 - Purge control valve"
-],
-"95": [
-"P0572 - Brake pedal switch low",
-"P0573 - Brake pedal switch high",
-"P0724 - Brake switch"
-],
-"96": [
-"P0560 - Battery voltage"
-],
-"97": [
-"P0200 - Random injector",
-"PO201 - Cylinder #10 injector",
-"PO202 - Cylinder #20 injector",
-"PO203 - Cylinder #30 injector",
-"PO204 - Cylinder #40 injector"
-],
-"98": [
-"P0557 - Brake booster sensor low",
-"P0558 - Brake booster sensor high"
-],
-
-  "55": [
-    "P1546 - Starter control output"
-  ],
-  "A7": [
-    "P1550 - Battery current sensor",
-    "P161A - Alternator LIN communication error"
-  ],
+engine: {
   "00": [
-    "P1603 - Engine stall",
-    "P1604 - Engine start defect",
-    "P1605 - Iddle speed unstable"
-  ],
-  "41": [
-    "P2102 - Throttle motor low",
-    "P2103 - Throttle motor high",
-    "P2111 - Throttle control system stuck open",
-    "P2112 - Throttle control system stuck close",
-    "P2135 - Throttle sensor No.1/2 correlation"
-  ],
-  "B9": [
-    "P2109 - Throttle sensor/motor performance"
-  ],
-  "19": [
-    "P2120 - Acceleration sensor No.1 open",
-    "P2121 - Acceleration sensor out of range",
-    "P2122 - Acceleration sensor No.1 low",
-    "P2123 - Acceleration sensor No.1 high",
-    "P2125 - Acceleration sensor No.2 open",
-    "P2127 - Acceleration sensor No.2 low",
-    "P2128 - Acceleration sensor No.2 high",
-    "P2138 - Acceleration sensor No.1/2 correlation"
-  ],
-  "A5": [
-    "P2226 - Atmospheric pressure sensor"
-  ],
-  "98": [
-    "C1263 - Ejector VSV high",
-    "C1264 - Ejector VSV low"
-  ],
-  "A2": [
-    "U0129 - Lost communication with brake ECU",
-    "U0155 - Lost communication with meter ECU"
-  ],
-  "8E": [
-    "U0142 - Lost communication with body ECU"
-  ],
-  "8D": [
-    "U0151 - Lost communication with A/B ECU"
-  ],
-  "8A": [
-    "U0166 - Lost communication with PTC ECU"
-  ],
-  "81": [
-    "U0167 - Lost communication with immobilizer"
-  ],
-  "8C": [
-    "U0235 - Lost communication with SCM ECU"
-  ],
-  "37": [
-    "P0500 - CVT vehicle speed siignal"
-  ],
-
-  "56": [
-    "P0705 - CVT shift position multiple"
-  ],
-  "38": [
-    "P0712 - CVT oil temperature sensor low"
-  ],
-  "38": [
-    "P0713 - CVT oil temperature sensor high"
-  ],
-  "72": [
-    "P0741 - CVT lock up system"
-  ],
-  "63": [
-    "P2759 - CVT SL 1 solenoid",
-    "P2759 - SL 1 solenoid fail"
-  ],
-  "64": [
-    "P0778 - CVT SL 2 solenoid"
-  ],
-  "39": [
-    "P0841 - CVT sec oil pressure sensor",
-    "P0842 - CVT sec oil pressure sensor low",
-    "P0843 - CVT sec oil pressure sensor high"
-  ],
-  "31": [
-    "P084B - CVT pri oil pressure sensor",
-    "P084C - CVT pri oil pressure sensor low",
-    "P084D - CVT pri oil pressure sensor high"
-  ],
-  "66": [
-    "P099B - CVT SR solenoid low",
-    "P099C - CVT SR solenoid high"
-  ],
-  "42": [
-    "P2747 - CVT sec rotation sensor"
-  ],
-  "41": [
-    "P2767 - CVT pri rotation sensor"
-  ],
-  "65": [
-    "P2764 - CVT DSU solenoid low",
-    "P2763 - CVT DSU solenoid high"
-  ],
-  "61": [
-    "P2822 - CVT SLP solenoid"
-  ],
-  "62": [
-    "P282B - CVT SLS solenoid"
-  ],
-  "57": [
-    "P0957 - CVT manual mode SW fail (manual mode SW has been set)"
-  ],
-  "35": [
-    "P1585 - G sensor failure"
-  ],
-  "33": [
-    "P1749 - ABS (VSC) speed abnormality"
-  ],
-  "74": [
-    "P2874 - Forward clutch (C2) ON control failure"
-  ],
-  "75": [
-    "P2875 - Forward clutch (C1) ON control failure"
-  ],
-  "76": [
-    "P2876 - Reverse brake ON control failure"
-  ],
-  "77": [
-    "P2877 - Forward clutch (C2) OFF control failure"
-  ],
-  "78": [
-    "P2878 - Forward clutch (C1) OFF control failure"
-  ],
-  "79": [
-    "P2879 - Reverse brake OFF control failure"
-  ],
-  "71": [
-    "P287A - Shift control error"
-  ],
-  "36": [
-    "P0218 - ATF oil temperature abnormality (high oil temperature failure)"
-  ],
-  "58": [
-    "P0828 - Up/down SW fail (when there is up/down SW)"
-  ],
-  "73": [
-    "P287B - Clutch switching failure"
-  ],
-  "82": [
-    "U0100 - EFI receive failover"
-  ],
-  "84": [
-    "U1103 - Inter-run reception fail"
-  ],
-  "-": [
-    "P16A1 - High load detection of CVT"
-  ]
-
-            },
-            abs: {
-"11": [
-    "C0278 - Disconnection of solenoid relay"
+    {
+      summary: "P1603 - Engine stall (Mesin sering mati sendiri).",
+      title: "Analisa Uraian: Mesin Terhenti",
+      description: "Sistem mendeteksi terjadinya engine stall atau mesin mati secara tidak terduga selama operasional."
+    },
+    {
+      summary: "P1604 - Engine start defect (Kegagalan atau kesulitan saat menghidupkan mesin).",
+      title: "Analisa Uraian: Kegagalan Starter Mesin",
+      description: "Mesin mengalami kendala atau kesulitan saat proses cranking/starting."
+    },
+    {
+      summary: "P1605 - Idle speed unstable (Putaran stasioner/langsam mesin tidak stabil).",
+      title: "Analisa Uraian: Putaran Idle Tidak Stabil",
+      description: "RPM mesin pada posisi idle atau langsir berfluktuasi secara tidak normal."
+    }
   ],
   "12": [
-    "C0279 - Short circuit of solenoid relay"
+    {
+      summary: "P0340 - Cam sensor position open (Sinyal sensor posisi camshaft terputus).",
+      title: "Analisa Uraian: Pemutusan Sensor Camshaft",
+      description: "Jalur rangkaian atau sensor posisi poros noken as (camshaft) mengalami pemutusan sirkuit."
+    },
+    {
+      summary: "P0342 - Low input/Cam sensor position low (Input tegangan sensor posisi camshaft rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Camshaft",
+      description: "Tegangan sinyal dari sensor posisi camshaft terbaca terlalu rendah oleh modul."
+    },
+    {
+      summary: "P0343 - High input/Cam sensor position high (Input tegangan sensor posisi camshaft tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sensor Camshaft",
+      description: "Tegangan sinyal dari sensor posisi camshaft terbaca terlalu tinggi oleh modul."
+    }
   ],
   "13": [
-    "C0273 - Disconnection / Short circuit of motor relay"
-  ],
-  "14": [
-    "C0273 - Disconnection / Short circuit of motor relay"
-  ],
-  "15": [
-    "C1241 - Voltage drop / Over voltage of power source"
-  ],
-  "16": [
-    "C1241 - Voltage drop / Over voltage of power source",
-    "C1241 - Voltage drop / Over voltage of power source"
+    {
+      summary: "P0335 - Crank sensor open (Sinyal sensor posisi crankshaft terputus).",
+      title: "Analisa Uraian: Pemutusan Sensor Crankshaft",
+      description: "Jalur rangkaian atau sensor posisi poros engkol (crankshaft) mengalami pemutusan sirkuit."
+    },
+    {
+      summary: "P0339 - Crank sensor intermittent (Sinyal sensor crankshaft terputus-putus/intermiten).",
+      title: "Analisa Uraian: Sinyal Crankshaft Intermiten",
+      description: "Sinyal putaran poros engkol yang dikirimkan ke ECU terputus-putus atau tidak konsisten."
+    }
   ],
   "18": [
-    "C1361 - Short circuit of failsafe relay"
+    {
+      summary: "P0016 - VVT Correlation (Korelasi timing VVT antara poros engkol dan noken as tidak sinkron).",
+      title: "Analisa Uraian: Ketidaksinkronan Korelasi VVT",
+      description: "Posisi antara camshaft dan crankshaft tidak sesuai dengan parameter standar (kemungkinan loncat rantai/timing)."
+    }
   ],
   "19": [
-    "U0126 - Communication failure of steering angle sensor"
+    {
+      summary: "P2120 - Acceleration sensor No.1 open (Sensor akselerasi pedal gas No.1 terputus).",
+      title: "Analisa Uraian: Pemutusan Sensor Akselerasi No.1",
+      description: "Jalur sirkuit pada sensor posisi pedal gas (APPS) saluran 1 mengalami pemutusan."
+    },
+    {
+      summary: "P2121 - Acceleration sensor out of range (Sensor akselerasi pedal gas di luar rentang normal).",
+      title: "Analisa Uraian: Sensor Akselerasi Di Luar Rentang",
+      description: "Nilai tegangan atau output dari sensor pedal gas berada di luar spesifikasi operasional normal."
+    },
+    {
+      summary: "P2122 - Acceleration sensor No.1 low (Input sensor akselerasi No.1 rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Akselerasi No.1",
+      description: "Tegangan input dari sensor pedal gas saluran 1 terlalu rendah."
+    },
+    {
+      summary: "P2123 - Acceleration sensor No.1 high (Input sensor akselerasi No.1 tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sensor Akselerasi No.1",
+      description: "Tegangan input dari sensor pedal gas saluran 1 terlalu tinggi."
+    },
+    {
+      summary: "P2125 - Acceleration sensor No.2 open (Sensor akselerasi pedal gas No.2 terputus).",
+      title: "Analisa Uraian: Pemutusan Sensor Akselerasi No.2",
+      description: "Jalur sirkuit pada sensor posisi pedal gas (APPS) saluran 2 mengalami pemutusan."
+    },
+    {
+      summary: "P2127 - Acceleration sensor No.2 low (Input sensor akselerasi No.2 rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Akselerasi No.2",
+      description: "Tegangan input dari sensor pedal gas saluran 2 terlalu rendah."
+    },
+    {
+      summary: "P2128 - Acceleration sensor No.2 high (Input sensor akselerasi No.2 tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sensor Akselerasi No.2",
+      description: "Tegangan input dari sensor pedal gas saluran 2 terlalu tinggi."
+    },
+    {
+      summary: "P2138 - Acceleration sensor No.1/2 correlation (Korelasi antara sensor akselerasi No.1 dan No.2 tidak sinkron).",
+      title: "Analisa Uraian: Ketidaksinkronan Sensor Akselerasi",
+      description: "Terdapat selisih pembacaan yang tidak wajar antara sensor pedal gas 1 dan 2."
+    }
   ],
   "21": [
-    "C0200 - Disconnection / Short circuit / Power source failure of FR wheel speed sensor"
+    {
+      summary: "P0135 - A/F sensor heater (Gangguan pada pemanas sensor Air-Fuel ratio).",
+      title: "Analisa Uraian: Pemanas Sensor A/F",
+      description: "Sirkuit pemanas internal pada sensor rasio udara-bahan bakar (A/F sensor) mengalami gangguan."
+    },
+    {
+      summary: "P0722 - Transmission output shaft rotation sensor abnormality (Kelainan pada sensor putaran poros output transmisi).",
+      title: "Analisa Uraian: Kelainan Sensor Output Transmisi",
+      description: "Sensor kecepatan putar poros output transmisi tidak mengirimkan sinyal yang valid."
+    },
+    {
+      summary: "P2195 - A/F sensor rationality error lean (Rasio A/F terdeteksi terlalu miskin / lean).",
+      title: "Analisa Uraian: Rasio A/F Terdeteksi Miskin",
+      description: "Sensor A/F mendeteksi campuran bahan bakar dan udara terlalu miskin secara terus-menerus."
+    },
+    {
+      summary: "P2196 - A/F sensor rationality error rich (Rasio A/F terdeteksi terlalu kaya / rich).",
+      title: "Analisa Uraian: Rasio A/F Terdeteksi Kaya",
+      description: "Sensor A/F mendeteksi campuran bahan bakar dan udara terlalu kaya secara terus-menerus."
+    },
+    {
+      summary: "P2237 - A/F sensor open (B1S1) (Sirkuit sensor A/F terbuka pada Bank 1 Sensor 1).",
+      title: "Analisa Uraian: Pemutusan Sirkuit Sensor A/F B1S1",
+      description: "Jalur kabel sirkuit sensor A/F utama mengalami pemutusan."
+    },
+    {
+      summary: "P2238 - A/F sensor + voltage error (B1S1) (Kesalahan tegangan positif sensor A/F B1S1).",
+      title: "Analisa Uraian: Kesalahan Tegangan Positif A/F B1S1",
+      description: "Terdeteksi tegangan abnormal pada jalur positif sensor A/F."
+    },
+    {
+      summary: "P2239 - A/F sensor + voltage error (B1S1) (Kesalahan tegangan positif sensor A/F B1S1).",
+      title: "Analisa Uraian: Kesalahan Tegangan Positif A/F B1S1",
+      description: "Terdeteksi tegangan abnormal pada jalur positif sensor A/F."
+    },
+    {
+      summary: "P2252 - A/F sensor - voltage error (B1S1) (Kesalahan tegangan negatif sensor A/F B1S1).",
+      title: "Analisa Uraian: Kesalahan Tegangan Negatif A/F B1S1",
+      description: "Terdeteksi tegangan abnormal pada jalur negatif sensor A/F."
+    },
+    {
+      summary: "P2253 - A/F sensor - voltage error (B1S1) (Kesalahan tegangan negatif sensor A/F B1S1).",
+      title: "Analisa Uraian: Kesalahan Tegangan Negatif A/F B1S1",
+      description: "Terdeteksi tegangan abnormal pada jalur negatif sensor A/F."
+    },
+    {
+      summary: "P2A00 - A/F sensor sensor slow response (Respons sensor A/F lambat).",
+      title: "Analisa Uraian: Respons Lambat Sensor A/F",
+      description: "Sensor A/F membutuhkan waktu terlalu lama untuk merespons perubahan campuran bahan bakar."
+    },
+    {
+      summary: "P0562 - CVT battery system (Tegangan sistem aki pada modul CVT rendah).",
+      title: "Analisa Uraian: Tegangan Sistem Aki CVT Rendah",
+      description: "Tegangan catu daya yang masuk ke sistem komputer CVT terdeteksi drop."
+    }
   ],
   "22": [
-    "C0205 - Disconnection / Short circuit / Power source failure of FL wheel speed sensor"
-  ],
-  "23": [
-    "C0210 - Disconnection / Short circuit / Power source failure of RR wheel speed sensor"
+    {
+      summary: "P0115 - Engine coolant temperature sensor open (Sensor suhu cairan pendingin mesin terputus).",
+      title: "Analisa Uraian: Pemutusan Sensor Suhu Pendingin",
+      description: "Jalur rangkaian sensor suhu cairan pendingin mesin (ECT) mengalami pemutusan."
+    },
+    {
+      summary: "P0116 - Engine coolant temperature sensor stack (Masalah kinerja rentang sensor suhu cairan pendingin).",
+      title: "Analisa Uraian: Masalah Kinerja Sensor Suhu Pendingin",
+      description: "Pembacaan suhu cairan pendingin mesin tidak sesuai dengan parameter pemanasan normal."
+    },
+    {
+      summary: "P0117 - Low/Engine coolant temperature sensor low (Input sensor suhu cairan pendingin rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Suhu Pendingin",
+      description: "Tegangan sinyal dari sensor ECT terbaca terlalu rendah."
+    },
+    {
+      summary: "P0118 - High/Engine coolant temperature high (Input/Suhu cairan pendingin mesin terlalu tinggi).",
+      title: "Analisa Uraian: Suhu Pendingin Mesin Terlalu Tinggi",
+      description: "Sinyal sensor menunjukkan suhu cairan pendingin mesin melewati batas normal (overheat)."
+    },
+    {
+      summary: "P0642 - CVT sensor power supply system (Kesalahan sistem catu daya sensor CVT).",
+      title: "Analisa Uraian: Kegagalan Catu Daya Sensor CVT",
+      description: "Sumber tegangan referensi yang mensuplai sensor-sensor pada sistem transmisi CVT mengalami gangguan."
+    }
   ],
   "24": [
-    "C0215 - Disconnection / Short circuit / Power source failure of RL wheel speed sensor"
+    {
+      summary: "P0112 - Low/Intake air temperature sensor low (Input sensor suhu udara masuk rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Suhu Udara Masuk",
+      description: "Tegangan sinyal dari sensor Intake Air Temperature (IAT) terbaca terlalu rendah."
+    },
+    {
+      summary: "P0113 - High/Intake air temperature sensor high (Input sensor suhu udara masuk tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sensor Suhu Udara Masuk",
+      description: "Tegangan sinyal dari sensor Intake Air Temperature (IAT) terbaca terlalu tinggi."
+    }
   ],
   "25": [
-    "C1235 - Revolution failure / ABS continous operating failure of FR wheel speed sensor"
+    {
+      summary: "P0171 - Fuel system to lean (Sistem bahan bakar terlalu miskin / lean).",
+      title: "Analisa Uraian: Campuran Bahan Bakar Terlalu Miskin",
+      description: "Jumlah bahan bakar yang disuplai terlalu sedikit dibandingkan udara (kondisi lean)."
+    }
   ],
   "26": [
-    "C1236 - Revolution failure / ABS continous operating failure of FL wheel speed sensor"
+    {
+      summary: "P0172 - Fuel system to rich (Sistem bahan bakar terlalu kaya / rich).",
+      title: "Analisa Uraian: Campuran Bahan Bakar Terlalu Kaya",
+      description: "Jumlah bahan bakar yang disuplai terlalu banyak dibandingkan udara (kondisi rich)."
+    }
   ],
   "27": [
-    "C1238 - Revolution failure / ABS continous operating failure of RR wheel speed sensor"
-  ],
-  "28": [
-    "C1239 - Revolution failure / ABS continous operating failure of RL wheel speed sensor"
-  ],
-  "29": [
-    "C1237 - Revolution failure / ABS continous operating failure of unspecified wheel speed sensor"
+    {
+      summary: "P0037 - Rr O2 heater circuit (Gangguan sirkuit pemanas sensor O2 belakang).",
+      title: "Analisa Uraian: Sirkuit Pemanas O2 Belakang",
+      description: "Sirkuit pemanas sensor oksigen belakang (Rear O2 sensor heater) mengalami gangguan."
+    },
+    {
+      summary: "P0038 - Rr O2 heater over current (Kelebihan arus pada pemanas sensor O2 belakang).",
+      title: "Analisa Uraian: Arus Berlebih Pemanas O2 Belakang",
+      description: "Terdeteksi aliran arus listrik yang berlebihan pada pemanas sensor oksigen belakang."
+    },
+    {
+      summary: "P0136 - RR O2 sensor VA ratio large (Rasio tegangan sensor O2 belakang terlalu besar).",
+      title: "Analisa Uraian: Rasio Sensor O2 Belakang Besar",
+      description: "Output tegangan dari sensor oksigen belakang menunjukkan rasio yang tidak normal."
+    },
+    {
+      summary: "P0137 - RR O2 sensor element crack (Retak pada elemen sensor O2 belakang).",
+      title: "Analisa Uraian: Elemen Sensor O2 Belakang Retak",
+      description: "Sensor oksigen bagian belakang mengalami kerusakan struktural pada elemen pembacaannya."
+    },
+    {
+      summary: "P0138 - RR O2 sensor short (Korsleting pada sensor O2 belakang).",
+      title: "Analisa Uraian: Korsleting Sensor O2 Belakang",
+      description: "Terjadi hubungan pendek arus listrik pada jalur sensor oksigen belakang."
+    },
+    {
+      summary: "P0141 - RR O2 sensor heater spec deadline (Batas spesifikasi pemanas sensor O2 belakang terlampaui).",
+      title: "Analisa Uraian: Kegagalan Pemanas Sensor O2 Belakang",
+      description: "Pemanas sensor oksigen belakang gagal mencapai atau mempertahankan spesifikasi kerja."
+    }
   ],
   "31": [
-    "C1245 - Output failure longitudinal acceleration sensor"
-  ],
-  "32": [
-    "C1244 - Disconnection / Short circuit / Communication failure of longitudinal acceleration sensor"
+    {
+      summary: "P0107 - Low/ intake air pressure sensor low (Input sensor tekanan udara masuk rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Tekanan Udara Masuk",
+      description: "Tegangan dari sensor tekanan manifold (MAP sensor) terbaca terlalu rendah."
+    },
+    {
+      summary: "P0108 - High/ intake air pressure sensor low (Input sensor tekanan udara masuk tinggi/kesalahan).",
+      title: "Analisa Uraian: Input Tinggi Sensor Tekanan Udara Masuk",
+      description: "Tegangan dari sensor tekanan manifold (MAP sensor) terbaca terlalu tinggi."
+    },
+    {
+      summary: "P084B - CVT pri oil pressure sensor (Gangguan sensor tekanan oli primer CVT).",
+      title: "Analisa Uraian: Sensor Tekanan Oli Primer CVT",
+      description: "Sensor tekanan oli pada sisi primer transmisi CVT mengalami gangguan sinyal."
+    },
+    {
+      summary: "P084C - CVT pri oil pressure sensor low (Input sensor tekanan oli primer CVT rendah).",
+      title: "Analisa Uraian: Input Rendah Tekanan Oli Primer CVT",
+      description: "Tegangan sinyal dari sensor tekanan oli primer CVT terbaca terlalu rendah."
+    },
+    {
+      summary: "P084D - CVT pri oil pressure sensor high (Input sensor tekanan oli primer CVT tinggi).",
+      title: "Analisa Uraian: Input Tinggi Tekanan Oli Primer CVT",
+      description: "Tegangan sinyal dari sensor tekanan oli primer CVT terbaca terlalu tinggi."
+    }
   ],
   "33": [
-    "C0365 - Failure of lateral acceleration sensor"
+    {
+      summary: "P1749 - ABS (VSC) speed abnormality (Kelainan kecepatan dari sistem ABS/VSC ke transmisi).",
+      title: "Analisa Uraian: Kelainan Kecepatan ABS/VSC",
+      description: "Data kecepatan kendaraan yang dikirim dari sistem rem ABS/VSC mengalami anomali."
+    }
   ],
   "35": [
-    "C1233 - Failure of yaw late sensor"
+    {
+      summary: "P1585 - G sensor failure (Kegagalan G-sensor / sensor akselerasi vertikal/lateral).",
+      title: "Analisa Uraian: Kegagalan G-Sensor",
+      description: "Sensor gravitasi atau akselerasi (G-sensor) mengalami kerusakan fungsi."
+    }
   ],
   "36": [
-    "U0123 - Communication failure of yaw late sensor"
+    {
+      summary: "P0218 - ATF oil temperature abnormality (high oil temperature failure) (Suhu oli transmisi/ATF terlalu panas).",
+      title: "Analisa Uraian: Suhu Oli ATF Terlalu Tinggi",
+      description: "Sistem mendeteksi suhu cairan transmisi (ATF/CVT fluid) melebihi batas operasional aman."
+    }
   ],
   "37": [
-    "C1231 - Disconnection/short circuit of steering angle sensor, failure of steering angle sensor"
+    {
+      summary: "P0500 - CVT vehicle speed signal (Kesalahan sinyal kecepatan kendaraan pada CVT).",
+      title: "Analisa Uraian: Kesalahan Sinyal Kecepatan CVT",
+      description: "Modul CVT tidak menerima informasi kecepatan kendaraan yang akurat."
+    }
   ],
   "38": [
-    "C1381 - Power source failure of yaw late sensor and lateral acceleration sensor"
+    {
+      summary: "P0712 - CVT oil temperature sensor low (Input sensor suhu oli CVT rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Suhu Oli CVT",
+      description: "Tegangan sensor suhu oli transmisi CVT terbaca terlalu rendah."
+    },
+    {
+      summary: "P0713 - CVT oil temperature sensor high (Input sensor suhu oli CVT tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sensor Suhu Oli CVT",
+      description: "Tegangan sensor suhu oli transmisi CVT terbaca terlalu tinggi."
+    }
   ],
   "39": [
-    "C1249 - Disconnection of stop switch"
+    {
+      summary: "P0010 - IN VVT OCV short/open (Korsleting atau pemutusan sirkuit Oil Control Valve VVT masuk).",
+      title: "Analisa Uraian: Masalah Sirkuit OCV VVT Masuk",
+      description: "Katup kontrol oli (OCV) untuk VVT sisi intake mengalami korsleting atau terputus."
+    },
+    {
+      summary: "P0515 - Battery temperature sensor (Gangguan pada sensor suhu aki).",
+      title: "Analisa Uraian: Gangguan Sensor Suhu Aki",
+      description: "Sensor yang memantau temperatur baterai/aki mengalami kegagalan."
+    },
+    {
+      summary: "P0841 - CVT sec oil pressure sensor (Gangguan sensor tekanan oli sekunder CVT).",
+      title: "Analisa Uraian: Sensor Tekanan Oli Sekunder CVT",
+      description: "Sensor tekanan oli pada sisi sekunder transmisi CVT mengalami gangguan kinerja."
+    },
+    {
+      summary: "P0842 - CVT sec oil pressure sensor low (Input sensor tekanan oli sekunder CVT rendah).",
+      title: "Analisa Uraian: Input Rendah Tekanan Oli Sekunder CVT",
+      description: "Tegangan sinyal dari sensor tekanan oli sekunder CVT terbaca terlalu rendah."
+    },
+    {
+      summary: "P0843 - CVT sec oil pressure sensor high (Input sensor tekanan oli sekunder CVT tinggi).",
+      title: "Analisa Uraian: Input Tinggi Tekanan Oli Sekunder CVT",
+      description: "Tegangan sinyal dari sensor tekanan oli sekunder CVT terbaca terlalu tinggi."
+    }
   ],
   "41": [
-    "C1202 - Master reservoir level failure/Communication failure of meter/Communication failure of body ECU"
+    {
+      summary: "P0120 - Throttle sensor no.1 open (Sensor posisi katup gas No.1 terputus).",
+      title: "Analisa Uraian: Pemutusan Sensor Throttle No.1",
+      description: "Jalur rangkaian sensor posisi throttle (TPS) saluran 1 mengalami pemutusan."
+    },
+    {
+      summary: "P0121 - Throttle sensor no.1 out range (Sensor posisi katup gas No.1 di luar rentang).",
+      title: "Analisa Uraian: Sensor Throttle No.1 Di Luar Rentang",
+      description: "Nilai output sensor TPS saluran 1 tidak sesuai dengan bukaan pedal gas."
+    },
+    {
+      summary: "P0122 - Throttle sensor no.1 low (Input sensor posisi katup gas No.1 rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Throttle No.1",
+      description: "Tegangan input dari sensor TPS saluran 1 terbaca terlalu rendah."
+    },
+    {
+      summary: "P0123 - Throttle sensor no.1 high (Input sensor posisi katup gas No.1 tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sensor Throttle No.1",
+      description: "Tegangan input dari sensor TPS saluran 1 terbaca terlalu tinggi."
+    },
+    {
+      summary: "P0220 - Throttle sensor no.2 open (Sensor posisi katup gas No.2 terputus).",
+      title: "Analisa Uraian: Pemutusan Sensor Throttle No.2",
+      description: "Jalur rangkaian sensor posisi throttle (TPS) saluran 2 mengalami pemutusan."
+    },
+    {
+      summary: "P0222 - Throttle sensor no.2 low (Input sensor posisi katup gas No.2 rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Throttle No.2",
+      description: "Tegangan input dari sensor TPS saluran 2 terbaca terlalu rendah."
+    },
+    {
+      summary: "P0223 - Throttle sensor no.2 high (Input sensor posisi katup gas No.2 tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sensor Throttle No.2",
+      description: "Tegangan input dari sensor TPS saluran 2 terbaca terlalu tinggi."
+    },
+    {
+      summary: "P2102 - Throttle motor low (Arus motor throttle terdeteksi rendah).",
+      title: "Analisa Uraian: Arus Motor Throttle Rendah",
+      description: "Sirkuit motor penggerak katup gas (throttle actuator) mengalami penurunan arus atau hambatan."
+    },
+    {
+      summary: "P2103 - Throttle motor high (Arus motor throttle terdeteksi tinggi / korsleting).",
+      title: "Analisa Uraian: Arus Motor Throttle Tinggi",
+      description: "Terdeteksi arus berlebih atau korsleting pada sirkuit motor penggerak throttle."
+    },
+    {
+      summary: "P2111 - Throttle control system stuck open (Sistem kontrol throttle macet terbuka).",
+      title: "Analisa Uraian: Throttle Macet Terbuka",
+      description: "Katup gas tersangkut pada posisi terbuka dan tidak merespons perintah tutup."
+    },
+    {
+      summary: "P2112 - Throttle control system stuck close (Sistem kontrol throttle macet tertutup).",
+      title: "Analisa Uraian: Throttle Macet Tertutup",
+      description: "Katup gas tersangkut pada posisi tertutup dan tidak merespons perintah buka."
+    },
+    {
+      summary: "P2135 - Throttle sensor No.1/2 correlation (Korelasi sensor posisi katup gas No.1 dan No.2 tidak sinkron).",
+      title: "Analisa Uraian: Ketidaksinkronan Sensor Throttle",
+      description: "Terdapat selisih pembacaan yang tidak wajar antara sensor TPS 1 dan TPS 2."
+    },
+    {
+      summary: "P2767 - CVT pri rotation sensor (Gangguan sensor putaran primer CVT).",
+      title: "Analisa Uraian: Sensor Putaran Primer CVT",
+      description: "Sensor yang memantau kecepatan putar poros primer transmisi CVT mengalami gangguan."
+    }
+  ],
+  "42": [
+    {
+      summary: "P0500 - Vehicle speed sensor (Gangguan pada sensor kecepatan kendaraan).",
+      title: "Analisa Uraian: Gangguan Sensor Kecepatan Kendaraan",
+      description: "Modul tidak menerima sinyal kecepatan kendaraan dari sensor transmisi/roda."
+    },
+    {
+      summary: "P2747 - CVT sec rotation sensor (Gangguan sensor putaran sekunder CVT).",
+      title: "Analisa Uraian: Sensor Putaran Sekunder CVT",
+      description: "Sensor yang memantau kecepatan putar poros sekunder transmisi CVT mengalami gangguan."
+    }
   ],
   "43": [
-    "C1246 - Disconnect/short circuit/output failure of M/C pressure sensor"
-  ],
-  "49": [
-    "U0100 - Communication failure of EFI ECU"
-  ],
-  "51": [
-    "C1251 - No rotate failure/Disconnection of motor"
-  ],
-  "52": [
-    "C0226 - Failure of ABS solenoid FR"
-  ],
-  "54": [
-    "C0236 - Failure of ABS solenoids FL"
-  ],
-  "56": [
-    "C0246 - Failure of ABS solenoid RR"
-  ],
-  "58": [
-    "C0256 - Failure of ABS solenoid RL"
-  ],
-  "61": [
-    "C1225 - Disconnection/short circuit of master cut solenoid"
-  ],
-  "62": [
-    "C13A2 - Failure of ignition switch"
-  ],
-  "63": [
-    "C1227 - Disconnection/short circuit of reservoir cut solenoid"
-  ],
-  "64": [
-    "C1320 - Failure of absorbing solenoid"
-  ],
-  "65": [
-    "C13A5 - Failure of motor current monitor"
-  ],
-  "66": [
-    "C1380 - Failure of stop lamp relay"
-  ],
-  "67": [
-    "C13A6 - Failure of motor disconnection/short circuit"
-  ],
-  "68": [
-    "C13A7 - Actuator failure"
-  ],
-  "69": [
-    "C13AA - High temperature detection"
-  ],
-  "71": [
-    "C13B0 - ECU internal failure"
-  ],
-  "72": [
-    "C13B4 - Failure of EPB SW disconnection/short"
-  ],
-  "73": [
-    "C1207 - Failure of shift signal/communication failure of transmission ECU",
-    "C1207 - Failure of shift signal/communication failure of transmission ECU"
-  ],
-  "74": [
-    "U0293 - Communication failure of HV ECU"
-  ],
-  "75": [
-    "U0155 - Communication failure of meter"
-  ],
-  "76": [
-    "U1101 - Communication failure of inter vehicle ECU"
-  ],
-  "77": [
-    "C1300 - ECU internal failure"
-  ],
-  "78": [
-    "C1203 - Communication failure of EFI/ECT ECU/Identifying signal failure"
-  ],
-  "79": [
-    "U0073 - CAN communication failure"
-  ],
-  "81": [
-    "C1271 - Incomplete of output signal check of FR wheel speed sensor"
-  ],
-  "82": [
-    "C1272 - Incomplete of output signal check of FL wheel speed sensor"
-  ],
-  "83": [
-    "C1273 - Incomplete of output signal check of RR wheel speed sensor"
-  ],
-  "84": [
-    "C1274 - Incomplete of output signal check of RL wheel speed sensor"
-  ],
-  "85": [
-    "C1275 - Incomplete of revolution check of FR wheel speed sensor"
-  ],
-  "86": [
-    "C1276 - Incomplete of revolution check of FL wheel speed sensor"
-  ],
-  "87": [
-    "C1277 - Incomplete of revolution check of RR wheel speed sensor"
-  ],
-  "88": [
-    "C1278 - Incomplete of revolution check of RL wheel speed sensor"
-  ],
-  "89": [
-    "C1270 - Incomplete of system information recording"
-  ],
-  "91": [
-    "C1279 - Incomplete of output signal check of longitudinal acceleration sensor"
-  ],
-  "92": [
-    "C1322 - Incomplete of output signal check of lateral acceleration sensor",
-    "C1322 - Incomplete of output signal check of lateral acceleration sensor"
-  ],
-  "93": [
-    "C1210 - Incomplete of offset recording of acceleration sensor"
-  ],
-  "94": [
-    "C1394 - Incomplete of output signal check of steering angle sensor"
-  ],
-  "95": [
-    "C1281 - Incomplete of output signal check/offset recording of M/C pressure sensor"
-  ],
-  "96": [
-    "C1396 - Incomplete of shift signal check",
-    "C1396 - Incomplete of shift signal check"
-  ],
-  "97": [
-    "C1322 - Incomplete of output signal check of lateral acceleration sensor"
-  ],
-  "98": [
-    "C1328 - Incomplete of stop lamp switch check",
-    "C1328 - Incomplete of stop lamp switch check",
-    "C1328 - Incomplete of stop lamp switch check",
-    "C1328 - Incomplete of stop lamp switch check",
-    "C1328 - Incomplete of stop lamp switch check",
-    "C1328 - Incomplete of stop lamp switch check"
-  ],
-  "99": [
-    "C1327 - Incomplete of offset recording of lateral acceleration sensor"
-  ]
-            },
-            airbag: {
-"51": [
-    "B1802 - Driver side front air bag squib - GND Short",
-    "B1803 - Driver side front air bag squib - Power short",
-    "B1800 - Driver side front air bag squib - Wire harness short",
-    "B1801 - Driver side front air bag squib - Wire harness open"
-  ],
-  "52": [
-    "B1807 - Passenger side front air bag squib - GND Short",
-    "B1808 - Passenger side front air bag squib - Power short",
-    "B1805 - Passenger side front air bag squib - Wire harness short",
-    "B1806 - Passenger side front air bag squib - Wire harness open"
-  ],
-  "73": [
-    "B1902 - RH side pretension squib - GND Short",
-    "B1903 - RH side pretension squib - Power short",
-    "B1900 - RH side pretension squib - Wire harness short",
-    "B1901 - RH side pretension squib - Wire harness open"
-  ],
-  "74": [
-    "B1907 - LH side pretension squib - GND Short",
-    "B1908 - LH side pretension squib - Power short",
-    "B1905 - LH side pretension squib - Wire harness short",
-    "B1906 - LH side pretension squib - Wire harness open"
-  ],
-  "64": [
-    "B1862 - Driver side knee air bag squib - GND Short",
-    "B1863 - Driver side knee air bag squib - Power short",
-    "B1860 - Driver side knee air bag squib - Wire harness short",
-    "B1861 - Driver side knee air bag squib - Wire harness open"
-  ],
-  "65": [
-    "B1867 - Passenger side knee air bag squib - GND Short",
-    "B1868 - Passenger side knee air bag squib - Power short",
-    "B1865 - Passenger side knee air bag squib - Wire harness short",
-    "B1866 - Passenger side knee air bag squib - Wire harness open"
-  ],
-  "55": [
-    "B1822 - Right side front side air bag squib - GND Short",
-    "B1823 - Right side front side air bag squib - Power short",
-    "B1820 - Right side front side air bag squib - Wire harness short",
-    "B1821 - Right side front side air bag squib - Wire harness open"
-  ],
-  "56": [
-    "B1827 - Left side front side air bag squib - GND Short",
-    "B1828 - Left side front side air bag squib - Power short",
-    "B1825 - Left side front side air bag squib - Wire harness short",
-    "B1826 - Left side front side air bag squib - Wire harness open"
-  ],
-  "57": [
-    "B1832 - RH side curtain air bag squib - GND Short",
-    "B1833 - RH side curtain air bag squib - Power short",
-    "B1830 - RH side curtain air bag squib - Wire harness short",
-    "B1831 - RH side curtain air bag squib - Wire harness open"
-  ],
-  "58": [
-    "B1837 - LH side curtain air bag squib - GND Short",
-    "B1838 - LH side curtain air bag squib - Power short",
-    "B1835 - LH side curtain air bag squib - Wire harness short",
-    "B1836 - LH side curtain air bag squib - Wire harness open"
-  ],
-  "75": [
-    "B1912 - Right side lap outer pretension squib - GND Short",
-    "B1913 - Right side lap outer pretension squib - Power short",
-    "B1910 - Right side lap outer pretension squib - Wire harness short",
-    "B1911 - Right side lap outer pretension squib - Wire harness open"
-  ],
-  "76": [
-    "B1917 - Left side lap outer pretension squib - GND Short",
-    "B1918 - Left side lap outer pretension squib - Power short",
-    "B1915 - Left side lap outer pretension squib - Wire harness short",
-    "B1916 - Left side lap outer pretension squib - Wire harness open"
-  ],
-  "77": [
-    "B1922 - Right side rear pretension squib - GND Short",
-    "B1923 - Right side rear pretension squib - Power short",
-    "B1920 - Right side rear pretension squib - Wire harness short",
-    "B1921 - Right side rear pretension squib - Wire harness open"
-  ],
-  "78": [
-    "B1927 - Left side rear pretension squib - GND Short",
-    "B1928 - Left side rear pretension squib - Power short",
-    "B1925 - Left side rear pretension squib - Wire harness short",
-    "B1926 - Left side rear pretension squib - Wire harness open"
-  ],
-  "31": [
-    "B1000 - ECU - Fault"
-  ],
-  "13": [
-    "B1610 - Right side electric front sensor - Sensor fault"
-  ],
-  "83": [
-    "B1612 - Right side electric front sensor - Communication Intrp",
-    "B1613 - Right side electric front sensor - Abn Initialization"
-  ],
-  "19": [
-    "B161E - Right side electric front sensor - ID Fault"
-  ],
-  "14": [
-    "B1615 - Left side electric front sensor - Sensor fault"
-  ],
-  "84": [
-    "B1616 - Left side electric front sensor - Communication Intrp",
-    "B1618 - Left side electric front sensor - Abn Initialization"
-  ],
-  "29": [
-    "B161F - Left side electric front sensor - ID Fault"
-  ],
-  "21": [
-    "B1620 - Right side B-pillar sensor - Sensor fault"
-  ],
-  "81": [
-    "B1622 - Right side B-pillar sensor - Communication Intrp",
-    "B1623 - Right side B-pillar sensor - Abn Initialization",
-    "B1632 - Right side C-Pillar sensor - Communication Intrp",
-    "B1633 - Right side C-Pillar sensor - Abn Initialization"
-  ],
-  "91": [
-    "B162E - Right side B-pillar sensor - ID Fault"
-  ],
-  "22": [
-    "B1625 - Left side B-pillar sensor - Sensor fault"
-  ],
-  "82": [
-    "B1627 - Left side B-pillar sensor - Communication Intrp",
-    "B1628 - Left side B-pillar sensor - Abn Initialization",
-    "B1637 - Left side C-Pillar sensor - Communication Intrp",
-    "B1638 - Left side C-Pillar sensor - Abn Initialization"
-  ],
-  "92": [
-    "B162F - Left side B-pillar sensor - ID Fault"
-  ],
-  "23": [
-    "B1630 - Right side C-Pillar sensor - Sensor fault"
-  ],
-  "93": [
-    "B163E - Right side C-Pillar sensor - ID Fault"
-  ],
-  "24": [
-    "B1635 - Left side C-Pillar sensor - Sensor fault"
-  ],
-  "94": [
-    "B163F - Left side C-Pillar sensor - ID Fault"
-  ],
-  "33": [
-    "B1651 - Passenger side air bag cutoff switch - GND Short / Power short / Wire harness short"
-  ],
-  "34": [
-    "B1652 - Connector - Half connecting"
-  ],
-  "39": [
-    "B1010 - CARINFO - Verification fault"
-  ]
-            },
-            eps: {
-"11": [
-    "C1511 - Torque sensor 1 Error"
-  ],
-  "12": [
-    "C1512 - Torque sensor 2 Error"
-  ],
-  "13": [
-    "C1513 - Excessive deviation of torque sensor"
-  ],
-  "14": [
-    "C1514 - Torque sensor power supply error"
-  ],
-  "23": [
-    "C1523 - Motor terminal 1 error"
-  ],
-  "24": [
-    "C1524 - Motor terminal 2 error"
-  ],
-  "31": [
-    "C1531 - CPU error"
-  ],
-  "32": [
-    "C1532 - ECU error"
-  ],
-  "33": [
-    "C1533 - Temperature sensor error"
-  ],
-  "34": [
-    "C1534 - EEPROM error"
-  ],
-  "41": [
-    "C1541 - Vehicle speed error"
+    {
+      summary: "P0617 - Starter relay high (Tegangan relai starter tinggi / korsleting).",
+      title: "Analisa Uraian: Tegangan Relai Starter Tinggi",
+      description: "Terdeteksi tegangan abnormal atau hubungan pendek pada sirkuit pengendali relai starter."
+    }
+  ],
+  "44": [
+    {
+      summary: "P0535 - A/C evaporator temperature sensor (Gangguan pada sensor suhu evaporator AC).",
+      title: "Analisa Uraian: Sensor Suhu Evaporator AC",
+      description: "Sensor yang memantau suhu pendinginan pada evaporator AC mengalami kegagalan."
+    }
+  ],
+  "46": [
+    {
+      summary: "P0070 - Outside air temperature sensor (Gangguan pada sensor suhu udara luar).",
+      title: "Analisa Uraian: Sensor Suhu Udara Luar",
+      description: "Sensor pengukur suhu lingkungan/udara luar kendaraan mengalami gangguan."
+    }
   ],
   "47": [
-    "C0051 - Steering angle sensor error"
+    {
+      summary: "P0530 - A/C refrigerant pressure sensor (Gangguan pada sensor tekanan refrigeran AC).",
+      title: "Analisa Uraian: Sensor Tekanan Refrigeran AC",
+      description: "Sensor tekanan freon/refrigeran pada sistem AC mengalami masalah sinyal."
+    }
   ],
-  "48": [
-    "U0416 - VSC communication error"
+  "51": [
+    {
+      summary: "P0504 - Brake switch correlation (Korelasi sakelar rem tidak sinkron).",
+      title: "Analisa Uraian: Ketidaksinkronan Sakelar Rem",
+      description: "Terdapat perbedaan sinyal antara dua jalur kontak pada sakelar lampu rem."
+    }
   ],
   "52": [
-    "C1552 - PIG power suply error"
-  ],
-  "53": [
-    "C1553 - Over voltage error"
+    {
+      summary: "P0327 - Sensor 1/Knock sensor low (Input knock sensor 1 rendah).",
+      title: "Analisa Uraian: Input Rendah Knock Sensor 1",
+      description: "Tegangan sinyal dari sensor ketukan mesin (knock sensor) silinder 1 terlalu rendah."
+    },
+    {
+      summary: "P0328 - Sensor 1/Knock sensor high (Input knock sensor 1 tinggi).",
+      title: "Analisa Uraian: Input Tinggi Knock Sensor 1",
+      description: "Tegangan sinyal dari sensor ketukan mesin (knock sensor) silinder 1 terlalu tinggi."
+    }
   ],
   "54": [
-    "C1554 - Power suply relay error"
+    {
+      summary: "P0575 - C/C stop lamp circuit (Gangguan sirkuit lampu rem cruise control).",
+      title: "Analisa Uraian: Sirkuit Lampu Rem Cruise Control",
+      description: "Terjadi masalah pada jalur sakelar lampu rem yang terhubung ke sistem cruise control."
+    },
+    {
+      summary: "P0575 - C/C cancel circuit (Gangguan sirkuit pembatal cruise control).",
+      title: "Analisa Uraian: Sirkuit Pembatal Cruise Control",
+      description: "Sirkuit tombol pembatal (cancel switch) pada sistem cruise control mengalami gangguan."
+    }
   ],
   "55": [
-    "C1555 - Motor relay error"
+    {
+      summary: "P1546 - Starter control output (Gangguan pada sinyal output kontrol starter).",
+      title: "Analisa Uraian: Output Kontrol Starter",
+      description: "Modul mendeteksi masalah pada jalur sinyal yang mengontrol sistem starter mesin."
+    }
+  ],
+  "56": [
+    {
+      summary: "P0705 - CVT shift position multiple (Kesalahan sinyal posisi tuas transmisi CVT ganda/bertabrakan).",
+      title: "Analisa Uraian: Kesalahan Sinyal Posisi Tuas CVT",
+      description: "Sinyal posisi tuas persneling CVT terbaca ganda atau saling bertentangan oleh modul."
+    }
   ],
   "57": [
-    "C1557 - Current limit storage at overheating projtection"
+    {
+      summary: "P0957 - CVT manual mode SW fail (manual mode SW has been set) (Kegagalan sakelar mode manual CVT).",
+      title: "Analisa Uraian: Kegagalan Sakelar Mode Manual CVT",
+      description: "Sakelar pemindah gigi manual (tiptronic/manual mode) pada transmisi CVT mengalami kegagalan."
+    }
+  ],
+  "58": [
+    {
+      summary: "P0828 - Up/down SW fail (when there is up/down SW) (Kegagalan sakelar naik/turun gigi transmisi).",
+      title: "Analisa Uraian: Kegagalan Sakelar Up/Down Gigi",
+      description: "Sakelar pemindah gigi naik atau turun (shift paddle/lever switch) mengalami gangguan."
+    }
+  ],
+  "59": [
+    {
+      summary: "P0011 - IN VVT - Timing over - Advanced (Timing VVT masuk terlalu maju / advanced).",
+      title: "Analisa Uraian: Timing VVT Masuk Terlalu Maju",
+      description: "Posisi sudut bukaan noken as intake melampaui batas toleransi ke arah maju."
+    },
+    {
+      summary: "P0012 - IN VVT - Timing over - Retarded (Timing VVT masuk terlalu mundur / retarded).",
+      title: "Analisa Uraian: Timing VVT Masuk Terlalu Mundur",
+      description: "Posisi sudut bukaan noken as intake melampaui batas toleransi ke arah mundur."
+    }
   ],
   "61": [
-    "U0100 - EFI communication error"
+    {
+      summary: "P2822 - CVT SLP solenoid (Gangguan pada solenoid pengendali tekanan garis SLP CVT).",
+      title: "Analisa Uraian: Gangguan Solenoid SLP CVT",
+      description: "Solenoid linier tekanan saluran (SLP solenoid) pada transmisi CVT mengalami gangguan kelistrikan."
+    }
   ],
   "62": [
-    "U0155 - Meter communication error"
+    {
+      summary: "P282B - CVT SLS solenoid (Gangguan pada solenoid pengendali lock-up/tekanan SLS CVT).",
+      title: "Analisa Uraian: Gangguan Solenoid SLS CVT",
+      description: "Solenoid pengatur sekunder (SLS solenoid) pada transmisi CVT mengalami gangguan kelistrikan."
+    }
+  ],
+  "63": [
+    {
+      summary: "P2759 - CVT SL 1 solenoid (Gangguan pada solenoid SL1 transmisi CVT).",
+      title: "Analisa Uraian: Gangguan Solenoid SL1 CVT",
+      description: "Sirkuit solenoid kontrol kopling SL1 pada transmisi CVT mengalami masalah."
+    },
+    {
+      summary: "P2759 - SL 1 solenoid fail (Kegagalan fungsi solenoid SL 1).",
+      title: "Analisa Uraian: Kegagalan Solenoid SL1",
+      description: "Solenoid SL1 mengalami kerusakan fungsional atau kegagalan operasional."
+    }
   ],
   "64": [
-    "U0121 - ABS communication error"
+    {
+      summary: "P0778 - CVT SL 2 solenoid (Gangguan pada solenoid SL2 transmisi CVT).",
+      title: "Analisa Uraian: Gangguan Solenoid SL2 CVT",
+      description: "Sirkuit solenoid kontrol SL2 pada transmisi CVT mengalami masalah."
+    }
   ],
   "65": [
-    "U0126 - Steering communication error"
+    {
+      summary: "P2764 - CVT DSU solenoid low (Arus solenoid DSU CVT rendah / korsleting massa).",
+      title: "Analisa Uraian: Arus Rendah Solenoid DSU CVT",
+      description: "Sirkuit solenoid Downshift Solenoid Unit (DSU) pada CVT mengalami penurunan arus."
+    },
+    {
+      summary: "P2763 - CVT DSU solenoid high (Arus solenoid DSU CVT tinggi / korsleting positif).",
+      title: "Analisa Uraian: Arus Tinggi Solenoid DSU CVT",
+      description: "Sirkuit solenoid Downshift Solenoid Unit (DSU) pada CVT mengalami kelebihan arus."
+    }
   ],
   "66": [
-    "U023A - SCM communication error"
+    {
+      summary: "P099B - CVT SR solenoid low (Arus solenoid SR CVT rendah).",
+      title: "Analisa Uraian: Arus Rendah Solenoid SR CVT",
+      description: "Sirkuit solenoid pemindah rasio (SR solenoid) pada transmisi CVT mendeteksi arus rendah."
+    },
+    {
+      summary: "P099C - CVT SR solenoid high (Arus solenoid SR CVT tinggi).",
+      title: "Analisa Uraian: Arus Tinggi Solenoid SR CVT",
+      description: "Sirkuit solenoid pemindah rasio (SR solenoid) pada transmisi CVT mendeteksi arus tinggi."
+    }
   ],
   "71": [
-    "C1571 - Vehicle speed test unfinished (tes code)"
+    {
+      summary: "P287A - Shift control error (Kesalahan pada sistem kontrol pemindah gigi transmisi).",
+      title: "Analisa Uraian: Kesalahan Kontrol Pemindah Gigi",
+      description: "Modul mendeteksi kegagalan eksekusi pada mekanisme perpindahan gigi transmisi."
+    }
+  ],
+  "72": [
+    {
+      summary: "P0741 - CVT lock up system (Gangguan pada sistem pengunci kopling / lock-up CVT).",
+      title: "Analisa Uraian: Gangguan Sistem Lock-Up CVT",
+      description: "Sistem kopling torsi konverter (lock-up mechanism) pada transmisi CVT tidak bekerja optimal."
+    }
   ],
   "73": [
-    "C1573 - Engine rotation test unfinished (test code)"
+    {
+      summary: "P287B - Clutch switching failure (Kegagalan perpindahan kopling transmisi).",
+      title: "Analisa Uraian: Kegagalan Perpindahan Kopling",
+      description: "Mekanisme perpindahan atau aktivasi kopling di dalam girboks mengalami kendala."
+    }
+  ],
+  "74": [
+    {
+      summary: "P2874 - Forward clutch (C2) ON control failure (Kegagalan kontrol aktif kopling maju C2).",
+      title: "Analisa Uraian: Kegagalan Kontrol Kopling Maju C2",
+      description: "Kopling maju C2 gagal diaktifkan atau dikontrol dengan benar oleh sistem hidrolik/elektrik."
+    }
+  ],
+  "75": [
+    {
+      summary: "P2875 - Forward clutch (C1) ON control failure (Kegagalan kontrol aktif kopling maju C1).",
+      title: "Analisa Uraian: Kegagalan Kontrol Kopling Maju C1",
+      description: "Kopling maju C1 gagal diaktifkan atau dikontrol dengan benar oleh sistem hidrolik/elektrik."
+    }
+  ],
+  "76": [
+    {
+      summary: "P2876 - Reverse brake ON control failure (Kegagalan kontrol aktif rem mundur).",
+      title: "Analisa Uraian: Kegagalan Kontrol Rem Mundur",
+      description: "Sistem rem perpindahan gigi mundur (reverse brake) gagal diaktifkan."
+    }
+  ],
+  "77": [
+    {
+      summary: "P2877 - Forward clutch (C2) OFF control failure (Kegagalan kontrol pelepasan kopling maju C2).",
+      title: "Analisa Uraian: Kegagalan Kontrol Lepas Kopling C2",
+      description: "Kopling maju C2 gagal dilepaskan (OFF) saat diperintahkan oleh sistem."
+    }
+  ],
+  "78": [
+    {
+      summary: "P2878 - Forward clutch (C1) OFF control failure (Kegagalan kontrol pelepasan kopling maju C1).",
+      title: "Analisa Uraian: Kegagalan Kontrol Lepas Kopling C1",
+      description: "Kopling maju C1 gagal dilepaskan (OFF) saat diperintahkan oleh sistem."
+    }
+  ],
+  "79": [
+    {
+      summary: "P2879 - Reverse brake OFF control failure (Kegagalan kontrol pelepasan rem mundur).",
+      title: "Analisa Uraian: Kegagalan Kontrol Lepas Rem Mundur",
+      description: "Rem gigi mundur gagal dilepaskan (OFF) saat diperintahkan oleh sistem."
+    }
   ],
   "81": [
-    "C1581 - Assistance map not select"
+    {
+      summary: "U0167 - Lost communication with immobilizer (Hilangnya komunikasi dengan modul immobilizer).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Immobilizer",
+      description: "Modul engine control unit (ECU) terputus atau gagal berkomunikasi dengan sistem immobilizer."
+    }
+  ],
+  "82": [
+    {
+      summary: "U0100 - EFI receive failover (Kegagalan penerimaan data komunikasi EFI).",
+      title: "Analisa Uraian: Kegagalan Penerimaan Data EFI",
+      description: "Modul transmisi/pendukung gagal menerima paket data dari komputer mesin (EFI)."
+    }
+  ],
+  "83": [
+    {
+      summary: "P0603 - EEPROM read/write error (Kesalahan baca/tulis pada memori EEPROM ECU).",
+      title: "Analisa Uraian: Kesalahan Memori EEPROM ECU",
+      description: "Terjadi kegagalan pada proses penyimpanan atau pembacaan data di chip memori EEPROM ECU."
+    }
+  ],
+  "84": [
+    {
+      summary: "U1103 - Inter-run reception fail (Kegagalan penerimaan data komunikasi antar-sistem).",
+      title: "Analisa Uraian: Kegagalan Komunikasi Antar-Sistem",
+      description: "Terjadi gangguan pada jalur penerimaan data komunikasi jaringan bus antar-modul."
+    }
+  ],
+  "8A": [
+    {
+      summary: "U0166 - Lost communication with PTC ECU (Hilangnya komunikasi dengan modul PTC heater).",
+      title: "Analisa Uraian: Kehilangan Komunikasi PTC ECU",
+      description: "Modul pengontrol pemanas kabin elektrik (PTC heater) tidak merespons panggilan jaringan data."
+    }
+  ],
+  "8C": [
+    {
+      summary: "U0235 - Lost communication with SCM ECU (Hilangnya komunikasi dengan modul SCM).",
+      title: "Analisa Uraian: Kehilangan Komunikasi SCM ECU",
+      description: "Modul kontrol kolom kemudi (Steering Control Module) terputus dari jaringan komunikasi."
+    }
+  ],
+  "8D": [
+    {
+      summary: "U0151 - Lost communication with A/B ECU (Hilangnya komunikasi dengan modul Airbag).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Airbag ECU",
+      description: "Komputer mesin kehilangan koneksi data dengan modul pengendali sistem SRS/Airbag."
+    }
+  ],
+  "8E": [
+    {
+      summary: "U0142 - Lost communication with body ECU (Hilangnya komunikasi dengan Body ECU).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Body ECU",
+      description: "Modul kontrol bodi (Body ECU) terputus dari jaringan komunikasi utama."
+    }
+  ],
+  "89": [
+    {
+      summary: "P0604 - Normal RAM error (Kesalahan pada memori RAM internal ECU).",
+      title: "Analisa Uraian: Kesalahan RAM Internal ECU",
+      description: "Terdeteksi malfungsi pada komponen memori akses acak (RAM) di dalam komputer ECU."
+    },
+    {
+      summary: "P0606 - Control CPU error (Kesalahan pada CPU kontrol utama ECU).",
+      title: "Analisa Uraian: Kesalahan CPU Kontrol Utama",
+      description: "Unit pemrosesan pusat (CPU) utama pengontrol mesin mengalami kegagalan fungsi."
+    },
+    {
+      summary: "P060A - Monitoring CPU error (Kesalahan pada CPU pemantau ECU).",
+      title: "Analisa Uraian: Kesalahan CPU Pemantau",
+      description: "CPU sub-pemantau (monitoring CPU) di dalam modul ECU mendeteksi adanya ketidakberesan."
+    },
+    {
+      summary: "P060B - A/D processing circuit error (Kesalahan pada sirkuit pengolah analog ke digital / A/D).",
+      title: "Analisa Uraian: Kesalahan Sirkuit Pengolah A/D",
+      description: "Sirkuit internal yang mengubah sinyal sensor analog ke digital mengalami gangguan."
+    },
+    {
+      summary: "P060D - Accelerator sensor circuit error (Kesalahan sirkuit sensor akselerator pada ECU).",
+      title: "Analisa Uraian: Kesalahan Sirkuit Sensor Akselerator",
+      description: "Sirkuit internal pemroses data sensor pedal gas di dalam modul ECU mengalami error."
+    },
+    {
+      summary: "P060E - Throttle /brake switch circuit error (Kesalahan sirkuit sakelar throttle/rem pada ECU).",
+      title: "Analisa Uraian: Kesalahan Sirkuit Throttle/Rem ECU",
+      description: "Sirkuit pemroses sinyal sakelar katup gas atau rem di dalam modul mengalami gangguan."
+    },
+    {
+      summary: "P062F - EEPORM error (Kesalahan memori EEPROM internal ECU).",
+      title: "Analisa Uraian: Kesalahan Memori EEPROM Internal",
+      description: "Terjadi error pada chip memori penyimpanan permanen EEPROM di dalam modul ECU."
+    },
+    {
+      summary: "P102D - O2 sensor heater (Gangguan pada pemanas sensor oksigen).",
+      title: "Analisa Uraian: Gangguan Pemanas Sensor Oksigen",
+      description: "Sirkuit pengendali pemanas sensor oksigen mendeteksi ketidaknormalan."
+    },
+    {
+      summary: "P1607 - Cruise control CPU error (Kesalahan CPU sistem cruise control).",
+      title: "Analisa Uraian: Kesalahan CPU Cruise Control",
+      description: "Unit pemroses pada sistem pengatur kecepatan jelajah (cruise control) mengalami gangguan."
+    },
+    {
+      summary: "P2118 - Throttle actuator supply voltage error (Kesalahan tegangan suplai aktuator throttle).",
+      title: "Analisa Uraian: Kesalahan Tegangan Suplai Throttle",
+      description: "Tegangan daya yang dikirimkan ke motor aktuator katup gas tidak stabil atau salah."
+    },
+    {
+      summary: "P2119 - Throttle control system error (Kesalahan pada sistem kontrol throttle).",
+      title: "Analisa Uraian: Kesalahan Sistem Kontrol Throttle",
+      description: "Sistem mekanis atau elektrik pengatur katup gas mengalami kendala operasional."
+    },
+    {
+      summary: "U0164 - Lost communication with auto A/C ECU (Hilangnya komunikasi dengan modul AC otomatis).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Modul AC",
+      description: "Modul pengontrol AC otomatis terputus dari jalur komunikasi data jaringan kendaraan."
+    },
+    {
+      summary: "P0657 - Actuator supply voltage circuit error (Kesalahan sirkuit tegangan suplai aktuator).",
+      title: "Analisa Uraian: Kesalahan Sirkuit Suplai Aktuator",
+      description: "Sirkuit yang mencatu daya untuk berbagai aktuator mesin mengalami gangguan tegangan."
+    },
+    {
+      summary: "U0129 - ABS reception fail (Kegagalan penerimaan data komunikasi dari ABS).",
+      title: "Analisa Uraian: Kegagalan Penerimaan Data ABS",
+      description: "Modul mesin gagal menerima paket data atau sinyal yang dikirimkan oleh komputer ABS."
+    }
+  ],
+  "93": [
+    {
+      summary: "P0300 - Random cylinder misfire detected (Terdeteksi misfire acak pada silinder mesin).",
+      title: "Analisa Uraian: Misfire Acak Silinder Mesin",
+      description: "Proses pembakaran di dalam silinder mesin tidak sempurna secara acak."
+    },
+    {
+      summary: "P0301 - Cylinder 1 misfire detected (Terdeteksi misfire pada silinder 1).",
+      title: "Analisa Uraian: Misfire Silinder 1",
+      description: "Proses pembakaran pada silinder nomor 1 mengalami kegagalan atau tidak sempurna."
+    },
+    {
+      summary: "P0302 - Cylinder 2 misfire detected (Terdeteksi misfire pada silinder 2).",
+      title: "Analisa Uraian: Misfire Silinder 2",
+      description: "Proses pembakaran pada silinder nomor 2 mengalami kegagalan atau tidak sempurna."
+    },
+    {
+      summary: "P0303 - Cylinder 3 misfire detected (Terdeteksi misfire pada silinder 3).",
+      title: "Analisa Uraian: Misfire Silinder 3",
+      description: "Proses pembakaran pada silinder nomor 3 mengalami kegagalan atau tidak sempurna."
+    },
+    {
+      summary: "P0304 - Cylinder 4 misfire detected (Terdeteksi misfire pada silinder 4).",
+      title: "Analisa Uraian: Misfire Silinder 4",
+      description: "Proses pembakaran pada silinder nomor 4 mengalami kegagalan atau tidak sempurna."
+    }
+  ],
+  "94": [
+    {
+      summary: "P0420 - Bank 1/ Catalyst deterioration (Penurunan efisiensi / kerusakan katalis konverter Bank 1).",
+      title: "Analisa Uraian: Penurunan Kinerja Katalis Konverter",
+      description: "Kemampuan katalis konverter dalam menyaring gas buang sudah menurun drastis."
+    },
+    {
+      summary: "P0443 - Purge control valve (Gangguan pada katup kontrol purge canister / EVAP).",
+      title: "Analisa Uraian: Gangguan Purge Control Valve",
+      description: "Sirkuit atau katup solenoid penguapan bahan bakar (EVAP purge valve) mengalami masalah."
+    }
+  ],
+  "95": [
+    {
+      summary: "P0572 - Brake pedal switch low (Input sakelar pedal rem rendah).",
+      title: "Analisa Uraian: Input Rendah Sakelar Pedal Rem",
+      description: "Tegangan sinyal dari sakelar pedal rem terbaca terlalu rendah."
+    },
+    {
+      summary: "P0573 - Brake pedal switch high (Input sakelar pedal rem tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sakelar Pedal Rem",
+      description: "Tegangan sinyal dari sakelar pedal rem terbaca terlalu tinggi."
+    },
+    {
+      summary: "P0724 - Brake switch (Gangguan pada sirkuit sakelar rem transmisi).",
+      title: "Analisa Uraian: Gangguan Sakelar Rem Transmisi",
+      description: "Sinyal sakelar rem yang terhubung ke komputer transmisi mengalami gangguan."
+    }
+  ],
+  "96": [
+    {
+      summary: "P0560 - Battery voltage (Gangguan atau ketidaknormalan tegangan aki).",
+      title: "Analisa Uraian: Ketidaknormalan Tegangan Aki",
+      description: "Sistem mendeteksi tegangan baterai/aki berada di luar batas operasional normal."
+    }
+  ],
+  "97": [
+    {
+      summary: "P0200 - Random injector (Gangguan acak pada sirkuit injector bahan bakar).",
+      title: "Analisa Uraian: Gangguan Acak Injektor Bahan Bakar",
+      description: "Terdeteksi masalah kelistrikan secara umum pada sirkuit pengendali injektor."
+    },
+    {
+      summary: "PO201 - Cylinder #10 injector (Gangguan sirkuit injektor silinder 1).",
+      title: "Analisa Uraian: Gangguan Injektor Silinder 1",
+      description: "Sirkuit kelistrikan pada injektor bahan bakar silinder nomor 1 mengalami masalah."
+    },
+    {
+      summary: "PO202 - Cylinder #20 injector (Gangguan sirkuit injektor silinder 2).",
+      title: "Analisa Uraian: Gangguan Injektor Silinder 2",
+      description: "Sirkuit kelistrikan pada injektor bahan bakar silinder nomor 2 mengalami masalah."
+    },
+    {
+      summary: "PO203 - Cylinder #30 injector (Gangguan sirkuit injektor silinder 3).",
+      title: "Analisa Uraian: Gangguan Injektor Silinder 3",
+      description: "Sirkuit kelistrikan pada injektor bahan bakar silinder nomor 3 mengalami masalah."
+    },
+    {
+      summary: "PO204 - Cylinder #40 injector (Gangguan sirkuit injektor silinder 4).",
+      title: "Analisa Uraian: Gangguan Injektor Silinder 4",
+      description: "Sirkuit kelistrikan pada injektor bahan bakar silinder nomor 4 mengalami masalah."
+    }
+  ],
+  "98": [
+    {
+      summary: "P0557 - Brake booster sensor low (Input sensor vacum booster rem rendah).",
+      title: "Analisa Uraian: Input Rendah Sensor Booster Rem",
+      description: "Tegangan dari sensor tekanan/vacum booster rem terbaca terlalu rendah."
+    },
+    {
+      summary: "P0558 - Brake booster sensor high (Input sensor vacum booster rem tinggi).",
+      title: "Analisa Uraian: Input Tinggi Sensor Booster Rem",
+      description: "Tegangan dari sensor tekanan/vacum booster rem terbaca terlalu tinggi."
+    },
+    {
+      summary: "C1263 - Ejector VSV high (Arus tinggi Vacuum Switching Valve ejector).",
+      title: "Analisa Uraian: Arus Tinggi Ejector VSV",
+      description: "Sirkuit katup sakelar vakum (VSV) ejector mendeteksi arus listrik yang terlalu tinggi."
+    },
+    {
+      summary: "C1264 - Ejector VSV low (Arus rendah Vacuum Switching Valve ejector).",
+      title: "Analisa Uraian: Arus Rendah Ejector VSV",
+      description: "Sirkuit katup sakelar vakum (VSV) ejector mendeteksi arus listrik yang terlalu rendah."
+    }
+  ],
+  "A2": [
+    {
+      summary: "U0129 - Lost communication with brake ECU (Hilangnya komunikasi dengan modul rem ECU).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Modul Rem",
+      description: "Modul mesin gagal terhubung atau bertukar data dengan komputer sistem rem (ABS/VSC)."
+    },
+    {
+      summary: "U0155 - Lost communication with meter ECU (Hilangnya komunikasi dengan modul panel meter).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Panel Meter",
+      description: "Komputer mesin terputus dari jalur komunikasi data dengan panel instrumen speedometer."
+    }
+  ],
+  "A5": [
+    {
+      summary: "P2226 - Atmospheric pressure sensor (Gangguan pada sensor tekanan atmosfer).",
+      title: "Analisa Uraian: Sensor Tekanan Atmosfer",
+      description: "Sensor barometrik yang mengukur tekanan udara luar/atmosfer mengalami gangguan."
+    }
+  ],
+  "A7": [
+    {
+      summary: "P1550 - Battery current sensor (Gangguan pada sensor arus aki).",
+      title: "Analisa Uraian: Sensor Arus Aki",
+      description: "Sensor yang memantau aliran arus masuk dan keluar baterai/aki mengalami gangguan."
+    },
+    {
+      summary: "P161A - Alternator LIN communication error (Kesalahan komunikasi LIN bus alternator).",
+      title: "Analisa Uraian: Kesalahan Komunikasi Alternator LIN",
+      description: "Jalur komunikasi data LIN bus antara alternator dan ECU mengalami gangguan."
+    }
+  ],
+  "B9": [
+    {
+      summary: "P2109 - Throttle sensor/motor performance (Kinerja sensor atau motor katup gas buruk).",
+      title: "Analisa Uraian: Kinerja Sensor/Motor Throttle",
+      description: "Respons atau performa mekanis dari motor dan sensor katup gas tidak sesuai standar."
+    }
+  ],
+  "-": [
+    {
+      summary: "P16A1 - High load detection of CVT (Deteksi beban tinggi pada transmisi CVT).",
+      title: "Analisa Uraian: Deteksi Beban Tinggi CVT",
+      description: "Sistem mendeteksi beban operasional yang berlebihan pada sistem transmisi CVT."
+    }
   ]
-            },
-            immobilizer: {
-                "61": [
-                    "B2890 - Outside key free antena RH abnormality"
-                    ],
-                "62": [
-                    "B2891 - Outside key free antena LH abnormality"
-                    ],
-                    
-                "63": [
-                    "B2893 - Outside key free antena Back abnormality"
-                    ],
-                "19": [
-                    "B1244 - Auto light and solar radiation sensor abnofmality"
-                ]
-            }
+},
+            abs: {
+  "11": [
+    {
+      summary: "C0278 - Disconnection of solenoid relay (Relai solenoid terputus).",
+      title: "Analisa Uraian: Pemutusan Relai Solenoid ABS",
+      description: "Modul mendeteksi adanya jalur terbuka atau terputus pada sirkuit relai solenoid yang mengontrol katup ABS."
+    },
+    {
+      summary: "Periksa kondisi fisik relai solenoid, soket, dan sekring terkait.",
+      title: "Langkah Pemeriksaan Relai Solenoid",
+      description: "• Periksa kontinuitas kabel pada jalur relai solenoid.\n• Pastikan soket tidak berkarat dan terpasang dengan kencang."
+    }
+  ],
+  "12": [
+    {
+      summary: "C0279 - Short circuit of solenoid relay (Hubung singkat relai solenoid).",
+      title: "Analisa Uraian: Hubung Singkat Relai Solenoid",
+      description: "Terjadi arus pendek atau short circuit pada sirkuit relai solenoid yang dapat memicu gangguan pada sistem kelistrikan ABS."
+    }
+  ],
+  "13": [
+    {
+      summary: "C0273 - Disconnection / Short circuit of motor relay (Relai motor terputus atau korsleting).",
+      title: "Analisa Uraian: Masalah Relai Motor ABS",
+      description: "Terdeteksi kerusakan berupa pemutusan jalur atau hubung singkat pada sirkuit relai motor pompa."
+    }
+  ],
+  "14": [
+    {
+      summary: "C0273 - Disconnection / Short circuit of motor relay (Relai motor terputus atau korsleting).",
+      title: "Analisa Uraian: Masalah Relai Motor ABS",
+      description: "Terdeteksi kerusakan berupa pemutusan jalur atau hubung singkat pada sirkuit relai motor pompa."
+    }
+  ],
+  "15": [
+    {
+      summary: "C1241 - Voltage drop / Over voltage of power source (Penurunan atau kelebihan tegangan sumber daya).",
+      title: "Analisa Uraian: Gangguan Tegangan Sumber Daya",
+      description: "Tegangan aki atau pengisian dari alternator tidak stabil, terlalu rendah (drop), atau terlalu tinggi (over voltage)."
+    }
+  ],
+  "16": [
+    {
+      summary: "C1241 - Voltage drop / Over voltage of power source (Penurunan atau kelebihan tegangan sumber daya).",
+      title: "Analisa Uraian: Gangguan Tegangan Sumber Daya",
+      description: "Tegangan aki atau pengisian dari alternator tidak stabil, terlalu rendah (drop), atau terlalu tinggi (over voltage)."
+    }
+  ],
+  "18": [
+    {
+      summary: "C1361 - Short circuit of failsafe relay (Hubung singkat relai failsafe).",
+      title: "Analisa Uraian: Hubung Singkat Relai Failsafe",
+      description: "Terdeteksi adanya arus pendek (short circuit) pada sirkuit relai pengaman (failsafe) di dalam sistem ABS."
+    }
+  ],
+  "19": [
+    {
+      summary: "U0126 - Communication failure of steering angle sensor (Gagal komunikasi sensor sudut kemudi).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Sensor Sudut Kemudi",
+      description: "Modul ABS tidak dapat menerima data atau sinyal dari sensor sudut kemudi (steering angle sensor) melalui jaringan komunikasi."
+    }
+  ],
+  "21": [
+    {
+      summary: "C0200 - Disconnection / Short circuit / Power source failure of FR wheel speed sensor (Masalah sensor kecepatan roda depan kanan).",
+      title: "Analisa Uraian: Kegagalan Sensor Kecepatan Roda FR",
+      description: "Terjadi pemutusan, hubung singkat, atau masalah catu daya pada sensor kecepatan roda depan kanan (Front Right)."
+    }
+  ],
+  "22": [
+    {
+      summary: "C0205 - Disconnection / Short circuit / Power source failure of FL wheel speed sensor (Masalah sensor kecepatan roda depan kiri).",
+      title: "Analisa Uraian: Kegagalan Sensor Kecepatan Roda FL",
+      description: "Terjadi pemutusan, hubung singkat, atau masalah catu daya pada sensor kecepatan roda depan kiri (Front Left)."
+    }
+  ],
+  "23": [
+    {
+      summary: "C0210 - Disconnection / Short circuit / Power source failure of RR wheel speed sensor (Masalah sensor kecepatan roda belakang kanan).",
+      title: "Analisa Uraian: Kegagalan Sensor Kecepatan Roda RR",
+      description: "Terjadi pemutusan, hubung singkat, atau masalah catu daya pada sensor kecepatan roda belakang kanan (Rear Right)."
+    }
+  ],
+  "24": [
+    {
+      summary: "C0215 - Disconnection / Short circuit / Power source failure of RL wheel speed sensor (Masalah sensor kecepatan roda belakang kiri).",
+      title: "Analisa Uraian: Kegagalan Sensor Kecepatan Roda RL",
+      description: "Terjadi pemutusan, hubung singkat, atau masalah catu daya pada sensor kecepatan roda belakang kiri (Rear Left)."
+    }
+  ],
+  "25": [
+    {
+      summary: "C1235 - Revolution failure / ABS continous operating failure of FR wheel speed sensor (Kegagalan putaran roda FR).",
+      title: "Analisa Uraian: Kegagalan Putaran Roda Depan Kanan",
+      description: "Sinyal putaran dari roda depan kanan tidak terbaca dengan benar atau sistem mendeteksi operasi kontinu yang tidak normal."
+    }
+  ],
+  "26": [
+    {
+      summary: "C1236 - Revolution failure / ABS continous operating failure of FL wheel speed sensor (Kegagalan putaran roda FL).",
+      title: "Analisa Uraian: Kegagalan Putaran Roda Depan Kiri",
+      description: "Sinyal putaran dari roda depan kiri tidak terbaca dengan benar atau sistem mendeteksi operasi kontinu yang tidak normal."
+    }
+  ],
+  "27": [
+    {
+      summary: "C1238 - Revolution failure / ABS continous operating failure of RR wheel speed sensor (Kegagalan putaran roda RR).",
+      title: "Analisa Uraian: Kegagalan Putaran Roda Belakang Kanan",
+      description: "Sinyal putaran dari roda belakang kanan tidak terbaca dengan benar atau sistem mendeteksi operasi kontinu yang tidak normal."
+    }
+  ],
+  "28": [
+    {
+      summary: "C1239 - Revolution failure / ABS continous operating failure of RL wheel speed sensor (Kegagalan putaran roda RL).",
+      title: "Analisa Uraian: Kegagalan Putaran Roda Belakang Kiri",
+      description: "Sinyal putaran dari roda belakang kiri tidak terbaca dengan benar atau sistem mendeteksi operasi kontinu yang tidak normal."
+    }
+  ],
+  "29": [
+    {
+      summary: "C1237 - Revolution failure / ABS continous operating failure of unspecified wheel speed sensor (Kegagalan putaran roda tidak spesifik).",
+      title: "Analisa Uraian: Kegagalan Putaran Roda Tidak Spesifik",
+      description: "Terdeteksi kegagalan putaran atau operasi kontinu pada sensor kecepatan roda namun roda spesifik belum teridentifikasi."
+    }
+  ],
+  "31": [
+    {
+      summary: "C1245 - Output failure longitudinal acceleration sensor (Kegagalan output sensor akselerasi longitudinal).",
+      title: "Analisa Uraian: Kegagalan Output Sensor Akselerasi Longitudinal",
+      description: "Sensor akselerasi longitudinal gagal mengirimkan sinyal keluaran yang akurat ke modul pengendali."
+    }
+  ],
+  "32": [
+    {
+      summary: "C1244 - Disconnection / Short circuit / Communication failure of longitudinal acceleration sensor (Masalah komunikasi/kabel sensor akselerasi longitudinal).",
+      title: "Analisa Uraian: Gangguan Komunikasi Sensor Akselerasi Longitudinal",
+      description: "Terjadi pemutusan kabel, hubung singkat, atau kegagalan komunikasi pada sensor akselerasi longitudinal."
+    }
+  ],
+  "33": [
+    {
+      summary: "C0365 - Failure of lateral acceleration sensor (Kegagalan sensor akselerasi lateral).",
+      title: "Analisa Uraian: Kegagalan Sensor Akselerasi Lateral",
+      description: "Sensor akselerasi lateral mengalami kerusakan internal atau gagal beroperasi secara normal."
+    }
+  ],
+  "35": [
+    {
+      summary: "C1233 - Failure of yaw late sensor (Kegagalan sensor yaw rate).",
+      title: "Analisa Uraian: Kegagalan Sensor Yaw Rate",
+      description: "Sensor yaw rate mengalami kerusakan internal sehingga tidak dapat mendeteksi pergerakan rotasi kendaraan."
+    }
+  ],
+  "36": [
+    {
+      summary: "U0123 - Communication failure of yaw late sensor (Gagal komunikasi sensor yaw rate).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Sensor Yaw Rate",
+      description: "Modul ABS kehilangan koneksi data atau gagal berkomunikasi dengan sensor yaw rate."
+    }
+  ],
+  "37": [
+    {
+      summary: "C1231 - Disconnection/short circuit of steering angle sensor, failure of steering angle sensor (Kerusakan/kabel putus sensor sudut kemudi).",
+      title: "Analisa Uraian: Kerusakan Sensor Sudut Kemudi",
+      description: "Terjadi pemutusan/korsleting pada jalur kabel atau kerusakan langsung pada unit sensor sudut kemudi."
+    }
+  ],
+  "38": [
+    {
+      summary: "C1381 - Power source failure of yaw late sensor and lateral acceleration sensor (Kegagalan catu daya sensor yaw rate & akselerasi lateral).",
+      title: "Analisa Uraian: Kegagalan Catu Daya Sensor Gabungan",
+      description: "Sumber tegangan atau jalur catu daya yang menuju ke sensor yaw rate dan sensor akselerasi lateral mengalami gangguan."
+    }
+  ],
+  "39": [
+    {
+      summary: "C1249 - Disconnection of stop switch (Sakelar lampu rem terputus).",
+      title: "Analisa Uraian: Pemutusan Sakelar Lampu Rem",
+      description: "Sinyal dari sakelar lampu rem (stop lamp switch) tidak terbaca atau jalurnya terputus."
+    }
+  ],
+  "41": [
+    {
+      summary: "C1202 - Master reservoir level failure/Communication failure of meter/Communication failure of body ECU (Kegagalan level minyak rem / komunikasi meter / body ECU).",
+      title: "Analisa Uraian: Kegagalan Level Minyak Rem atau Komunikasi",
+      description: "Terdeteksi level minyak rem rendah atau terjadi gangguan komunikasi dengan panel meter/body ECU."
+    }
+  ],
+  "43": [
+    {
+      summary: "C1246 - Disconnect/short circuit/output failure of M/C pressure sensor (Masalah sensor tekanan master silinder).",
+      title: "Analisa Uraian: Kegagalan Sensor Tekanan Master Silinder",
+      description: "Sensor tekanan master silinder mengalami pemutusan kabel, korsleting, atau kegagalan output sinyal."
+    }
+  ],
+  "49": [
+    {
+      summary: "U0100 - Communication failure of EFI ECU (Gagal komunikasi dengan ECU mesin/EFI).",
+      title: "Analisa Uraian: Kehilangan Komunikasi EFI ECU",
+      description: "Modul ABS tidak dapat tersambung atau bertukar data dengan komputer mesin (EFI ECU) melalui jalur CAN."
+    }
+  ],
+  "51": [
+    {
+      summary: "C1251 - No rotate failure/Disconnection of motor (Motor pompa tidak berputar atau terputus).",
+      title: "Analisa Uraian: Kegagalan Motor Pompa ABS",
+      description: "Motor hidrolik ABS tidak berputar saat diperintahkan atau terjadi pemutusan pada jalur motor."
+    }
+  ],
+  "52": [
+    {
+      summary: "C0226 - Failure of ABS solenoid FR (Kegagalan solenoid ABS depan kanan).",
+      title: "Analisa Uraian: Kerusakan Solenoid ABS FR",
+      description: "Katup solenoid ABS pada roda depan kanan mengalami kegagalan fungsi internal."
+    }
+  ],
+  "54": [
+    {
+      summary: "C0236 - Failure of ABS solenoids FL (Kegagalan solenoid ABS depan kiri).",
+      title: "Analisa Uraian: Kerusakan Solenoid ABS FL",
+      description: "Katup solenoid ABS pada roda depan kiri mengalami kegagalan fungsi internal."
+    }
+  ],
+  "56": [
+    {
+      summary: "C0246 - Failure of ABS solenoid RR (Kegagalan solenoid ABS belakang kanan).",
+      title: "Analisa Uraian: Kerusakan Solenoid ABS RR",
+      description: "Katup solenoid ABS pada roda belakang kanan mengalami kegagalan fungsi internal."
+    }
+  ],
+  "58": [
+    {
+      summary: "C0256 - Failure of ABS solenoid RL (Kegagalan solenoid ABS belakang kiri).",
+      title: "Analisa Uraian: Kerusakan Solenoid ABS RL",
+      description: "Katup solenoid ABS pada roda belakang kiri mengalami kegagalan fungsi internal."
+    }
+  ],
+  "61": [
+    {
+      summary: "C1225 - Disconnection/short circuit of master cut solenoid (Korsleting/pemutusan master cut solenoid).",
+      title: "Analisa Uraian: Kerusakan Master Cut Solenoid",
+      description: "Terjadi pemutusan jalur atau hubung singkat pada katup solenoid pemutus master rem."
+    }
+  ],
+  "62": [
+    {
+      summary: "C13A2 - Failure of ignition switch (Kegagalan sakelar pengapian / kunci kontak).",
+      title: "Analisa Uraian: Kegagalan Sakelar Pengapian",
+      description: "Sinyal dari kunci kontak atau sakelar pengapian ke modul ABS mengalami gangguan atau tidak normal."
+    }
+  ],
+  "63": [
+    {
+      summary: "C1227 - Disconnection/short circuit of reservoir cut solenoid (Korsleting/pemutusan reservoir cut solenoid).",
+      title: "Analisa Uraian: Kerusakan Reservoir Cut Solenoid",
+      description: "Terjadi pemutusan atau hubung singkat pada katup solenoid penampung (reservoir cut solenoid)."
+    }
+  ],
+  "64": [
+    {
+      summary: "C1320 - Failure of absorbing solenoid (Kegagalan absorbing solenoid).",
+      title: "Analisa Uraian: Kerusakan Absorbing Solenoid",
+      description: "Katup solenoid penyerap (absorbing solenoid) mengalami gangguan kelistrikan atau kegagalan operasional."
+    }
+  ],
+  "65": [
+    {
+      summary: "C13A5 - Failure of motor current monitor (Kegagalan pemantau arus motor).",
+      title: "Analisa Uraian: Kegagalan Motor Current Monitor",
+      description: "Sirkuit internal yang memantau aliran arus listrik pada motor pompa ABS mengalami masalah."
+    }
+  ],
+  "66": [
+    {
+      summary: "C1380 - Failure of stop lamp relay (Kegagalan relai lampu rem).",
+      title: "Analisa Uraian: Kerusakan Relai Lampu Rem",
+      description: "Relai yang mengontrol sistem lampu rem mengalami gangguan fungsi atau korsleting."
+    }
+  ],
+  "67": [
+    {
+      summary: "C13A6 - Failure of motor disconnection/short circuit (Motor pompa terputus atau korsleting).",
+      title: "Analisa Uraian: Pemutusan/Korsleting Motor Pompa",
+      description: "Terdeteksi hubungan pendek atau kabel terputus secara langsung pada unit motor pompa ABS."
+    }
+  ],
+  "68": [
+    {
+      summary: "C13A7 - Actuator failure (Kegagalan aktuator ABS).",
+      title: "Analisa Uraian: Kegagalan Unit Aktuator",
+      description: "Unit aktuator hidrolik secara keseluruhan mengalami kegagalan mekanis atau elektrik."
+    }
+  ],
+  "69": [
+    {
+      summary: "C13AA - High temperature detection (Deteksi suhu tinggi pada modul/aktuator).",
+      title: "Analisa Uraian: Deteksi Suhu Tinggi",
+      description: "Sistem mendeteksi suhu operasional yang terlalu panas pada komponen modul atau aktuator ABS."
+    }
+  ],
+  "71": [
+    {
+      summary: "C13B0 - ECU internal failure (Kegagalan internal ECU ABS).",
+      title: "Analisa Uraian: Kerusakan Internal ECU ABS",
+      description: "Terdeteksi error atau kerusakan pada komponen internal di dalam papan sirkuit modul ECU ABS."
+    }
+  ],
+  "72": [
+    {
+      summary: "C13B4 - Failure of EPB SW disconnection/short (Korsleting/pemutusan sakelar EPB).",
+      title: "Analisa Uraian: Kegagalan Sakelar EPB (Electric Parking Brake)",
+      description: "Jalur kabel atau sakelar rem parkir elektrik mengalami pemutusan atau hubungan pendek."
+    }
+  ],
+  "73": [
+    {
+      summary: "C1207 - Failure of shift signal/communication failure of transmission ECU (Kegagalan sinyal transmisi / komunikasi ECU transmisi).",
+      title: "Analisa Uraian: Kegagalan Sinyal Transmisi",
+      description: "Modul ABS gagal menerima sinyal posisi gigi atau mengalami gangguan komunikasi dengan komputer transmisi."
+    }
+  ],
+  "74": [
+    {
+      summary: "U0293 - Communication failure of HV ECU (Gagal komunikasi dengan ECU kendaraan hybrid/HV).",
+      title: "Analisa Uraian: Kehilangan Komunikasi HV ECU",
+      description: "Modul ABS terputus atau gagal berkomunikasi dengan komputer pengontrol sistem hybrid (HV ECU)."
+    }
+  ],
+  "75": [
+    {
+      summary: "U0155 - Communication failure of meter (Gagal komunikasi dengan panel instrumen/meter).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Panel Meter",
+      description: "Jalur komunikasi data antara modul ABS dan panel instrumen speedometer terputus."
+    }
+  ],
+  "76": [
+    {
+      summary: "U1101 - Communication failure of inter vehicle ECU (Gagal komunikasi inter-vehicle ECU).",
+      title: "Analisa Uraian: Kegagalan Komunikasi Inter-Vehicle ECU",
+      description: "Terjadi gangguan komunikasi data dengan modul kontrol antar kendaraan (sistem radar/sensor jarak)."
+    }
+  ],
+  "77": [
+    {
+      summary: "C1300 - ECU internal failure (Kegagalan internal ECU ABS).",
+      title: "Analisa Uraian: Kerusakan Internal ECU ABS",
+      description: "Terdeteksi kegagalan pada komponen internal utama di dalam modul komputer ABS."
+    }
+  ],
+  "78": [
+    {
+      summary: "C1203 - Communication failure of EFI/ECT ECU/Identifying signal failure (Gagal komunikasi EFI/ECT atau sinyal identifikasi).",
+      title: "Analisa Uraian: Kegagalan Komunikasi EFI/ECT ECU",
+      description: "Terjadi kesalahan identifikasi sinyal atau putusnya komunikasi dengan komputer mesin dan transmisi."
+    }
+  ],
+  "79": [
+    {
+      summary: "U0073 - CAN communication failure (Kegagalan komunikasi jaringan CAN bus).",
+      title: "Analisa Uraian: Kegagalan Jaringan CAN Bus",
+      description: "Jalur komunikasi utama CAN-Bus mengalami gangguan total, korsleting, atau terputus."
+    }
+  ],
+  "81": [
+    {
+      summary: "C1271 - Incomplete of output signal check of FR wheel speed sensor (Pemeriksaan sinyal output sensor FR belum lengkap/tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sinyal Sensor FR Belum Selesai",
+      description: "Prosedur pembelajaran atau pemeriksaan sinyal output sensor kecepatan roda depan kanan belum diselesaikan."
+    }
+  ],
+  "82": [
+    {
+      summary: "C1272 - Incomplete of output signal check of FL wheel speed sensor (Pemeriksaan sinyal output sensor FL belum lengkap/tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sinyal Sensor FL Belum Selesai",
+      description: "Prosedur pembelajaran atau pemeriksaan sinyal output sensor kecepatan roda depan kiri belum diselesaikan."
+    }
+  ],
+  "83": [
+    {
+      summary: "C1273 - Incomplete of output signal check of RR wheel speed sensor (Pemeriksaan sinyal output sensor RR belum lengkap/tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sinyal Sensor RR Belum Selesai",
+      description: "Prosedur pembelajaran atau pemeriksaan sinyal output sensor kecepatan roda belakang kanan belum diselesaikan."
+    }
+  ],
+  "84": [
+    {
+      summary: "C1274 - Incomplete of output signal check of RL wheel speed sensor (Pemeriksaan sinyal output sensor RL belum lengkap/tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sinyal Sensor RL Belum Selesai",
+      description: "Prosedur pembelajaran atau pemeriksaan sinyal output sensor kecepatan roda belakang kiri belum diselesaikan."
+    }
+  ],
+  "85": [
+    {
+      summary: "C1275 - Incomplete of revolution check of FR wheel speed sensor (Pemeriksaan putaran sensor FR belum lengkap).",
+      title: "Analisa Uraian: Pengecekan Putaran Roda FR Belum Selesai",
+      description: "Pengujian putaran roda depan kanan untuk kalibrasi sensor belum dilakukan atau belum tuntas."
+    }
+  ],
+  "86": [
+    {
+      summary: "C1276 - Incomplete of revolution check of FL wheel speed sensor (Pemeriksaan putaran sensor FL belum lengkap).",
+      title: "Analisa Uraian: Pengecekan Putaran Roda FL Belum Selesai",
+      description: "Pengujian putaran roda depan kiri untuk kalibrasi sensor belum dilakukan atau belum tuntas."
+    }
+  ],
+  "87": [
+    {
+      summary: "C1277 - Incomplete of revolution check of RR wheel speed sensor (Pemeriksaan putaran sensor RR belum lengkap).",
+      title: "Analisa Uraian: Pengecekan Putaran Roda RR Belum Selesai",
+      description: "Pengujian putaran roda belakang kanan untuk kalibrasi sensor belum dilakukan atau belum tuntas."
+    }
+  ],
+  "88": [
+    {
+      summary: "C1278 - Incomplete of revolution check of RL wheel speed sensor (Pemeriksaan putaran sensor RL belum lengkap).",
+      title: "Analisa Uraian: Pengecekan Putaran Roda RL Belum Selesai",
+      description: "Pengujian putaran roda belakang kiri untuk kalibrasi sensor belum dilakukan atau belum tuntas."
+    }
+  ],
+  "89": [
+    {
+      summary: "C1270 - Incomplete of system information recording (Perekaman informasi sistem belum lengkap).",
+      title: "Analisa Uraian: Perekaman Informasi Sistem Belum Selesai",
+      description: "Data konfigurasi atau informasi sistem pada modul ABS belum terekam secara sempurna."
+    }
+  ],
+  "91": [
+    {
+      summary: "C1279 - Incomplete of output signal check of longitudinal acceleration sensor (Pemeriksaan sinyal sensor akselerasi longitudinal belum tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sensor Akselerasi Longitudinal Belum Selesai",
+      description: "Pemeriksaan atau kalibrasi output sensor akselerasi longitudinal belum diselesaikan dengan benar."
+    }
+  ],
+  "92": [
+    {
+      summary: "C1322 - Incomplete of output signal check of lateral acceleration sensor (Pemeriksaan sinyal sensor akselerasi lateral belum tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sensor Akselerasi Lateral Belum Selesai",
+      description: "Pemeriksaan atau kalibrasi output sensor akselerasi lateral belum diselesaikan dengan benar."
+    }
+  ],
+  "93": [
+    {
+      summary: "C1210 - Incomplete of offset recording of acceleration sensor (Perekaman offset sensor akselerasi belum tuntas).",
+      title: "Analisa Uraian: Perekaman Offset Sensor Akselerasi Belum Selesai",
+      description: "Proses kalibrasi nilai nol (offset recording) untuk sensor akselerasi belum diselesaikan."
+    }
+  ],
+  "94": [
+    {
+      summary: "C1394 - Incomplete of output signal check of steering angle sensor (Pemeriksaan sinyal sensor sudut kemudi belum tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sensor Sudut Kemudi Belum Selesai",
+      description: "Proses pembelajaran atau pemeriksaan output sinyal sensor sudut kemudi belum diselesaikan."
+    }
+  ],
+  "95": [
+    {
+      summary: "C1281 - Incomplete of output signal check/offset recording of M/C pressure sensor (Kalibrasi sensor tekanan master silinder belum tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sensor Tekanan Master Silinder Belum Selesai",
+      description: "Pemeriksaan sinyal atau perekaman offset untuk sensor tekanan master silinder belum diselesaikan."
+    }
+  ],
+  "96": [
+    {
+      summary: "C1396 - Incomplete of shift signal check (Pemeriksaan sinyal transmisi belum tuntas).",
+      title: "Analisa Uraian: Pengecekan Sinyal Shift Belum Selesai",
+      description: "Prosedur pemeriksaan sinyal perpindahan gigi (shift signal check) pada sistem belum diselesaikan."
+    }
+  ],
+  "97": [
+    {
+      summary: "C1322 - Incomplete of output signal check of lateral acceleration sensor (Pemeriksaan sinyal sensor akselerasi lateral belum tuntas).",
+      title: "Analisa Uraian: Kalibrasi Sensor Akselerasi Lateral Belum Selesai",
+      description: "Pemeriksaan atau kalibrasi output sensor akselerasi lateral belum diselesaikan dengan benar."
+    }
+  ],
+  "98": [
+    {
+      summary: "C1328 - Incomplete of stop lamp switch check (Pemeriksaan sakelar lampu rem belum tuntas).",
+      title: "Analisa Uraian: Pengecekan Sakelar Lampu Rem Belum Selesai",
+      description: "Prosedur pemeriksaan atau kalibrasi sakelar lampu rem (stop lamp switch) belum diselesaikan."
+    }
+  ],
+  "99": [
+    {
+      summary: "C1327 - Incomplete of offset recording of lateral acceleration sensor (Perekaman offset sensor akselerasi lateral belum tuntas).",
+      title: "Analisa Uraian: Perekaman Offset Sensor Akselerasi Lateral Belum Selesai",
+      description: "Proses kalibrasi nilai nol (offset) untuk sensor akselerasi lateral belum diselesaikan dengan sempurna."
+    }
+  ]
+},
+airbag: {
+  "51": [
+    {
+      summary: "B1802 - Driver side front air bag squib - GND Short (Korsleting massa pada squib airbag pengemudi).",
+      title: "Analisa Uraian: Korsleting Massa Airbag Pengemudi",
+      description: "Modul mendeteksi adanya hubungan pendek ke massa (GND Short) pada sirkuit squib airbag depan pengemudi."
+    },
+    {
+      summary: "B1803 - Driver side front air bag squib - Power short (Korsleting arus positif pada squib airbag pengemudi).",
+      title: "Analisa Uraian: Korsleting Arus Positif Airbag Pengemudi",
+      description: "Terjadi hubungan pendek ke sumber tegangan (Power short) pada sirkuit squib airbag depan pengemudi."
+    },
+    {
+      summary: "B1800 - Driver side front air bag squib - Wire harness short (Korsleting kabel harness squib airbag pengemudi).",
+      title: "Analisa Uraian: Korsleting Kabel Airbag Pengemudi",
+      description: "Terdeteksi adanya kabel yang saling bersentuhan atau korsleting pada jalur kabel harness squib airbag pengemudi."
+    },
+    {
+      summary: "B1801 - Driver side front air bag squib - Wire harness open (Kabel harness squib airbag pengemudi terputus).",
+      title: "Analisa Uraian: Kabel Terputus Airbag Pengemudi",
+      description: "Jalur rangkaian kabel (wire harness open) yang menuju ke squib airbag depan pengemudi mengalami pemutusan."
+    }
+  ],
+  "52": [
+    {
+      summary: "B1807 - Passenger side front air bag squib - GND Short (Korsleting massa pada squib airbag penumpang).",
+      title: "Analisa Uraian: Korsleting Massa Airbag Penumpang",
+      description: "Modul mendeteksi adanya hubungan pendek ke massa (GND Short) pada sirkuit squib airbag depan penumpang."
+    },
+    {
+      summary: "B1808 - Passenger side front air bag squib - Power short (Korsleting arus positif pada squib airbag penumpang).",
+      title: "Analisa Uraian: Korsleting Arus Positif Airbag Penumpang",
+      description: "Terjadi hubungan pendek ke sumber tegangan (Power short) pada sirkuit squib airbag depan penumpang."
+    },
+    {
+      summary: "B1805 - Passenger side front air bag squib - Wire harness short (Korsleting kabel harness squib airbag penumpang).",
+      title: "Analisa Uraian: Korsleting Kabel Airbag Penumpang",
+      description: "Terdeteksi adanya kabel yang saling bersentuhan atau korsleting pada jalur kabel harness squib airbag penumpang."
+    },
+    {
+      summary: "B1806 - Passenger side front air bag squib - Wire harness open (Kabel harness squib airbag penumpang terputus).",
+      title: "Analisa Uraian: Kabel Terputus Airbag Penumpang",
+      description: "Jalur rangkaian kabel (wire harness open) yang menuju ke squib airbag depan penumpang mengalami pemutusan."
+    }
+  ],
+  "73": [
+    {
+      summary: "B1902 - RH side pretension squib - GND Short (Korsleting massa pada pretensioner kanan).",
+      title: "Analisa Uraian: Korsleting Massa Pretensioner Kanan",
+      description: "Modul mendeteksi adanya hubungan pendek ke massa (GND Short) pada sirkuit squib seatbelt pretensioner sebelah kanan."
+    },
+    {
+      summary: "B1903 - RH side pretension squib - Power short (Korsleting arus positif pada pretensioner kanan).",
+      title: "Analisa Uraian: Korsleting Arus Positif Pretensioner Kanan",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib seatbelt pretensioner sebelah kanan."
+    },
+    {
+      summary: "B1900 - RH side pretension squib - Wire harness short (Korsleting kabel pretensioner kanan).",
+      title: "Analisa Uraian: Korsleting Kabel Pretensioner Kanan",
+      description: "Terdeteksi kabel yang saling bersentuhan atau korsleting pada jalur kabel harness pretensioner kanan."
+    },
+    {
+      summary: "B1901 - RH side pretension squib - Wire harness open (Kabel pretensioner kanan terputus).",
+      title: "Analisa Uraian: Kabel Terputus Pretensioner Kanan",
+      description: "Jalur rangkaian kabel yang menuju ke squib pretensioner sebelah kanan mengalami pemutusan."
+    }
+  ],
+  "74": [
+    {
+      summary: "B1907 - LH side pretension squib - GND Short (Korsleting massa pada pretensioner kiri).",
+      title: "Analisa Uraian: Korsleting Massa Pretensioner Kiri",
+      description: "Modul mendeteksi adanya hubungan pendek ke massa (GND Short) pada sirkuit squib seatbelt pretensioner sebelah kiri."
+    },
+    {
+      summary: "B1908 - LH side pretension squib - Power short (Korsleting arus positif pada pretensioner kiri).",
+      title: "Analisa Uraian: Korsleting Arus Positif Pretensioner Kiri",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib seatbelt pretensioner sebelah kiri."
+    },
+    {
+      summary: "B1905 - LH side pretension squib - Wire harness short (Korsleting kabel pretensioner kiri).",
+      title: "Analisa Uraian: Korsleting Kabel Pretensioner Kiri",
+      description: "Terdeteksi kabel yang saling bersentuhan atau korsleting pada jalur kabel harness pretensioner kiri."
+    },
+    {
+      summary: "B1906 - LH side pretension squib - Wire harness open (Kabel pretensioner kiri terputus).",
+      title: "Analisa Uraian: Kabel Terputus Pretensioner Kiri",
+      description: "Jalur rangkaian kabel yang menuju ke squib pretensioner sebelah kiri mengalami pemutusan."
+    }
+  ],
+  "64": [
+    {
+      summary: "B1862 - Driver side knee air bag squib - GND Short (Korsleting massa pada airbag lutut pengemudi).",
+      title: "Analisa Uraian: Korsleting Massa Airbag Lutut Pengemudi",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib airbag lutut pengemudi."
+    },
+    {
+      summary: "B1863 - Driver side knee air bag squib - Power short (Korsleting arus positif pada airbag lutut pengemudi).",
+      title: "Analisa Uraian: Korsleting Arus Positif Airbag Lutut Pengemudi",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib airbag lutut pengemudi."
+    },
+    {
+      summary: "B1860 - Driver side knee air bag squib - Wire harness short (Korsleting kabel airbag lutut pengemudi).",
+      title: "Analisa Uraian: Korsleting Kabel Airbag Lutut Pengemudi",
+      description: "Terdeteksi korsleting pada jalur kabel harness squib airbag lutut pengemudi."
+    },
+    {
+      summary: "B1861 - Driver side knee air bag squib - Wire harness open (Kabel airbag lutut pengemudi terputus).",
+      title: "Analisa Uraian: Kabel Terputus Airbag Lutut Pengemudi",
+      description: "Jalur rangkaian kabel menuju squib airbag lutut pengemudi mengalami pemutusan."
+    }
+  ],
+  "65": [
+    {
+      summary: "B1867 - Passenger side knee air bag squib - GND Short (Korsleting massa pada airbag lutut penumpang).",
+      title: "Analisa Uraian: Korsleting Massa Airbag Lutut Penumpang",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib airbag lutut penumpang."
+    },
+    {
+      summary: "B1868 - Passenger side knee air bag squib - Power short (Korsleting arus positif pada airbag lutut penumpang).",
+      title: "Analisa Uraian: Korsleting Arus Positif Airbag Lutut Penumpang",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib airbag lutut penumpang."
+    },
+    {
+      summary: "B1865 - Passenger side knee air bag squib - Wire harness short (Korsleting kabel airbag lutut penumpang).",
+      title: "Analisa Uraian: Korsleting Kabel Airbag Lutut Penumpang",
+      description: "Terdeteksi korsleting pada jalur kabel harness squib airbag lutut penumpang."
+    },
+    {
+      summary: "B1866 - Passenger side knee air bag squib - Wire harness open (Kabel airbag lutut penumpang terputus).",
+      title: "Analisa Uraian: Kabel Terputus Airbag Lutut Penumpang",
+      description: "Jalur rangkaian kabel menuju squib airbag lutut penumpang mengalami pemutusan."
+    }
+  ],
+  "55": [
+    {
+      summary: "B1822 - Right side front side air bag squib - GND Short (Korsleting massa pada airbag samping kanan depan).",
+      title: "Analisa Uraian: Korsleting Massa Airbag Samping Kanan",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib airbag samping depan kanan."
+    },
+    {
+      summary: "B1823 - Right side front side air bag squib - Power short (Korsleting arus positif pada airbag samping kanan depan).",
+      title: "Analisa Uraian: Korsleting Arus Positif Airbag Samping Kanan",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib airbag samping depan kanan."
+    },
+    {
+      summary: "B1820 - Right side front side air bag squib - Wire harness short (Korsleting kabel airbag samping kanan depan).",
+      title: "Analisa Uraian: Korsleting Kabel Airbag Samping Kanan",
+      description: "Terdeteksi korsleting pada jalur kabel harness squib airbag samping depan kanan."
+    },
+    {
+      summary: "B1821 - Right side front side air bag squib - Wire harness open (Kabel airbag samping kanan depan terputus).",
+      title: "Analisa Uraian: Kabel Terputus Airbag Samping Kanan",
+      description: "Jalur rangkaian kabel menuju squib airbag samping depan kanan mengalami pemutusan."
+    }
+  ],
+  "56": [
+    {
+      summary: "B1827 - Left side front side air bag squib - GND Short (Korsleting massa pada airbag samping kiri depan).",
+      title: "Analisa Uraian: Korsleting Massa Airbag Samping Kiri",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib airbag samping depan kiri."
+    },
+    {
+      summary: "B1828 - Left side front side air bag squib - Power short (Korsleting arus positif pada airbag samping kiri depan).",
+      title: "Analisa Uraian: Korsleting Arus Positif Airbag Samping Kiri",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib airbag samping depan kiri."
+    },
+    {
+      summary: "B1825 - Left side front side air bag squib - Wire harness short (Korsleting kabel airbag samping kiri depan).",
+      title: "Analisa Uraian: Korsleting Kabel Airbag Samping Kiri",
+      description: "Terdeteksi korsleting pada jalur kabel harness squib airbag samping depan kiri."
+    },
+    {
+      summary: "B1826 - Left side front side air bag squib - Wire harness open (Kabel airbag samping kiri depan terputus).",
+      title: "Analisa Uraian: Kabel Terputus Airbag Samping Kiri",
+      description: "Jalur rangkaian kabel menuju squib airbag samping depan kiri mengalami pemutusan."
+    }
+  ],
+  "57": [
+    {
+      summary: "B1832 - RH side curtain air bag squib - GND Short (Korsleting massa pada curtain airbag kanan).",
+      title: "Analisa Uraian: Korsleting Massa Curtain Airbag Kanan",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib curtain airbag sebelah kanan."
+    },
+    {
+      summary: "B1833 - RH side curtain air bag squib - Power short (Korsleting arus positif pada curtain airbag kanan).",
+      title: "Analisa Uraian: Korsleting Arus Positif Curtain Airbag Kanan",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib curtain airbag sebelah kanan."
+    },
+    {
+      summary: "B1830 - RH side curtain air bag squib - Wire harness short (Korsleting kabel curtain airbag kanan).",
+      title: "Analisa Uraian: Korsleting Kabel Curtain Airbag Kanan",
+      description: "Terdeteksi korsleting pada jalur kabel harness squib curtain airbag kanan."
+    },
+    {
+      summary: "B1831 - RH side curtain air bag squib - Wire harness open (Kabel curtain airbag kanan terputus).",
+      title: "Analisa Uraian: Kabel Terputus Curtain Airbag Kanan",
+      description: "Jalur rangkaian kabel menuju squib curtain airbag sebelah kanan mengalami pemutusan."
+    }
+  ],
+  "58": [
+    {
+      summary: "B1837 - LH side curtain air bag squib - GND Short (Korsleting massa pada curtain airbag kiri).",
+      title: "Analisa Uraian: Korsleting Massa Curtain Airbag Kiri",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib curtain airbag sebelah kiri."
+    },
+    {
+      summary: "B1838 - LH side curtain air bag squib - Power short (Korsleting arus positif pada curtain airbag kiri).",
+      title: "Analisa Uraian: Korsleting Arus Positif Curtain Airbag Kiri",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib curtain airbag sebelah kiri."
+    },
+    {
+      summary: "B1835 - LH side curtain air bag squib - Wire harness short (Korsleting kabel curtain airbag kiri).",
+      title: "Analisa Uraian: Korsleting Kabel Curtain Airbag Kiri",
+      description: "Terdeteksi korsleting pada jalur kabel harness squib curtain airbag kiri."
+    },
+    {
+      summary: "B1836 - LH side curtain air bag squib - Wire harness open (Kabel curtain airbag kiri terputus).",
+      title: "Analisa Uraian: Kabel Terputus Curtain Airbag Kiri",
+      description: "Jalur rangkaian kabel menuju squib curtain airbag sebelah kiri mengalami pemutusan."
+    }
+  ],
+  "75": [
+    {
+      summary: "B1912 - Right side lap outer pretension squib - GND Short (Korsleting massa pada lap outer pretensioner kanan).",
+      title: "Analisa Uraian: Korsleting Massa Lap Outer Pretensioner Kanan",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib lap outer pretensioner kanan."
+    },
+    {
+      summary: "B1913 - Right side lap outer pretension squib - Power short (Korsleting arus positif pada lap outer pretensioner kanan).",
+      title: "Analisa Uraian: Korsleting Arus Positif Lap Outer Pretensioner Kanan",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib lap outer pretensioner kanan."
+    },
+    {
+      summary: "B1910 - Right side lap outer pretension squib - Wire harness short (Korsleting kabel lap outer pretensioner kanan).",
+      title: "Analisa Uraian: Korsleting Kabel Lap Outer Pretensioner Kanan",
+      description: "Terdeteksi korsleting pada jalur kabel harness lap outer pretensioner kanan."
+    },
+    {
+      summary: "B1911 - Right side lap outer pretension squib - Wire harness open (Kabel lap outer pretensioner kanan terputus).",
+      title: "Analisa Uraian: Kabel Terputus Lap Outer Pretensioner Kanan",
+      description: "Jalur rangkaian kabel menuju squib lap outer pretensioner kanan mengalami pemutusan."
+    }
+  ],
+  "76": [
+    {
+      summary: "B1917 - Left side lap outer pretension squib - GND Short (Korsleting massa pada lap outer pretensioner kiri).",
+      title: "Analisa Uraian: Korsleting Massa Lap Outer Pretensioner Kiri",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib lap outer pretensioner kiri."
+    },
+    {
+      summary: "B1918 - Left side lap outer pretension squib - Power short (Korsleting arus positif pada lap outer pretensioner kiri).",
+      title: "Analisa Uraian: Korsleting Arus Positif Lap Outer Pretensioner Kiri",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib lap outer pretensioner kiri."
+    },
+    {
+      summary: "B1915 - Left side lap outer pretension squib - Wire harness short (Korsleting kabel lap outer pretensioner kiri).",
+      title: "Analisa Uraian: Korsleting Kabel Lap Outer Pretensioner Kiri",
+      description: "Terdeteksi korsleting pada jalur kabel harness lap outer pretensioner kiri."
+    },
+    {
+      summary: "B1916 - Left side lap outer pretension squib - Wire harness open (Kabel lap outer pretensioner kiri terputus).",
+      title: "Analisa Uraian: Kabel Terputus Lap Outer Pretensioner Kiri",
+      description: "Jalur rangkaian kabel menuju squib lap outer pretensioner kiri mengalami pemutusan."
+    }
+  ],
+  "77": [
+    {
+      summary: "B1922 - Right side rear pretension squib - GND Short (Korsleting massa pada pretensioner belakang kanan).",
+      title: "Analisa Uraian: Korsleting Massa Pretensioner Belakang Kanan",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib rear pretensioner kanan."
+    },
+    {
+      summary: "B1923 - Right side rear pretension squib - Power short (Korsleting arus positif pada pretensioner belakang kanan).",
+      title: "Analisa Uraian: Korsleting Arus Positif Pretensioner Belakang Kanan",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib rear pretensioner kanan."
+    },
+    {
+      summary: "B1920 - Right side rear pretension squib - Wire harness short (Korsleting kabel pretensioner belakang kanan).",
+      title: "Analisa Uraian: Korsleting Kabel Pretensioner Belakang Kanan",
+      description: "Terdeteksi korsleting pada jalur kabel harness rear pretensioner kanan."
+    },
+    {
+      summary: "B1921 - Right side rear pretension squib - Wire harness open (Kabel pretensioner belakang kanan terputus).",
+      title: "Analisa Uraian: Kabel Terputus Pretensioner Belakang Kanan",
+      description: "Jalur rangkaian kabel menuju squib rear pretensioner kanan mengalami pemutusan."
+    }
+  ],
+  "78": [
+    {
+      summary: "B1927 - Left side rear pretension squib - GND Short (Korsleting massa pada pretensioner belakang kiri).",
+      title: "Analisa Uraian: Korsleting Massa Pretensioner Belakang Kiri",
+      description: "Modul mendeteksi hubungan pendek ke massa pada sirkuit squib rear pretensioner kiri."
+    },
+    {
+      summary: "B1928 - Left side rear pretension squib - Power short (Korsleting arus positif pada pretensioner belakang kiri).",
+      title: "Analisa Uraian: Korsleting Arus Positif Pretensioner Belakang Kiri",
+      description: "Terjadi hubungan pendek ke sumber tegangan pada sirkuit squib rear pretensioner kiri."
+    },
+    {
+      summary: "B1925 - Left side rear pretension squib - Wire harness short (Korsleting kabel pretensioner belakang kiri).",
+      title: "Analisa Uraian: Korsleting Kabel Pretensioner Belakang Kiri",
+      description: "Terdeteksi korsleting pada jalur kabel harness rear pretensioner kiri."
+    },
+    {
+      summary: "B1926 - Left side rear pretension squib - Wire harness open (Kabel pretensioner belakang kiri terputus).",
+      title: "Analisa Uraian: Kabel Terputus Pretensioner Belakang Kiri",
+      description: "Jalur rangkaian kabel menuju squib rear pretensioner kiri mengalami pemutusan."
+    }
+  ],
+  "31": [
+    {
+      summary: "B1000 - ECU - Fault (Kegagalan internal pada modul ECU airbag).",
+      title: "Analisa Uraian: Kerusakan Internal ECU Airbag",
+      description: "Terdeteksi kesalahan atau malfungsi internal pada unit komputer pengontrol airbag (SRS ECU)."
+    }
+  ],
+  "13": [
+    {
+      summary: "B1610 - Right side electric front sensor - Sensor fault (Kegagalan sensor benturan depan kanan).",
+      title: "Analisa Uraian: Kerusakan Sensor Depan Kanan",
+      description: "Sensor benturan elektrik bagian depan sebelah kanan mengalami kegagalan fungsi."
+    }
+  ],
+  "83": [
+    {
+      summary: "B1612 - Right side electric front sensor - Communication Intrp (Gangguan komunikasi sensor depan kanan).",
+      title: "Analisa Uraian: Gangguan Komunikasi Sensor Depan Kanan",
+      description: "Terjadi interupsi atau kegagalan komunikasi data dengan sensor benturan depan sebelah kanan."
+    },
+    {
+      summary: "B1613 - Right side electric front sensor - Abn Initialization (Inisialisasi tidak normal sensor depan kanan).",
+      title: "Analisa Uraian: Inisialisasi Gagal Sensor Depan Kanan",
+      description: "Proses inisialisasi awal pada sensor benturan depan kanan gagal atau tidak normal."
+    }
+  ],
+  "19": [
+    {
+      summary: "B161E - Right side electric front sensor - ID Fault (Kesalahan ID sensor depan kanan).",
+      title: "Analisa Uraian: Kesalahan ID Sensor Depan Kanan",
+      description: "Modul mendeteksi ketidakcocokan atau kesalahan identifikasi ID pada sensor benturan depan kanan."
+    }
+  ],
+  "14": [
+    {
+      summary: "B1615 - Left side electric front sensor - Sensor fault (Kegagalan sensor benturan depan kiri).",
+      title: "Analisa Uraian: Kerusakan Sensor Depan Kiri",
+      description: "Sensor benturan elektrik bagian depan sebelah kiri mengalami kegagalan fungsi."
+    }
+  ],
+  "84": [
+    {
+      summary: "B1616 - Left side electric front sensor - Communication Intrp (Gangguan komunikasi sensor depan kiri).",
+      title: "Analisa Uraian: Gangguan Komunikasi Sensor Depan Kiri",
+      description: "Terjadi interupsi atau kegagalan komunikasi data dengan sensor benturan depan sebelah kiri."
+    },
+    {
+      summary: "B1618 - Left side electric front sensor - Abn Initialization (Inisialisasi tidak normal sensor depan kiri).",
+      title: "Analisa Uraian: Inisialisasi Gagal Sensor Depan Kiri",
+      description: "Proses inisialisasi awal pada sensor benturan depan kiri gagal atau tidak normal."
+    }
+  ],
+  "29": [
+    {
+      summary: "B161F - Left side electric front sensor - ID Fault (Kesalahan ID sensor depan kiri).",
+      title: "Analisa Uraian: Kesalahan ID Sensor Depan Kiri",
+      description: "Modul mendeteksi ketidakcocokan atau kesalahan identifikasi ID pada sensor benturan depan kiri."
+    }
+  ],
+  "21": [
+    {
+      summary: "B1620 - Right side B-pillar sensor - Sensor fault (Kegagalan sensor pilar-B kanan).",
+      title: "Analisa Uraian: Kerusakan Sensor Pilar-B Kanan",
+      description: "Sensor benturan yang terletak di pilar-B sebelah kanan mengalami kegagalan fungsi."
+    }
+  ],
+  "81": [
+    {
+      summary: "B1622 - Right side B-pillar sensor - Communication Intrp (Gangguan komunikasi sensor pilar-B kanan).",
+      title: "Analisa Uraian: Gangguan Komunikasi Sensor Pilar-B Kanan",
+      description: "Terjadi interupsi atau kegagalan komunikasi data dengan sensor pilar-B sebelah kanan."
+    },
+    {
+      summary: "B1623 - Right side B-pillar sensor - Abn Initialization (Inisialisasi tidak normal sensor pilar-B kanan).",
+      title: "Analisa Uraian: Inisialisasi Gagal Sensor Pilar-B Kanan",
+      description: "Proses inisialisasi awal pada sensor pilar-B kanan gagal atau tidak normal."
+    },
+    {
+      summary: "B1632 - Right side C-Pillar sensor - Communication Intrp (Gangguan komunikasi sensor pilar-C kanan).",
+      title: "Analisa Uraian: Gangguan Komunikasi Sensor Pilar-C Kanan",
+      description: "Terjadi interupsi atau kegagalan komunikasi data dengan sensor pilar-C sebelah kanan."
+    },
+    {
+      summary: "B1633 - Right side C-Pillar sensor - Abn Initialization (Inisialisasi tidak normal sensor pilar-C kanan).",
+      title: "Analisa Uraian: Inisialisasi Gagal Sensor Pilar-C Kanan",
+      description: "Proses inisialisasi awal pada sensor pilar-C kanan gagal atau tidak normal."
+    }
+  ],
+  "91": [
+    {
+      summary: "B162E - Right side B-pillar sensor - ID Fault (Kesalahan ID sensor pilar-B kanan).",
+      title: "Analisa Uraian: Kesalahan ID Sensor Pilar-B Kanan",
+      description: "Modul mendeteksi ketidakcocokan atau kesalahan identifikasi ID pada sensor pilar-B kanan."
+    }
+  ],
+  "22": [
+    {
+      summary: "B1625 - Left side B-pillar sensor - Sensor fault (Kegagalan sensor pilar-B kiri).",
+      title: "Analisa Uraian: Kerusakan Sensor Pilar-B Kiri",
+      description: "Sensor benturan yang terletak di pilar-B sebelah kiri mengalami kegagalan fungsi."
+    }
+  ],
+  "82": [
+    {
+      summary: "B1627 - Left side B-pillar sensor - Communication Intrp (Gangguan komunikasi sensor pilar-B kiri).",
+      title: "Analisa Uraian: Gangguan Komunikasi Sensor Pilar-B Kiri",
+      description: "Terjadi interupsi atau kegagalan komunikasi data dengan sensor pilar-B sebelah kiri."
+    },
+    {
+      summary: "B1628 - Left side B-pillar sensor - Abn Initialization (Inisialisasi tidak normal sensor pilar-B kiri).",
+      title: "Analisa Uraian: Inisialisasi Gagal Sensor Pilar-B Kiri",
+      description: "Proses inisialisasi awal pada sensor pilar-B kiri gagal atau tidak normal."
+    },
+    {
+      summary: "B1637 - Left side C-Pillar sensor - Communication Intrp (Gangguan komunikasi sensor pilar-C kiri).",
+      title: "Analisa Uraian: Gangguan Komunikasi Sensor Pilar-C Kiri",
+      description: "Terjadi interupsi atau kegagalan komunikasi data dengan sensor pilar-C sebelah kiri."
+    },
+    {
+      summary: "B1638 - Left side C-Pillar sensor - Abn Initialization (Inisialisasi tidak normal sensor pilar-C kiri).",
+      title: "Analisa Uraian: Inisialisasi Gagal Sensor Pilar-C Kiri",
+      description: "Proses inisialisasi awal pada sensor pilar-C kiri gagal atau tidak normal."
+    }
+  ],
+  "92": [
+    {
+      summary: "B162F - Left side B-pillar sensor - ID Fault (Kesalahan ID sensor pilar-B kiri).",
+      title: "Analisa Uraian: Kesalahan ID Sensor Pilar-B Kiri",
+      description: "Modul mendeteksi ketidakcocokan atau kesalahan identifikasi ID pada sensor pilar-B kiri."
+    }
+  ],
+  "23": [
+    {
+      summary: "B1630 - Right side C-Pillar sensor - Sensor fault (Kegagalan sensor pilar-C kanan).",
+      title: "Analisa Uraian: Kerusakan Sensor Pilar-C Kanan",
+      description: "Sensor benturan yang terletak di pilar-C sebelah kanan mengalami kegagalan fungsi."
+    }
+  ],
+  "93": [
+    {
+      summary: "B163E - Right side C-Pillar sensor - ID Fault (Kesalahan ID sensor pilar-C kanan).",
+      title: "Analisa Uraian: Kesalahan ID Sensor Pilar-C Kanan",
+      description: "Modul mendeteksi ketidakcocokan atau kesalahan identifikasi ID pada sensor pilar-C kanan."
+    }
+  ],
+  "24": [
+    {
+      summary: "B1635 - Left side C-Pillar sensor - Sensor fault (Kegagalan sensor pilar-C kiri).",
+      title: "Analisa Uraian: Kerusakan Sensor Pilar-C Kiri",
+      description: "Sensor benturan yang terletak di pilar-C sebelah kiri mengalami kegagalan fungsi."
+    }
+  ],
+  "94": [
+    {
+      summary: "B163F - Left side C-Pillar sensor - ID Fault (Kesalahan ID sensor pilar-C kiri).",
+      title: "Analisa Uraian: Kesalahan ID Sensor Pilar-C Kiri",
+      description: "Modul mendeteksi ketidakcocokan atau kesalahan identifikasi ID pada sensor pilar-C kiri."
+    }
+  ],
+  "33": [
+    {
+      summary: "B1651 - Passenger side air bag cutoff switch - GND Short / Power short / Wire harness short (Gangguan sakelar pemutus airbag penumpang).",
+      title: "Analisa Uraian: Gangguan Sakelar Cutoff Airbag Penumpang",
+      description: "Terjadi korsleting massa, arus positif, atau kabel pada sirkuit sakelar pemutus airbag penumpang."
+    }
+  ],
+  "34": [
+    {
+      summary: "B1652 - Connector - Half connecting (Konektor tidak terpasang sempurna / setengah terhubung).",
+      title: "Analisa Uraian: Konektor Belum Sempurna",
+      description: "Modul mendeteksi adanya konektor pada sistem kelistrikan SRS/airbag yang terpasang kurang rapat atau setengah terhubung."
+    }
+  ],
+  "39": [
+    {
+      summary: "B1010 - CARINFO - Verification fault (Kesalahan verifikasi informasi kendaraan).",
+      title: "Analisa Uraian: Kesalahan Verifikasi Informasi Kendaraan",
+      description: "Terjadi kegagalan verifikasi data atau informasi kendaraan di dalam memori modul ECU airbag."
+    }
+  ]
+},
+eps: {
+  "11": [
+    {
+      summary: "C1511 - Torque sensor 1 Error (Kesalahan pada sensor torsi 1).",
+      title: "Analisa Uraian: Kesalahan Sensor Torsi 1",
+      description: "Modul EPS mendeteksi adanya kegagalan atau sinyal yang tidak normal dari sensor torsi utama (sensor 1)."
+    }
+  ],
+  "12": [
+    {
+      summary: "C1512 - Torque sensor 2 Error (Kesalahan pada sensor torsi 2).",
+      title: "Analisa Uraian: Kesalahan Sensor Torsi 2",
+      description: "Modul EPS mendeteksi adanya kegagalan atau sinyal yang tidak normal dari sensor torsi pembanding (sensor 2)."
+    }
+  ],
+  "13": [
+    {
+      summary: "C1513 - Excessive deviation of torque sensor (Penyimpangan berlebihan pada sensor torsi).",
+      title: "Analisa Uraian: Penyimpangan Sensor Torsi",
+      description: "Terjadi selisih atau deviasi pembacaan yang terlalu besar antara sensor torsi 1 dan sensor torsi 2."
+    }
+  ],
+  "14": [
+    {
+      summary: "C1514 - Torque sensor power supply error (Kesalahan catu daya sensor torsi).",
+      title: "Analisa Uraian: Kegagalan Catu Daya Sensor Torsi",
+      description: "Jalur tegangan atau sumber daya listrik yang menuju ke sensor torsi mengalami gangguan atau tidak stabil."
+    }
+  ],
+  "23": [
+    {
+      summary: "C1523 - Motor terminal 1 error (Kesalahan pada terminal motor 1).",
+      title: "Analisa Uraian: Kesalahan Terminal Motor 1",
+      description: "Terdeteksi adanya masalah kelistrikan atau sambungan pada terminal jalur 1 motor power steering."
+    }
+  ],
+  "24": [
+    {
+      summary: "C1524 - Motor terminal 2 error (Kesalahan pada terminal motor 2).",
+      title: "Analisa Uraian: Kesalahan Terminal Motor 2",
+      description: "Terdeteksi adanya masalah kelistrikan atau sambungan pada terminal jalur 2 motor power steering."
+    }
+  ],
+  "31": [
+    {
+      summary: "C1531 - CPU error (Kesalahan internal CPU EPS).",
+      title: "Analisa Uraian: Kesalahan CPU EPS",
+      description: "Terdeteksi error atau malfungsi pada unit prosesor utama (CPU) di dalam modul komputer EPS."
+    }
+  ],
+  "32": [
+    {
+      summary: "C1532 - ECU error (Kesalahan internal modul ECU EPS).",
+      title: "Analisa Uraian: Kesalahan Modul ECU EPS",
+      description: "Terjadi kerusakan atau kegagalan sistem secara keseluruhan pada unit modul pengontrol EPS."
+    }
+  ],
+  "33": [
+    {
+      summary: "C1533 - Temperature sensor error (Kesalahan pada sensor suhu).",
+      title: "Analisa Uraian: Kesalahan Sensor Suhu EPS",
+      description: "Sensor internal yang memantau suhu operasional motor atau modul EPS mengalami gangguan."
+    }
+  ],
+  "34": [
+    {
+      summary: "C1534 - EEPROM error (Kesalahan memori EEPROM EPS).",
+      title: "Analisa Uraian: Kesalahan Memori EEPROM",
+      description: "Terjadi kegagalan pembacaan atau penulisan data pada chip memori internal (EEPROM) modul EPS."
+    }
+  ],
+  "41": [
+    {
+      summary: "C1541 - Vehicle speed error (Kesalahan sinyal kecepatan kendaraan).",
+      title: "Analisa Uraian: Kesalahan Sinyal Kecepatan Kendaraan",
+      description: "Modul EPS tidak menerima data kecepatan kendaraan yang valid dari sensor atau sistem terkait."
+    }
+  ],
+  "47": [
+    {
+      summary: "C0051 - Steering angle sensor error (Kesalahan pada sensor sudut kemudi).",
+      title: "Analisa Uraian: Kesalahan Sensor Sudut Kemudi EPS",
+      description: "Sensor sudut kemudi gagal mengirimkan data posisi setir yang akurat ke modul EPS."
+    }
+  ],
+  "48": [
+    {
+      summary: "U0416 - VSC communication error (Gagal komunikasi dengan sistem VSC).",
+      title: "Analisa Uraian: Kesalahan Komunikasi VSC",
+      description: "Modul EPS mengalami gangguan atau kegagalan saat bertukar data dengan komputer kontrol stabilitas (VSC)."
+    }
+  ],
+  "52": [
+    {
+      summary: "C1552 - PIG power suply error (Kesalahan catu daya utama PIG).",
+      title: "Analisa Uraian: Kesalahan Catu Daya PIG",
+      description: "Terdeteksi tegangan yang tidak normal atau gangguan pada jalur catu daya utama (PIG) modul EPS."
+    }
+  ],
+  "53": [
+    {
+      summary: "C1553 - Over voltage error (Deteksi tegangan berlebih / overvoltage).",
+      title: "Analisa Uraian: Tegangan Berlebih",
+      description: "Sistem mendeteksi pasokan tegangan listrik yang masuk ke modul EPS melebihi batas normal (over voltage)."
+    }
+  ],
+  "54": [
+    {
+      summary: "C1554 - Power suply relay error (Kesalahan pada relai catu daya).",
+      title: "Analisa Uraian: Kesalahan Relai Catu Daya",
+      description: "Relai internal atau eksternal yang mengontrol aliran daya utama ke sistem EPS mengalami kegagalan."
+    }
+  ],
+  "55": [
+    {
+      summary: "C1555 - Motor relay error (Kesalahan pada relai motor EPS).",
+      title: "Analisa Uraian: Kesalahan Relai Motor EPS",
+      description: "Relai yang mengatur suplai listrik ke motor power steering mengalami kerusakan atau gangguan."
+    }
+  ],
+  "57": [
+    {
+      summary: "C1557 - Current limit storage at overheating protection (Penyimpanan batas arus saat proteksi panas berlebih).",
+      title: "Analisa Uraian: Pembatasan Arus Akibat Overheat",
+      description: "Sistem membatasi arus listrik karena mendeteksi suhu komponen EPS telah melewati batas aman (proteksi panas)."
+    }
+  ],
+  "61": [
+    {
+      summary: "U0100 - EFI communication error (Gagal komunikasi dengan ECU mesin/EFI).",
+      title: "Analisa Uraian: Kehilangan Komunikasi EFI EPS",
+      description: "Modul EPS kehilangan koneksi atau gagal bertukar data dengan komputer mesin (EFI ECU)."
+    }
+  ],
+  "62": [
+    {
+      summary: "U0155 - Meter communication error (Gagal komunikasi dengan panel instrumen).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Meter",
+      description: "Jalur komunikasi data antara modul EPS dan panel speedometer/instrumen mengalami gangguan."
+    }
+  ],
+  "64": [
+    {
+      summary: "U0121 - ABS communication error (Gagal komunikasi dengan modul ABS).",
+      title: "Analisa Uraian: Kehilangan Komunikasi ABS",
+      description: "Modul EPS tidak dapat tersambung atau menerima data dari komputer sistem rem ABS."
+    }
+  ],
+  "65": [
+    {
+      summary: "U0126 - Steering communication error (Gagal komunikasi dengan sensor sudut kemudi).",
+      title: "Analisa Uraian: Kehilangan Komunikasi Kemudi",
+      description: "Terjadi putus komunikasi data yang berkaitan dengan modul atau sensor sudut kemudi."
+    }
+  ],
+  "66": [
+    {
+      summary: "U023A - SCM communication error (Gagal komunikasi dengan SCM/Steering Control Module).",
+      title: "Analisa Uraian: Kehilangan Komunikasi SCM",
+      description: "Modul EPS gagal berkomunikasi dengan modul kontrol roda kemudi (Steering Control Module)."
+    }
+  ],
+  "71": [
+    {
+      summary: "C1571 - Vehicle speed test unfinished / test code (Pengujian kecepatan kendaraan belum selesai).",
+      title: "Analisa Uraian: Tes Kecepatan Belum Selesai",
+      description: "Kode uji diagnostik yang menandakan prosedur kalibrasi atau pemeriksaan kecepatan kendaraan belum tuntas."
+    }
+  ],
+  "73": [
+    {
+      summary: "C1573 - Engine rotation test unfinished / test code (Pengujian putaran mesin belum selesai).",
+      title: "Analisa Uraian: Tes Putaran Mesin Belum Selesai",
+      description: "Kode uji diagnostik yang menandakan prosedur kalibrasi atau pemeriksaan putaran mesin belum tuntas."
+    }
+  ],
+  "81": [
+    {
+      summary: "C1581 - Assistance map not select (Peta bantuan kemudi belum dipilih/dikonfigurasi).",
+      title: "Analisa Uraian: Peta Bantuan Kemudi Belum Dipilih",
+      description: "Parameter karakteristik atau peta bantuan tenaga kemudi (assistance map) pada modul EPS belum diatur."
+    }
+  ]
+},
+immobilizer: {
+  "61": [
+    {
+      summary: "B2890 - Outside key free antena RH abnormality (Kelainan pada antena smart key luar sebelah kanan).",
+      title: "Analisa Uraian: Kelainan Antena Smart Key Luar Kanan",
+      description: "Modul mendeteksi gangguan atau kerusakan pada sirkuit antena keyless/smart entry bagian luar sebelah kanan."
+    }
+  ],
+  "62": [
+    {
+      summary: "B2891 - Outside key free antena LH abnormality (Kelainan pada antena smart key luar sebelah kiri).",
+      title: "Analisa Uraian: Kelainan Antena Smart Key Luar Kiri",
+      description: "Modul mendeteksi gangguan atau kerusakan pada sirkuit antena keyless/smart entry bagian luar sebelah kiri."
+    }
+  ],
+  "63": [
+    {
+      summary: "B2893 - Outside key free antena Back abnormality (Kelainan pada antena smart key bagian belakang).",
+      title: "Analisa Uraian: Kelainan Antena Smart Key Belakang",
+      description: "Modul mendeteksi gangguan atau kerusakan pada sirkuit antena keyless/smart entry di bagian belakang kendaraan."
+    }
+  ],
+  "19": [
+    {
+      summary: "B1244 - Auto light and solar radiation sensor abnormality (Kelainan pada sensor cahaya otomatis & radiasi matahari).",
+      title: "Analisa Uraian: Kelainan Sensor Auto Light & Solar",
+      description: "Sensor yang mendeteksi cahaya otomatis untuk lampu dan radiasi matahari mengalami gangguan fungsi."
+    }
+  ]
+}
         };
 
-        // Logika Animasi Membalik Buku & Sentuhan (Swipe)
-        const pages = document.querySelectorAll('.page');
+        // Logika Animasi Membalik Buku & Navigasi Dinamis
         let currentPageIndex = 0;
-        const totalPages = pages.length;
+
+        function getAllPages() {
+            return document.querySelectorAll('.page');
+        }
 
         function updateBook() {
+            const pages = getAllPages();
+            const totalPages = pages.length;
             pages.forEach((page, index) => {
+                // Atur z-index agar halaman di atas tidak menutupi bayangan lipatan buku secara keliru
                 if (index < currentPageIndex) {
                     page.classList.add('flipped');
                     page.style.zIndex = index;
@@ -1154,8 +2749,17 @@
             });
         }
 
+        function goToPage(index) {
+            const pages = getAllPages();
+            if (index >= 0 && index < pages.length) {
+                currentPageIndex = index;
+                updateBook();
+            }
+        }
+
         function nextPage() {
-            if (currentPageIndex < totalPages - 1) {
+            const pages = getAllPages();
+            if (currentPageIndex < pages.length - 1) {
                 currentPageIndex++;
                 updateBook();
             }
@@ -1168,7 +2772,166 @@
             }
         }
 
-        // Deteksi Gesture Sentuh / Usap Layar (Swipe) & Klik
+        // Membuka Halaman Detail Secara Dinamis Saat Poin Diklik
+        function openDetailByIndex(category, code, indexItem) {
+            const dataList = classifiedDatabase[category][code];
+            if (!dataList || !dataList[indexItem]) return;
+
+            const selectedData = dataList[indexItem];
+            let titleEl, descEl, detailPageId, targetIndex;
+
+            if (category === 'engine') {
+                titleEl = document.getElementById('detail-title-engine');
+                descEl = document.getElementById('detail-desc-engine');
+                detailPageId = 'detail-page-engine';
+                targetIndex = 2;
+            } else if (category === 'abs') {
+                titleEl = document.getElementById('detail-title-abs');
+                descEl = document.getElementById('detail-desc-abs');
+                detailPageId = 'detail-page-abs';
+                targetIndex = 4;
+            } else if (category === 'airbag') {
+                titleEl = document.getElementById('detail-title-airbag');
+                descEl = document.getElementById('detail-desc-airbag');
+                detailPageId = 'detail-page-airbag';
+                targetIndex = 6;
+            } else if (category === 'eps') {
+                titleEl = document.getElementById('detail-title-eps');
+                descEl = document.getElementById('detail-desc-eps');
+                detailPageId = 'detail-page-eps';
+                targetIndex = 8;
+            } else if (category === 'immobilizer') {
+                titleEl = document.getElementById('detail-title-immobilizer');
+                descEl = document.getElementById('detail-desc-immobilizer');
+                detailPageId = 'detail-page-immobilizer';
+                targetIndex = 10;
+            } else {
+                return;
+            }
+
+            // Aktifkan elemen halaman detail agar masuk ke alur buku
+            const detailPage = document.getElementById(detailPageId);
+            detailPage.classList.add('active');
+
+            titleEl.innerText = `Uraian Kode ${code.toUpperCase()} (Poin ${indexItem + 1})`;
+            descEl.innerHTML = `
+                <p style="margin-bottom: 8px;"><strong>${selectedData.title}</strong></p>
+                <p style="margin-bottom: 12px; font-style: italic; color: #555;">"${selectedData.summary}"</p>
+                <p style="white-space: pre-line;">${selectedData.description}</p>
+            `;
+
+            // Perbarui ulang tampilan buku dan buka halaman detailnya
+            updateBook();
+            goToPage(targetIndex);
+        }
+
+        // Menutup Halaman Detail dan Menyembunyikannya Kembali
+        function closeDetail(mainPageIndex) {
+            // Cari halaman detail yang aktif dan sembunyikan kembali
+            const activeDetails = document.querySelectorAll('.page-detail.active');
+            activeDetails.forEach(page => {
+                page.classList.remove('active');
+            });
+
+            // Kembalikan buku ke halaman utama kategori (misal: Halaman Engine, ABS, dll)
+            goToPage(mainPageIndex);
+        }
+
+        // --- SISTEM LOCAL STORAGE UNTUK CATATAN SERVIS ---
+        function getStorageKey(pageNumber) {
+            return `primbon_notes_page_${pageNumber}`;
+        }
+
+        function loadNotes(pageNumber) {
+            const container = document.getElementById(`notes-list-${pageNumber}`);
+            if (!container) return;
+
+            const rawData = localStorage.getItem(getStorageKey(pageNumber));
+            const notes = rawData ? JSON.parse(rawData) : [];
+
+            let html = "";
+            if (notes.length === 0) {
+                html = `<em style="font-size: 0.85rem; color: #777;">Belum ada catatan di halaman ini.</em>`;
+            } else {
+                notes.forEach((note, idx) => {
+                    html += `
+                        <div class="note-card">
+                            <h4>${note.title}</h4>
+                            <p>${note.desc}</p>
+                            <div class="note-actions">
+                                <button class="btn-action btn-edit" onclick="editNote(${pageNumber}, ${idx})">Edit</button>
+                                <button class="btn-action btn-delete" onclick="deleteNote(${pageNumber}, ${idx})">Hapus</button>
+                            </div>
+                        </div>
+                    `;
+                });
+            }
+            container.innerHTML = html;
+        }
+
+        function saveNote(pageNumber) {
+            const titleInput = document.getElementById(`note-title-${pageNumber}`);
+            const descInput = document.getElementById(`note-desc-${pageNumber}`);
+
+            const title = titleInput.value.trim();
+            const desc = descInput.value.trim();
+
+            if (!title || !desc) {
+                alert("Judul dan isi catatan tidak boleh kosong!");
+                return;
+            }
+
+            const rawData = localStorage.getItem(getStorageKey(pageNumber));
+            let notes = rawData ? JSON.parse(rawData) : [];
+
+            notes.push({ title, desc });
+            localStorage.setItem(getStorageKey(pageNumber), JSON.stringify(notes));
+
+            titleInput.value = "";
+            descInput.value = "";
+            loadNotes(pageNumber);
+        }
+
+        function deleteNote(pageNumber, index) {
+            if (!confirm("Yakin ingin menghapus catatan ini?")) return;
+
+            const rawData = localStorage.getItem(getStorageKey(pageNumber));
+            let notes = rawData ? JSON.parse(rawData) : [];
+
+            notes.splice(index, 1);
+            localStorage.setItem(getStorageKey(pageNumber), JSON.stringify(notes));
+            loadNotes(pageNumber);
+        }
+
+        function editNote(pageNumber, index) {
+            const rawData = localStorage.getItem(getStorageKey(pageNumber));
+            let notes = rawData ? JSON.parse(rawData) : [];
+            const note = notes[index];
+
+            const newTitle = prompt("Edit Judul Catatan:", note.title);
+            if (newTitle === null) return;
+
+            const newDesc = prompt("Edit Isi Catatan:", note.desc);
+            if (newDesc === null) return;
+
+            if (!newTitle.trim() || !newDesc.trim()) {
+                alert("Judul dan isi tidak boleh kosong!");
+                return;
+            }
+
+            notes[index] = { title: newTitle.trim(), desc: newDesc.trim() };
+            localStorage.setItem(getStorageKey(pageNumber), JSON.stringify(notes));
+            loadNotes(pageNumber);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            for (let i = 6; i <= 10; i++) {
+                loadNotes(i);
+            }
+            updateBook();
+        });
+
+        // Deteksi Swipe & Drag Mouse
         let touchStartX = 0;
         let touchEndX = 0;
         const bookContainer = document.getElementById('bookContainer');
@@ -1179,7 +2942,11 @@
 
         bookContainer.addEventListener('touchend', (e) => {
             touchEndX = e.changedTouches[0].screenX;
-            handleSwipe();
+            let diff = touchEndX - touchStartX;
+            if (Math.abs(diff) > 50) {
+                if (diff < 0) nextPage();
+                else prevPage();
+            }
         }, {passive: true});
 
         let mouseStartX = 0;
@@ -1188,37 +2955,19 @@
         });
 
         bookContainer.addEventListener('mouseup', (e) => {
-            let mouseEndX = e.clientX;
-            let diff = mouseEndX - mouseStartX;
+            let diff = e.clientX - mouseStartX;
             if (Math.abs(diff) > 50) {
-                if (diff < 0) {
-                    nextPage();
-                } else {
-                    prevPage();
-                }
+                if (diff < 0) nextPage();
+                else prevPage();
             }
         });
-
-        function handleSwipe() {
-            let diff = touchEndX - touchStartX;
-            if (Math.abs(diff) > 50) {
-                if (diff < 0) {
-                    nextPage();
-                } else {
-                    prevPage();
-                }
-            }
-        }
 
         document.addEventListener('keydown', (e) => {
-            if (e.key === 'ArrowRight') {
-                nextPage();
-            } else if (e.key === 'ArrowLeft') {
-                prevPage();
-            }
+            if (e.key === 'ArrowRight') nextPage();
+            else if (e.key === 'ArrowLeft') prevPage();
         });
 
-        // Fitur Pencarian Terklasifikasi Berdasarkan Kategori Input
+        // Fitur Pencarian Input Real-Time
         const searchInputs = document.querySelectorAll('.obd-input');
         searchInputs.forEach(input => {
             input.addEventListener('input', (e) => {
@@ -1232,21 +2981,23 @@
                     return;
                 }
 
-                // Ambil data spesifik berdasarkan kategori halaman tersebut
                 const categoryData = classifiedDatabase[category];
 
                 if (categoryData && categoryData[query]) {
                     let results = categoryData[query];
-                    let htmlContent = `<p><strong>Kode OBD : ${query.toUpperCase()}</strong></p>`;
+                    let htmlContent = `<p style="margin-bottom: 8px;"><strong>Hasil Pencarian (${query.toUpperCase()}):</strong></p>`;
                     
-                    // Otomatis membuat paragraf di bawahnya jika menghasilkan lebih dari satu hasil
                     results.forEach((res, idx) => {
-                        htmlContent += `<p>${idx + 1}. ${res}</p>`;
+                        htmlContent += `
+                            <div class="result-item" onclick="openDetailByIndex('${category}', '${query}', ${idx})">
+                                <strong>${idx + 1}.</strong> ${res.summary}
+                            </div>
+                        `;
                     });
                     
                     resultContainer.innerHTML = htmlContent;
                 } else {
-                    resultContainer.innerHTML = `<p style="color: #b33939;">Kode <strong>"${query.toUpperCase()}"</strong> tidak ditemukan pada kategori ini. (Coba contoh kode di placeholder)</p>`;
+                    resultContainer.innerHTML = `<p style="color: #b33939;">Kode <strong>"${query.toUpperCase()}"</strong> tidak ditemukan pada kategori ini.</p>`;
                 }
             });
         });
