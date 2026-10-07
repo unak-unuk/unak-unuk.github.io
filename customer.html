@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Status Perbaikan Kendaraan - Pelanggan</title>
+    <style>
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
+        .container { max-width: 800px; margin: 30px auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header { text-align: center; margin-bottom: 25px; }
+        header h1 { color: var(--primary); font-size: 1.6rem; margin-bottom: 5px; }
+        header p { color: #64748b; font-size: 0.95rem; }
+        
+        .section-box { margin-bottom: 25px; }
+        .section-title { font-size: 1.2rem; color: var(--primary); margin-bottom: 15px; border-bottom: 2px solid var(--border-color); padding-bottom: 8px; display: flex; justify-content: space-between; align-items: center; }
+        
+        .history-selector { padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95rem; outline: none; background: #fff; }
+
+        .unit-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; background: #fafaf9; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .unit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .unit-title { color: var(--primary); font-size: 1.1rem; font-weight: 700; }
+        
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-process { background: #e0f2fe; color: #0369a1; }
+        .badge-qc { background: #f3e8ff; color: #7e22ce; }
+        .badge-done { background: #dcfce7; color: #15803d; }
+        
+        .unit-problem { background: white; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.95rem; margin-top: 8px; }
+        .empty-state { text-align: center; color: #64748b; padding: 25px; font-size: 0.95rem; background: #f8fafc; border-radius: 8px; }
+    </style>
+</head>
+<body onload="initCustomerPage()">
+
+<div class="container">
+    <header>
+        <h1>Status Perbaikan Kendaraan</h1>
+        <p>Pantau progres perbaikan unit di workshop</p>
+    </header>
+
+    <!-- Bagian Data Hari Ini -->
+    <div class="section-box">
+        <div class="section-title">
+            <span>📅 Unit Hari Ini (<span id="today-label"></span>)</span>
+        </div>
+        <div id="today-container">
+            <div class="empty-state">Memuat data hari ini...</div>
+        </div>
+    </div>
+
+    <!-- Bagian Riwayat Tanggal Sebelumnya -->
+    <div class="section-box">
+        <div class="section-title">
+            <span>📂 Arsip Riwayat Tanggal</span>
+            <select id="history-date-select" class="history-selector" onchange="renderHistoryDate()">
+                <option value="">-- Pilih Tanggal Lain --</option>
+            </select>
+        </div>
+        <div id="history-container">
+            <div class="empty-state">Silakan pilih tanggal pada pilihan di atas untuk melihat arsip riwayat.</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const BIN_ID = '6ac6c2f099f2e6510825b159'; 
+
+    let allUnits = [];
+
+    function getTodayDate() {
+        const d = new Date();
+        return d.toISOString().split('T')[0];
+    }
+
+    async function initCustomerPage() {
+        const today = getTodayDate();
+        document.getElementById('today-label').innerText = today;
+
+        try {
+            let response = await fetch(`https://api.jsonbin.io/v3/b/${BIN_ID}/latest`);
+            let result = await response.json();
+            allUnits = result.record || [];
+
+            renderTodayUnits(today);
+            populateHistoryDropdown(today);
+        } catch (error) {
+            console.error('Gagal memuat data:', error);
+            document.getElementById('today-container').innerHTML = `<div class="empty-state" style="color: red;">Gagal memuat data dari server.</div>`;
+        }
+    }
+
+    function renderTodayUnits(today) {
+        const container = document.getElementById('today-container');
+        const todayUnits = allUnits.filter(u => u.date === today);
+
+        if (todayUnits.length === 0) {
+            container.innerHTML = `<div class="empty-state">Tidak ada unit kendaraan yang terdaftar untuk hari ini.</div>`;
+            return;
+        }
+
+        container.innerHTML = generateCardsHTML(todayUnits);
+    }
+
+    function populateHistoryDropdown(today) {
+        const select = document.getElementById('history-date-select');
+        // Ambil tanggal unik selain hari ini
+        const dates = [...new Set(allUnits.map(u => u.date))]
+            .filter(d => d !== today)
+            .sort((a, b) => new Date(b) - new Date(a)); // Urutkan dari yang terbaru
+
+        dates.forEach(date => {
+            let opt = document.createElement('option');
+            opt.value = date;
+            opt.innerText = date;
+            select.appendChild(opt);
+        });
+    }
+
+    function renderHistoryDate() {
+        const selectedDate = document.getElementById('history-date-select').value;
+        const container = document.getElementById('history-container');
+
+        if (!selectedDate) {
+            container.innerHTML = `<div class="empty-state">Silakan pilih tanggal pada pilihan di atas untuk melihat arsip riwayat.</div>`;
+            return;
+        }
+
+        const historyUnits = allUnits.filter(u => u.date === selectedDate);
+
+        if (historyUnits.length === 0) {
+            container.innerHTML = `<div class="empty-state">Tidak ada data unit pada tanggal ${selectedDate}.</div>`;
+            return;
+        }
+
+        container.innerHTML = generateCardsHTML(historyUnits);
+    }
+
+    function generateCardsHTML(units) {
+        let html = '';
+        units.forEach(u => {
+            let badge = 'badge-pending';
+            if (u.status === 'Sedang Dikerjakan') badge = 'badge-process';
+            else if (u.status.includes('Quality Control')) badge = 'badge-qc';
+            else if (u.status.includes('Selesai')) badge = 'badge-done';
+
+            html += `
+                <div class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-title">Suffix: ${u.suffix} <span style="font-weight: normal; font-size: 0.95rem; color: #64748b;">(No. Body: ${u.bodyNo})</span></div>
+                        <span class="badge ${badge}">${u.status}</span>
+                    </div>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: #475569; margin-top: 8px;">Problem / Masalah:</div>
+                    <div class="unit-problem">${u.problem}</div>
+                </div>
+            `;
+        });
+        return html;
+    }
+</script>
+</body>
+</html>
