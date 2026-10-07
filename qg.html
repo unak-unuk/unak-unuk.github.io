@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cek Status Repair Kendaraan - Pelanggan</title>
+    <title>Daftar Status Repair Kendaraan - Bengkel</title>
     <style>
         :root {
             --primary: #1e3a8a;
@@ -16,86 +16,103 @@
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
-        .container { max-width: 600px; margin: 40px auto; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .container { max-width: 800px; margin: 30px auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         header { text-align: center; margin-bottom: 25px; }
-        header h1 { color: var(--primary); font-size: 1.5rem; margin-bottom: 5px; }
-        header p { color: #64748b; font-size: 0.9rem; }
-        .search-box { display: flex; gap: 10px; margin-bottom: 20px; }
+        header h1 { color: var(--primary); font-size: 1.6rem; margin-bottom: 5px; }
+        header p { color: #64748b; font-size: 0.95rem; }
+        
+        .search-box { display: flex; gap: 10px; margin-bottom: 25px; }
         input { flex: 1; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; outline: none; }
         input:focus { border-color: var(--secondary); }
-        .btn { background-color: var(--primary); color: white; border: none; padding: 0 20px; border-radius: 6px; cursor: pointer; font-weight: 600; }
-        .btn:hover { background-color: #1e293b; }
-        .result-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; background: #fafaf9; margin-top: 15px; }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
+        
+        .unit-card { border: 1px solid var(--border-color); border-radius: 8px; padding: 20px; background: #fafaf9; margin-bottom: 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.02); }
+        .unit-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .unit-title { color: var(--primary); font-size: 1.1rem; font-weight: 700; }
+        .unit-model { font-weight: normal; font-size: 0.95rem; color: #64748b; }
+        
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
         .badge-pending { background: #fef3c7; color: #b45309; }
         .badge-process { background: #e0f2fe; color: #0369a1; }
         .badge-qc { background: #f3e8ff; color: #7e22ce; }
         .badge-done { background: #dcfce7; color: #15803d; }
+        
+        .unit-issue { background: white; padding: 12px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.95rem; margin-top: 8px; }
+        .empty-state { text-align: center; color: #64748b; padding: 30px; font-size: 0.95rem; }
     </style>
 </head>
-<body>
+<body onload="fetchAllUnits()">
 
 <div class="container">
     <header>
-        <h1>Cek Status Perbaikan Mobil</h1>
-        <p>Masukkan Nomor Kendaraan (Nopol) Anda untuk melihat progres di bengkel</p>
+        <h1>Status Perbaikan Unit Kendaraan</h1>
+        <p>Daftar seluruh kendaraan yang sedang berada di area *workshop*</p>
     </header>
 
     <div class="search-box">
-        <input type="text" id="search-nopol" placeholder="Contoh: B 1234 XYZ">
-        <button class="btn" onclick="cariStatus()">Cek Status</button>
+        <input type="text" id="search-input" placeholder="Cari berdasarkan Nomor Kendaraan (Nopol) atau Model..." onkeyup="filterUnits()">
     </div>
 
-    <div id="result-container">
-        <!-- Hasil pencarian muncul di sini -->
+    <div id="unit-list-container">
+        <!-- Daftar semua unit akan dimuat di sini secara otomatis -->
+        <div class="empty-state">Memuat data kendaraan...</div>
     </div>
 </div>
 
 <script>
-    function cariStatus() {
-        const query = document.getElementById('search-nopol').value.toUpperCase().trim();
-        const container = document.getElementById('result-container');
+    let globalUnits = [];
 
-        if (!query) {
-            container.innerHTML = `<p style="color: var(--danger); text-align: center; margin-top: 15px;">Mohon masukkan nomor kendaraan terlebih dahulu.</p>`;
-            return;
+    // Mengambil data dari data.json saat halaman dibuka
+    async function fetchAllUnits() {
+        try {
+            let response = await fetch('data.json?' + new Date().getTime()); // Anti-cache
+            globalUnits = await response.json();
+            displayUnits(globalUnits);
+        } catch (error) {
+            console.error('Gagal memuat data:', error);
+            document.getElementById('unit-list-container').innerHTML = `<div class="empty-state" style="color: var(--danger);">Gagal memuat data kendaraan. Pastikan file data.json tersedia.</div>`;
         }
+    }
 
-        // Mengambil data dari localStorage (Catatan: Admin dan Pelanggan harus di browser yang sama, 
-        // atau gunakan backend/JSON terpisah jika diakses dari perangkat pelanggan yang berbeda).
-        let units = JSON.parse(localStorage.getItem('repair_units')) || [];
-        const found = units.filter(u => u.nopol.includes(query));
+    // Menampilkan daftar unit ke dalam kartu HTML
+    function displayUnits(units) {
+        const container = document.getElementById('unit-list-container');
+        container.innerHTML = '';
 
-        if (found.length === 0) {
-            container.innerHTML = `
-                <div class="result-card" style="border-left: 4px solid var(--danger);">
-                    <h3 style="color: var(--danger);">Kendaraan Tidak Ditemukan</h3>
-                    <p style="font-size: 0.9rem; color: #64748b; margin-top: 5px;">Nomor kendaraan "<strong>${query}</strong>" tidak terdaftar atau perbaikan telah selesai.</p>
-                </div>
-            `;
+        if (units.length === 0) {
+            container.innerHTML = `<div class="empty-state">Tidak ada data kendaraan yang ditemukan.</div>`;
             return;
         }
 
         let html = '';
-        found.forEach(u => {
+        units.forEach(u => {
             let badge = 'badge-pending';
             if (u.status === 'Sedang Dikerjakan') badge = 'badge-process';
             else if (u.status.includes('Quality Control')) badge = 'badge-qc';
             else if (u.status.includes('Selesai')) badge = 'badge-done';
 
             html += `
-                <div class="result-card">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                        <h3 style="color: var(--primary);">${u.nopol} <span style="font-size: 0.9rem; font-weight: normal; color: #64748b;">(${u.model})</span></h3>
+                <div class="unit-card">
+                    <div class="unit-header">
+                        <div class="unit-title">${u.nopol} <span class="unit-model">(${u.model})</span></div>
                         <span class="badge ${badge}">${u.status}</span>
                     </div>
-                    <p style="font-size: 0.9rem; font-weight: 600; margin-bottom: 4px;">Keluhan / Catatan Perbaikan:</p>
-                    <p style="background: white; padding: 10px; border-radius: 6px; border: 1px solid var(--border-color); font-size: 0.95rem;">${u.issue}</p>
+                    <div style="font-size: 0.85rem; font-weight: 600; color: #475569; margin-top: 10px;">Keluhan / Catatan Perbaikan:</div>
+                    <div class="unit-issue">${u.issue}</div>
                 </div>
             `;
         });
 
         container.innerHTML = html;
+    }
+
+    // Fungsi filter pencarian secara *real-time* saat diketik
+    function filterUnits() {
+        const keyword = document.getElementById('search-input').value.toUpperCase().trim();
+        const filtered = globalUnits.filter(u => 
+            u.nopol.toUpperCase().includes(keyword) || 
+            u.model.toUpperCase().includes(keyword)
+        );
+        displayUnits(filtered);
     }
 </script>
 </body>
