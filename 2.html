@@ -3,291 +3,176 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Aplikasi Pembuat Laporan Harian</title>
+    <title>Admin - Kelola Repair Unit Bengkel</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 20px;
-            background-color: #f4f4f4;
-            color: #333;
+        :root {
+            --primary: #1e3a8a;
+            --secondary: #3b82f6;
+            --bg-color: #f8fafc;
+            --card-bg: #ffffff;
+            --text-color: #1e293b;
+            --border-color: #e2e8f0;
+            --warning: #f59e0b;
+            --danger: #ef4444;
         }
-        .container {
-            background-color: #fff;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
-            max-width: 600px;
-            margin: auto;
-        }
-        h1, h2 {
-            color: #0056b3;
-            text-align: center;
-        }
-        label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-        }
-        input[type="date"],
-        input[type="text"],
-        input[type="number"],
-        textarea,
-        select {
-            width: calc(100% - 22px);
-            padding: 10px;
-            margin-bottom: 15px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            box-sizing: border-box;
-        }
-        .section-header {
-            background-color: #e2eafc;
-            padding: 10px;
-            border-radius: 5px;
-            margin-bottom: 15px;
-            font-weight: bold;
-        }
-        .input-group {
-            margin-bottom: 15px;
-        }
-        .input-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 15px;
-        }
-        .input-row label {
-            margin-bottom: 0;
-            white-space: nowrap;
-        }
-        .input-row select,
-        .input-row input {
-            flex-grow: 1;
-            margin-bottom: 0;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            padding: 12px 20px;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 16px;
-            width: 100%;
-            margin-bottom: 10px;
-        }
-        button:hover {
-            background-color: #218838;
-        }
-        #outputReport {
-            width: calc(100% - 22px);
-            height: 150px;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-            background-color: #f9f9f9;
-            margin-top: 20px;
-            resize: vertical;
-        }
-        .whatsapp-button {
-            background-color: #25D366;
-            margin-top: 10px;
-        }
-        .whatsapp-button:hover {
-            background-color: #1DA851;
-        }
-        .note {
-            font-size: 0.9em;
-            color: #666;
-            margin-top: 15px;
-            text-align: center;
-        }
-        .static-department { /* Gaya untuk teks departemen statis */
-            text-align: center;
-            font-size: 1.2em;
-            font-weight: bold;
-            margin-bottom: 20px;
-            color: #0056b3;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        header { text-align: center; margin-bottom: 25px; }
+        header h1 { color: var(--primary); font-size: 1.6rem; }
+        .nav-link { display: inline-block; margin-bottom: 20px; color: var(--secondary); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        .nav-link:hover { text-decoration: underline; }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
+        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95px; outline: none; }
+        textarea { resize: vertical; height: 80px; }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
+        .btn:hover { background-color: #1e293b; }
+        table { width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 0.9rem; }
+        th, td { padding: 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        th { background-color: #f1f5f9; color: var(--primary); }
+        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-process { background: #e0f2fe; color: #0369a1; }
+        .badge-qc { background: #f3e8ff; color: #7e22ce; }
+        .badge-done { background: #dcfce7; color: #15803d; }
+        .actions { display: flex; gap: 5px; }
+        .btn-edit { background-color: var(--warning); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .btn-del { background-color: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Aplikasi Pembuat Laporan Harian</h1>
-        <p class="note">Isi detail laporan Anda di bawah ini dan hasilkan teks untuk WhatsApp.</p>
 
-        <label for="reportDate">Tanggal Laporan:</label>
-        <input type="date" id="reportDate" value="<?php echo date('Y-m-d'); ?>">
+<div class="container">
+    <header>
+        <h1>Panel Admin - Kelola Repair Unit</h1>
+        <p style="color: #64748b; font-size: 0.85rem;">Input dan perbarui status kendaraan pelanggan</p>
+    </header>
 
-        <div class="static-department">QUALITY ASSY 2</div>
+    <a href="cek.html" target="_blank" class="nav-link">🔗 Buka Halaman Cek Pelanggan (cek.html) &rarr;</a>
 
-        <hr>
-
-        <h2>1. Quality Round Check</h2>
-        <div class="section-header">Target: <input type="number" id="qrcTarget" step="0.01" value="0.5" style="width: 80px; display: inline-block;"></div>
-        <div class="input-group">
-            <div class="input-row">
-                <label for="qrcShift">Shift:</label>
-                <select id="qrcShift">
-                    <option value="Night">Night</option>
-                    <option value="Day">Day</option>
-                </select>
-                <label for="qrcActual">Aktual:</label>
-                <input type="text" id="qrcActual" placeholder="Contoh: 316:28">
-            </div>
-            <label for="qrcResult">Hasil Perhitungan:</label>
-            <input type="number" id="qrcResult" readonly>
-            <label for="qrcProblem1">Pareto Problem 1:</label>
-            <input type="text" id="qrcProblem1" placeholder="Contoh: Fr & Rr Emblem Peel Off (T/nempel)">
-            <label for="qrcProblem2">Pareto Problem 2:</label>
-            <input type="text" id="qrcProblem2" placeholder="Contoh: Disc Wheel Chip paint">
-            <label for="qrcProblem3">Pareto Problem 3:</label>
-            <input type="text" id="qrcProblem3" placeholder="Contoh: Opening Trim Fr Door Rh Waving">
+    <form id="repair-form">
+        <input type="hidden" id="unit-id">
+        <div class="form-group">
+            <label for="nopol">Nomor Kendaraan / Nopol</label>
+            <input type="text" id="nopol" placeholder="Contoh: B 1234 XYZ" required>
         </div>
-
-        <hr>
-
-        <h2>2. Dome Running</h2>
-        <div class="section-header">Target: <input type="number" id="drTarget" step="0.01" value="0.08" style="width: 80px; display: inline-block;"></div>
-        <div class="input-group">
-            <div class="input-row">
-                <label for="drShift">Shift:</label>
-                <select id="drShift">
-                    <option value="Night">Night</option>
-                    <option value="Day">Day</option>
-                </select>
-                <label for="drActual">Aktual:</label>
-                <input type="text" id="drActual" placeholder="Contoh: 143:20">
-            </div>
-            <label for="drResult">Hasil Perhitungan:</label>
-            <input type="number" id="drResult" readonly>
-            <label for="drProblem1">Pareto Problem 1:</label>
-            <input type="text" id="drProblem1" placeholder="Contoh: Emblem Back Door Not Fix">
-            <label for="drProblem2">Pareto Problem 2:</label>
-            <input type="text" id="drProblem2" placeholder="Contoh: Opening Trim Fr Door Rh Melintir">
-            <label for="drProblem3">Pareto Problem 3:</label>
-            <input type="text" id="drProblem3" placeholder="Contoh: Screw Fr Door Scuff Rh Kendor">
+        <div class="form-group">
+            <label for="model">Model / Tipe Mobil</label>
+            <input type="text" id="model" placeholder="Contoh: Toyota Avanza" required>
         </div>
+        <div class="form-group">
+            <label for="issue">Keluhan / Masalah Kendaraan (DTC / Deskripsi)</label>
+            <textarea id="issue" placeholder="Deskripsikan masalah..." required></textarea>
+        </div>
+        <div class="form-group">
+            <label for="status">Status Perbaikan</label>
+            <select id="status" required>
+                <option value="Menunggu Antrian">Menunggu Antrian</option>
+                <option value="Sedang Dikerjakan">Sedang Dikerjakan</option>
+                <option value="Tahap Quality Control (QC)">Tahap Quality Control (QC)</option>
+                <option value="Selesai / Siap Diambil">Selesai / Siap Diambil</option>
+            </select>
+        </div>
+        <button type="submit" class="btn" id="save-btn">Simpan Data Unit</button>
+    </form>
 
-        <button onclick="generateReport()">Buat Laporan</button>
+    <table>
+        <thead>
+            <tr>
+                <th>Nopol & Model</th>
+                <th>Keluhan</th>
+                <th>Status</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="admin-table-body">
+            <!-- Data dimuat lewat JS -->
+        </tbody>
+    </table>
+</div>
 
-        <textarea id="outputReport" placeholder="Laporan akan muncul di sini..." readonly></textarea>
+<script>
+    let units = JSON.parse(localStorage.getItem('repair_units')) || [
+        { id: '1', nopol: 'B 1234 ABC', model: 'Honda Civic', issue: 'Check Engine menyala, DTC P0300', status: 'Sedang Dikerjakan' }
+    ];
 
-        <button class="whatsapp-button" onclick="sendToWhatsApp()">Kirim ke WhatsApp</button>
-    </div>
+    const form = document.getElementById('repair-form');
+    const tbody = document.getElementById('admin-table-body');
 
-    <script>
-        document.addEventListener('DOMContentLoaded', (event) => {
-            // Set default date to today
-            const today = new Date();
-            const year = today.getFullYear();
-            const month = String(today.getMonth() + 1).padStart(2, '0'); // Months start at 0!
-            const day = String(today.getDate()).padStart(2, '0');
-            document.getElementById('reportDate').value = `${year}-${month}-${day}`;
+    form.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const id = document.getElementById('unit-id').value;
+        const nopol = document.getElementById('nopol').value.toUpperCase().trim();
+        const model = document.getElementById('model').value.trim();
+        const issue = document.getElementById('issue').value.trim();
+        const status = document.getElementById('status').value;
 
-            // Add event listeners for calculation
-            document.getElementById('qrcActual').addEventListener('input', calculateQRC);
-            document.getElementById('drActual').addEventListener('input', calculateDR);
+        if (id) {
+            units = units.map(u => u.id === id ? { id, nopol, model, issue, status } : u);
+        } else {
+            units.push({ id: Date.now().toString(), nopol, model, issue, status });
+        }
+
+        localStorage.setItem('repair_units', JSON.stringify(units));
+        form.reset();
+        document.getElementById('unit-id').value = '';
+        document.getElementById('save-btn').innerText = 'Simpan Data Unit';
+        renderTable();
+        alert('Data berhasil disimpan!');
+    });
+
+    function renderTable() {
+        tbody.innerHTML = '';
+        if (units.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; color:#64748b;">Belum ada data unit.</td></tr>`;
+            return;
+        }
+
+        units.forEach(u => {
+            let badge = 'badge-pending';
+            if (u.status === 'Sedang Dikerjakan') badge = 'badge-process';
+            else if (u.status.includes('Quality Control')) badge = 'badge-qc';
+            else if (u.status.includes('Selesai')) badge = 'badge-done';
+
+            tbody.innerHTML += `
+                <tr>
+                    <td><strong>${u.nopol}</strong><br><small style="color:#64748b;">${u.model}</small></td>
+                    <td>${u.issue}</td>
+                    <td><span class="badge ${badge}">${u.status}</span></td>
+                    <td>
+                        <div class="actions">
+                            <button class="btn-edit" onclick="editData('${u.id}')">Edit</button>
+                            <button class="btn-del" onclick="delData('${u.id}')">Hapus</button>
+                        </div>
+                    </td>
+                </tr>
+            `;
         });
+    }
 
-        function calculateRatio(inputString) {
-            const parts = inputString.split(':');
-            if (parts.length === 2) {
-                const numerator = parseFloat(parts[0]);
-                const denominator = parseFloat(parts[1]);
-                if (!isNaN(numerator) && !isNaN(denominator) && denominator !== 0) {
-                    return (numerator / denominator).toFixed(2);
-                }
-            }
-            return ''; // Return empty string if invalid input
+    function editData(id) {
+        const u = units.find(item => item.id === id);
+        if (u) {
+            document.getElementById('unit-id').value = u.id;
+            document.getElementById('nopol').value = u.nopol;
+            document.getElementById('model').value = u.model;
+            document.getElementById('issue').value = u.issue;
+            document.getElementById('status').value = u.status;
+            document.getElementById('save-btn').innerText = 'Perbarui Data Unit';
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+    }
 
-        function calculateQRC() {
-            const qrcActual = document.getElementById('qrcActual').value;
-            document.getElementById('qrcResult').value = calculateRatio(qrcActual);
+    function delData(id) {
+        if (confirm('Hapus data unit ini?')) {
+            units = units.filter(item => item.id !== id);
+            localStorage.setItem('repair_units', JSON.stringify(units));
+            renderTable();
         }
+    }
 
-        function calculateDR() {
-            const drActual = document.getElementById('drActual').value;
-            document.getElementById('drResult').value = calculateRatio(drActual);
-        }
-
-        function generateReport() {
-            const reportDate = new Date(document.getElementById('reportDate').value);
-            const options = { day: 'numeric', month: 'long', year: 'numeric' };
-            const formattedDate = reportDate.toLocaleDateString('id-ID', options);
-
-            const reportDepartment = "QUALITY ASSY 2"; // Departemen sekarang statis
-
-            // Section 1: Quality Round Check
-            const qrcTarget = parseFloat(document.getElementById('qrcTarget').value);
-            const qrcShift = document.getElementById('qrcShift').value;
-            const qrcActualInput = document.getElementById('qrcActual').value;
-            const qrcResult = parseFloat(document.getElementById('qrcResult').value);
-            const qrcProblem1 = document.getElementById('qrcProblem1').value;
-            const qrcProblem2 = document.getElementById('qrcProblem2').value;
-            const qrcProblem3 = document.getElementById('qrcProblem3').value;
-
-            let qrcStatus = '';
-            if (!isNaN(qrcResult)) {
-                qrcStatus = qrcResult <= qrcTarget ? '✅' : '❌';
-            }
-
-            let qrcProblemsText = '';
-            if (qrcProblem1 || qrcProblem2 || qrcProblem3) {
-                qrcProblemsText += '    - Pareto Problem:\n';
-                if (qrcProblem1) qrcProblemsText += `        a. ${qrcProblem1}\n`;
-                if (qrcProblem2) qrcProblemsText += `        b. ${qrcProblem2}\n`;
-                if (qrcProblem3) qrcProblemsText += `        c. ${qrcProblem3}\n`;
-            }
-
-            // Section 2: Dome Running
-            const drTarget = parseFloat(document.getElementById('drTarget').value);
-            const drShift = document.getElementById('drShift').value;
-            const drActualInput = document.getElementById('drActual').value;
-            const drResult = parseFloat(document.getElementById('drResult').value);
-            const drProblem1 = document.getElementById('drProblem1').value;
-            const drProblem2 = document.getElementById('drProblem2').value;
-            const drProblem3 = document.getElementById('drProblem3').value;
-
-            let drStatus = '';
-            if (!isNaN(drResult)) {
-                drStatus = drResult <= drTarget ? '✅' : '❌';
-            }
-
-            let drProblemsText = '';
-            if (drProblem1 || drProblem2 || drProblem3) {
-                drProblemsText += '    - Pareto Problem:\n';
-                if (drProblem1) drProblemsText += `        a. ${drProblem1}\n`;
-                if (drProblem2) drProblemsText += `        b. ${drProblem2}\n`;
-                if (drProblem3) drProblemsText += `        c. ${drProblem3}\n`;
-            }
-
-            let reportText = `DAILY ACTIVITY REPORT\n`;
-            reportText += `${reportDepartment.toUpperCase()}\n`;
-            reportText += `Tanggal : ${formattedDate}\n\n`;
-
-            reportText += `1. Quality Round Check (Target : ${qrcTarget})\n`;
-            reportText += `    • ${qrcShift} : ${qrcActualInput}= ${isNaN(qrcResult) ? '' : qrcResult} ${qrcStatus}\n`;
-            reportText += qrcProblemsText;
-
-            reportText += `\n2. Dome Running (Target : ${drTarget})\n`;
-            reportText += `    • ${drShift} : ${drActualInput}= ${isNaN(drResult) ? '' : drResult} ${drStatus}\n`;
-            reportText += drProblemsText;
-
-            document.getElementById('outputReport').value = reportText;
-        }
-
-        function sendToWhatsApp() {
-            const reportText = document.getElementById('outputReport').value;
-            if (reportText) {
-                const encodedText = encodeURIComponent(reportText);
-                const whatsappUrl = `https://api.whatsapp.com/send?text=${encodedText}`;
-                window.open(whatsappUrl, '_blank');
-            } else {
-                alert('Mohon buat laporan terlebih dahulu sebelum mengirim ke WhatsApp.');
-            }
-        }
-    </script>
+    renderTable();
+</script>
 </body>
 </html>
