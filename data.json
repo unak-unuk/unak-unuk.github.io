@@ -1,0 +1,16 @@
+[
+  {
+    "id": "1",
+    "nopol": "B 1234 ABC",
+    "model": "Honda Civic",
+    "issue": "Check Engine menyala, DTC P0300",
+    "status": "Sedang Dikerjakan"
+  },
+  {
+    "id": "2",
+    "nopol": "D 5678 EF",
+    "model": "Toyota Innova",
+    "issue": "Rem berdecit dan ganti oli berkala",
+    "status": "Tahap Quality Control (QC)"
+  }
+]
