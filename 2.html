@@ -14,31 +14,36 @@
             --border-color: #e2e8f0;
             --warning: #f59e0b;
             --danger: #ef4444;
+            --success: #22c55e;
         }
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         body { background-color: var(--bg-color); color: var(--text-color); padding: 20px; }
-        .container { max-width: 900px; margin: 0 auto; background: var(--card-bg); padding: 25px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .container { max-width: 900px; margin: 0 auto; background: var(--card-bg); padding: 30px; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         header { text-align: center; margin-bottom: 25px; }
-        header h1 { color: var(--primary); font-size: 1.6rem; }
-        .nav-link { display: inline-block; margin-bottom: 20px; color: var(--secondary); text-decoration: none; font-weight: 600; font-size: 0.9rem; }
+        header h1 { color: var(--primary); font-size: 1.8rem; margin-bottom: 5px; }
+        .nav-link { display: inline-block; margin-bottom: 20px; color: var(--secondary); text-decoration: none; font-weight: 600; font-size: 0.95rem; }
         .nav-link:hover { text-decoration: underline; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; margin-bottom: 5px; font-weight: 600; font-size: 0.9rem; }
-        input, select, textarea { width: 100%; padding: 10px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 0.95px; outline: none; }
-        textarea { resize: vertical; height: 80px; }
-        .btn { background-color: var(--primary); color: white; border: none; padding: 10px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; width: 100%; }
+        .form-group { margin-bottom: 20px; }
+        label { display: block; margin-bottom: 8px; font-weight: 600; font-size: 0.95rem; }
+        input, select, textarea { width: 100%; padding: 12px; border: 1px solid var(--border-color); border-radius: 6px; font-size: 1rem; outline: none; background: #fff; }
+        input:focus, select:focus, textarea:focus { border-color: var(--secondary); }
+        textarea { resize: vertical; height: 90px; }
+        .btn { background-color: var(--primary); color: white; border: none; padding: 12px 20px; border-radius: 6px; cursor: pointer; font-weight: 600; font-size: 1rem; width: 100%; }
         .btn:hover { background-color: #1e293b; }
-        table { width: 100%; border-collapse: collapse; margin-top: 25px; font-size: 0.9rem; }
-        th, td { padding: 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
+        .btn-success { background-color: var(--success); margin-top: 15px; }
+        .btn-success:hover { background-color: #16a34a; }
+        table { width: 100%; border-collapse: collapse; margin-top: 30px; font-size: 0.95rem; }
+        th, td { padding: 14px 12px; border-bottom: 1px solid var(--border-color); text-align: left; }
         th { background-color: #f1f5f9; color: var(--primary); }
-        .badge { padding: 4px 10px; border-radius: 20px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+        .badge { padding: 5px 12px; border-radius: 20px; font-size: 0.8rem; font-weight: 600; display: inline-block; }
         .badge-pending { background: #fef3c7; color: #b45309; }
         .badge-process { background: #e0f2fe; color: #0369a1; }
         .badge-qc { background: #f3e8ff; color: #7e22ce; }
         .badge-done { background: #dcfce7; color: #15803d; }
-        .actions { display: flex; gap: 5px; }
-        .btn-edit { background-color: var(--warning); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
-        .btn-del { background-color: var(--danger); color: white; border: none; padding: 5px 10px; border-radius: 4px; cursor: pointer; font-size: 0.8rem; }
+        .actions { display: flex; gap: 8px; }
+        .btn-edit { background-color: var(--warning); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+        .btn-del { background-color: var(--danger); color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 0.85rem; font-weight: 600; }
+        .alert-box { background: #eff6ff; border-left: 4px solid var(--secondary); padding: 15px; margin-bottom: 20px; border-radius: 0 6px 6px 0; font-size: 0.9rem; }
     </style>
 </head>
 <body>
@@ -46,10 +51,14 @@
 <div class="container">
     <header>
         <h1>Panel Admin - Kelola Repair Unit</h1>
-        <p style="color: #64748b; font-size: 0.85rem;">Input dan perbarui status kendaraan pelanggan</p>
+        <p style="color: #64748b; font-size: 0.9rem;">Update data unit kendaraan bengkel</p>
     </header>
 
     <a href="cek.html" target="_blank" class="nav-link">🔗 Buka Halaman Cek Pelanggan (cek.html) &rarr;</a>
+
+    <div class="alert-box">
+        <strong>Petunjuk GitHub Pages:</strong> Setiap selesai menambah/mengubah data, klik tombol <strong>"Download data.json Terbaru"</strong> di bawah tabel, lalu upload file tersebut menimpa file `data.json` di GitHub Anda agar pelanggan melihat data terbaru.
+    </div>
 
     <form id="repair-form">
         <input type="hidden" id="unit-id">
@@ -90,12 +99,25 @@
             <!-- Data dimuat lewat JS -->
         </tbody>
     </table>
+
+    <button class="btn btn-success" onclick="downloadJSON()">📥 Download data.json Terbaru untuk di-upload ke GitHub</button>
 </div>
 
 <script>
-    let units = JSON.parse(localStorage.getItem('repair_units')) || [
-        { id: '1', nopol: 'B 1234 ABC', model: 'Honda Civic', issue: 'Check Engine menyala, DTC P0300', status: 'Sedang Dikerjakan' }
-    ];
+    let units = [];
+
+    // Ambil data awal dari file data.json
+    async function loadData() {
+        try {
+            let response = await fetch('data.json');
+            units = await response.json();
+            renderTable();
+        } catch (error) {
+            console.error('Gagal memuat data.json:', error);
+            units = [];
+            renderTable();
+        }
+    }
 
     const form = document.getElementById('repair-form');
     const tbody = document.getElementById('admin-table-body');
@@ -114,12 +136,11 @@
             units.push({ id: Date.now().toString(), nopol, model, issue, status });
         }
 
-        localStorage.setItem('repair_units', JSON.stringify(units));
         form.reset();
         document.getElementById('unit-id').value = '';
         document.getElementById('save-btn').innerText = 'Simpan Data Unit';
         renderTable();
-        alert('Data berhasil disimpan!');
+        alert('Data berhasil diperbarui secara lokal! Jangan lupa klik tombol download di bawah tabel untuk memperbarui file data.json.');
     });
 
     function renderTable() {
@@ -167,12 +188,21 @@
     function delData(id) {
         if (confirm('Hapus data unit ini?')) {
             units = units.filter(item => item.id !== id);
-            localStorage.setItem('repair_units', JSON.stringify(units));
             renderTable();
         }
     }
 
-    renderTable();
+    function downloadJSON() {
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(units, null, 2));
+        const downloadAnchor = document.createElement('a');
+        downloadAnchor.setAttribute("href", dataStr);
+        downloadAnchor.setAttribute("download", "data.json");
+        document.body.appendChild(downloadAnchor);
+        downloadAnchor.click();
+        downloadAnchor.remove();
+    }
+
+    loadData();
 </script>
 </body>
 </html>
