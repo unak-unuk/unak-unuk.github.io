@@ -72,10 +72,9 @@
                 container.innerHTML += `
                     <div class="unit-card">
                         <div class="unit-top">
-                            <span class="unit-title">No. ${index + 1} | ${u.suffix} - ${u.bodyNo}</span>
+                            <span class="unit-title">${index + 1}. ${u.suffix} - ${u.bodyNo}</span><span style="font-size:0.9rem; color:#475569;" ${u.problem}</span>
                             <span class="${badgeClass}">${u.status}</span>
                         </div>
-                        <div class="unit-problem"><strong>Problem:</strong> ${u.problem}</div>
                     </div>
                 `;
             });
