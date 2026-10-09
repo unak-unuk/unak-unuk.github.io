@@ -8,6 +8,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Anime.js -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <!-- HTML5-Qrcode Scanner Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
     <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Google Fonts -->
@@ -34,6 +36,12 @@
         .custom-scroll::-webkit-scrollbar-thumb {
             background: rgba(255, 255, 255, 0.2);
             border-radius: 3px;
+        }
+        #reader video {
+            width: 100% !important;
+            height: 100% !important;
+            object-fit: cover !important;
+            border-radius: 1.5rem !important;
         }
     </style>
 </head>
@@ -157,7 +165,7 @@
         </div>
     </div>
 
-    <!-- POP UP INPUT SUFFIX & NOMER BODY (BEBAS) -->
+    <!-- POP UP INPUT SUFFIX & NOMER BODY -->
     <div id="input-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
         <div class="glass-card w-full max-w-xs rounded-3xl p-5 border border-white/10 shadow-2xl scale-95 opacity-0 transition-all duration-300" id="modal-content">
             <h3 class="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-500 mb-3 text-center">Input Suffix & Body</h3>
@@ -204,19 +212,27 @@
         </div>
     </div>
 
-    <!-- SCANNER SIMULATOR MODAL (CAMERA) -->
-    <div id="scanner-modal" class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col items-center justify-center p-4">
-        <div class="relative w-full max-w-sm h-80 bg-black rounded-3xl overflow-hidden border border-white/20 flex flex-col items-center justify-center">
-            <div class="absolute inset-0 opacity-40 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]"></div>
-            <div class="w-56 h-36 border-2 border-dashed border-pink-500 rounded-2xl relative flex items-center justify-center animate-pulse">
-                <span class="text-[10px] text-pink-400 bg-black/60 px-2 py-1 rounded">Arahkan Kamera ke Barcode</span>
+    <!-- LIVE CAMERA BARCODE SCANNER MODAL -->
+    <div id="scanner-modal" class="fixed inset-0 z-50 bg-black/95 hidden flex flex-col items-center justify-center p-4">
+        <div class="relative w-full max-w-sm bg-[#161b22] rounded-3xl overflow-hidden border border-white/20 p-4 flex flex-col items-center">
+            <div class="flex justify-between items-center w-full mb-3">
+                <h3 class="text-sm font-bold text-indigo-300">Scan Barcode Kamera</h3>
+                <button onclick="closeScanner()" class="text-gray-400 hover:text-white text-base"><i class="fa-solid fa-xmark"></i></button>
             </div>
-            <p class="text-xs text-gray-300 mt-4 z-10 text-center px-4">Simulasi Kamera: Masukkan data barcode bebas</p>
-            <div class="mt-3 z-10 flex gap-2">
-                <input type="text" id="simulated-barcode" placeholder="Contoh: SUFFIX-BODY" class="px-3 py-1.5 bg-black/60 border border-white/20 rounded-xl text-xs text-white">
-                <button onclick="processScanResult()" class="px-4 py-1.5 bg-pink-500 text-white rounded-xl text-xs font-semibold">Proses</button>
+            
+            <!-- Elemen Viewfinder Kamera -->
+            <div id="reader" class="w-full h-64 rounded-2xl overflow-hidden bg-black mb-3"></div>
+            
+            <p class="text-[11px] text-gray-400 text-center mb-2">Arahkan kamera ke barcode unit Anda.</p>
+            
+            <!-- Fallback Input Manual jika kamera gagal/tidak terdeteksi -->
+            <div class="w-full border-t border-white/10 pt-2 mt-1">
+                <span class="block text-[10px] text-gray-400 mb-1">Atau masukkan kode manual:</span>
+                <div class="flex gap-2">
+                    <input type="text" id="manual-scan-input" placeholder="Ketik kode unit..." class="flex-1 px-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white uppercase">
+                    <button onclick="processManualScan()" class="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold">Proses</button>
+                </div>
             </div>
-            <button onclick="closeScanner()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
         </div>
     </div>
 
@@ -226,6 +242,7 @@
         let units = JSON.parse(localStorage.getItem('rm0_units')) || [];
         let activeUnit = { suffix: '', body: '' };
         let longPressTimer;
+        let html5QrCode = null;
 
         // Tanggal & Shift B Display di Judul Utama
         const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -286,7 +303,7 @@
             }
         }
 
-        // Modal Input Suffix & Body (Bebas tanpa aturan ketat)
+        // Modal Input Suffix & Body
         function openInputModal() {
             const modal = document.getElementById('input-modal');
             const content = document.getElementById('modal-content');
@@ -329,20 +346,49 @@
             switchPage(2);
         }
 
-        // Scanner Barcode Kamera
+        // Scanner Barcode Kamera Asli menggunakan Html5Qrcode
         function openScanner() {
             document.getElementById('scanner-modal').classList.remove('hidden');
+            document.getElementById('manual-scan-input').value = '';
+            
+            // Inisialisasi kamera belakang jika tersedia
+            setTimeout(() => {
+                if (!html5QrCode) {
+                    html5QrCode = new Html5Qrcode("reader");
+                }
+                
+                const qrCodeSuccessCallback = (decodedText, decodedResult) => {
+                    // Berhasil scan barcode
+                    handleScannedCode(decodedText);
+                };
+
+                const config = { fps: 10, qrbox: { width: 220, height: 120 } };
+
+                html5QrCode.start({ facingMode: "environment" }, config, qrCodeSuccessCallback)
+                    .catch((err) => {
+                        console.warn("Kamera belakang gagal dibuka, mencoba kamera depan/default...", err);
+                        html5QrCode.start({ facingMode: "user" }, config, qrCodeSuccessCallback)
+                            .catch(e => console.error("Gagal mengakses kamera:", e));
+                    });
+            }, 300);
         }
+
         function closeScanner() {
-            document.getElementById('scanner-modal').classList.add('hidden');
-        }
-        function processScanResult() {
-            let val = document.getElementById('simulated-barcode').value.trim().toUpperCase();
-            if(!val) {
-                alert('Data scan tidak boleh kosong!');
-                return;
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('scanner-modal').classList.add('hidden');
+                }).catch(err => {
+                    console.error("Gagal menghentikan kamera:", err);
+                    document.getElementById('scanner-modal').classList.add('hidden');
+                });
+            } else {
+                document.getElementById('scanner-modal').classList.add('hidden');
             }
-            activeUnit.body = val;
+        }
+
+        function handleScannedCode(codeText) {
+            let cleanText = codeText.trim().toUpperCase();
+            activeUnit.body = cleanText;
             activeUnit.suffix = 'SCAN';
 
             document.getElementById('disp-suffix').innerText = activeUnit.suffix;
@@ -350,6 +396,15 @@
             
             closeScanner();
             switchPage(2);
+        }
+
+        function processManualScan() {
+            let val = document.getElementById('manual-scan-input').value.trim().toUpperCase();
+            if(!val) {
+                alert('Masukkan kode unit terlebih dahulu!');
+                return;
+            }
+            handleScannedCode(val);
         }
 
         // Simpan Data Unit ke LocalStorage
@@ -522,7 +577,7 @@
 
         // Kirim Rekap via WhatsApp
         function sendWhatsApp() {
-            const selectedDate = document.getElementById('filter-date').value;
+            const selectedDate = document.getElementById('filter-date-filter') ? document.getElementById('filter-date-filter').value : document.getElementById('filter-date').value;
             const filteredUnits = units.filter(u => u.date === selectedDate);
 
             if(filteredUnits.length === 0) {
