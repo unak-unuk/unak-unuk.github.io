@@ -346,7 +346,7 @@
             switchPage(2);
         }
 
-        // Scanner Barcode Kamera Asli dengan Aturan Ekstraksi Suffix & Nomer Body
+        // Scanner Barcode Kamera Asli dengan Aturan Ekstraksi Baru
         function openScanner() {
             document.getElementById('scanner-modal').classList.remove('hidden');
             document.getElementById('manual-scan-input').value = '';
@@ -384,26 +384,31 @@
             }
         }
 
-        // Fungsi parsing string barcode sesuai aturan Anda
+        // Fungsi parsing string barcode sesuai aturan baru:
+        // - Suffix: Karakter ke-5 dan ke-4 dari belakang
+        // - Nomer Body: Karakter ke-12 sampai ke-17
         function parseScannedBarcode(codeText) {
             let cleanText = codeText.trim().toUpperCase();
             if(!cleanText) return;
 
-            // 1. Ekstraksi Suffix: Karakter ke-5 dan ke-6 dari belakang
-            // Contoh: jika panjang 10, index dari belakang ke-6 adalah length - 6 sampai length - 4
+            let len = cleanText.length;
             let suffixVal = "-";
-            if (cleanText.length >= 6) {
-                suffixVal = cleanText.slice(cleanText.length - 6, cleanText.length - 4);
-            } else if (cleanText.length >= 2) {
+            let bodyVal = cleanText;
+
+            // 1. Ekstraksi Suffix: Karakter ke-5 dan ke-4 dari belakang
+            // Contoh dari belakang: index -5 dan -4
+            if (len >= 5) {
+                let charMinus5 = cleanText[len - 5] || '';
+                let charMinus4 = cleanText[len - 4] || '';
+                suffixVal = charMinus5 + charMinus4;
+            } else if (len >= 2) {
                 suffixVal = cleanText.slice(0, 2);
             }
 
-            // 2. Ekstraksi Nomer Body: Karakter ke-12 sampai ke-17
-            // Dalam string 0-indexed, posisi ke-12 sampai 17 adalah slice(11, 17)
-            let bodyVal = cleanText;
-            if (cleanText.length >= 17) {
+            // 2. Ekstraksi Nomer Body: Karakter ke-12 sampai ke-17 (Index 11 sampai 17)
+            if (len >= 17) {
                 bodyVal = cleanText.slice(11, 17);
-            } else if (cleanText.length >= 12) {
+            } else if (len >= 12) {
                 bodyVal = cleanText.slice(11);
             }
 
