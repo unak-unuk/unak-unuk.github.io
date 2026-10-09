@@ -229,7 +229,7 @@
             <div class="w-full border-t border-white/10 pt-2 mt-1">
                 <span class="block text-[10px] text-gray-400 mb-1">Atau masukkan kode manual:</span>
                 <div class="flex gap-2">
-                    <input type="text" id="manual-scan-input" placeholder="Ketik kode unit..." class="flex-1 px-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white uppercase">
+                    <input type="text" id="manual-scan-input" placeholder="Ketik string barcode lengkap..." class="flex-1 px-3 py-1.5 bg-black/40 border border-white/20 rounded-xl text-xs text-white uppercase">
                     <button onclick="processManualScan()" class="px-3 py-1.5 bg-indigo-500 hover:bg-indigo-600 text-white rounded-xl text-xs font-semibold">Proses</button>
                 </div>
             </div>
@@ -346,20 +346,18 @@
             switchPage(2);
         }
 
-        // Scanner Barcode Kamera Asli menggunakan Html5Qrcode
+        // Scanner Barcode Kamera Asli dengan Aturan Ekstraksi Suffix & Nomer Body
         function openScanner() {
             document.getElementById('scanner-modal').classList.remove('hidden');
             document.getElementById('manual-scan-input').value = '';
             
-            // Inisialisasi kamera belakang jika tersedia
             setTimeout(() => {
                 if (!html5QrCode) {
                     html5QrCode = new Html5Qrcode("reader");
                 }
                 
                 const qrCodeSuccessCallback = (decodedText, decodedResult) => {
-                    // Berhasil scan barcode
-                    handleScannedCode(decodedText);
+                    parseScannedBarcode(decodedText);
                 };
 
                 const config = { fps: 10, qrbox: { width: 220, height: 120 } };
@@ -386,10 +384,31 @@
             }
         }
 
-        function handleScannedCode(codeText) {
+        // Fungsi parsing string barcode sesuai aturan Anda
+        function parseScannedBarcode(codeText) {
             let cleanText = codeText.trim().toUpperCase();
-            activeUnit.body = cleanText;
-            activeUnit.suffix = 'SCAN';
+            if(!cleanText) return;
+
+            // 1. Ekstraksi Suffix: Karakter ke-5 dan ke-6 dari belakang
+            // Contoh: jika panjang 10, index dari belakang ke-6 adalah length - 6 sampai length - 4
+            let suffixVal = "-";
+            if (cleanText.length >= 6) {
+                suffixVal = cleanText.slice(cleanText.length - 6, cleanText.length - 4);
+            } else if (cleanText.length >= 2) {
+                suffixVal = cleanText.slice(0, 2);
+            }
+
+            // 2. Ekstraksi Nomer Body: Karakter ke-12 sampai ke-17
+            // Dalam string 0-indexed, posisi ke-12 sampai 17 adalah slice(11, 17)
+            let bodyVal = cleanText;
+            if (cleanText.length >= 17) {
+                bodyVal = cleanText.slice(11, 17);
+            } else if (cleanText.length >= 12) {
+                bodyVal = cleanText.slice(11);
+            }
+
+            activeUnit.suffix = suffixVal;
+            activeUnit.body = bodyVal;
 
             document.getElementById('disp-suffix').innerText = activeUnit.suffix;
             document.getElementById('disp-body').innerText = activeUnit.body;
@@ -399,12 +418,12 @@
         }
 
         function processManualScan() {
-            let val = document.getElementById('manual-scan-input').value.trim().toUpperCase();
+            let val = document.getElementById('manual-scan-input').value.trim();
             if(!val) {
-                alert('Masukkan kode unit terlebih dahulu!');
+                alert('Masukkan string barcode terlebih dahulu!');
                 return;
             }
-            handleScannedCode(val);
+            parseScannedBarcode(val);
         }
 
         // Simpan Data Unit ke LocalStorage
@@ -577,7 +596,7 @@
 
         // Kirim Rekap via WhatsApp
         function sendWhatsApp() {
-            const selectedDate = document.getElementById('filter-date-filter') ? document.getElementById('filter-date-filter').value : document.getElementById('filter-date').value;
+            const selectedDate = document.getElementById('filter-date').value;
             const filteredUnits = units.filter(u => u.date === selectedDate);
 
             if(filteredUnits.length === 0) {
