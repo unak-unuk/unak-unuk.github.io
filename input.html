@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DATA UNIT RM0 - Shift B</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Anime.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #1a1c29 0%, #0d1117 100%);
+            color: #f3f4f6;
+            overflow-x: hidden;
+        }
+        .glass-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .custom-scroll::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scroll::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        .custom-scroll::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-start p-4 relative">
+
+    <!-- LOADING SCREEN -->
+    <div id="loading-screen" class="fixed inset-0 z-50 bg-[#0d1117] flex flex-col items-center justify-center">
+        <div class="text-center">
+            <div class="relative w-24 h-24 mx-auto mb-6">
+                <div class="absolute inset-0 border-4 border-indigo-500/20 rounded-full"></div>
+                <div class="absolute inset-0 border-4 border-indigo-500 rounded-full border-t-transparent animate-spin"></div>
+                <i class="fa-solid fa-car-side text-3xl text-indigo-400 absolute inset-0 flex items-center justify-center"></i>
+            </div>
+            <h1 class="text-2xl font-bold tracking-wider text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-500">DATA UNIT RM0</h1>
+            <p class="text-sm text-gray-400 mt-2">Memuat Sistem Shift B...</p>
+        </div>
+    </div>
+
+    <!-- MAIN CONTAINER -->
+    <div class="w-full max-w-md mx-auto flex flex-col h-[92vh] relative">
+
+        <!-- HEADER TITLE -->
+        <header class="text-center mb-4 shrink-0">
+            <h1 class="text-2xl font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-purple-400 to-indigo-400">DATA UNIT RM0</h1>
+            <p id="current-date-shift" class="text-xs text-indigo-300 font-semibold mt-1 uppercase tracking-wider"></p>
+        </header>
+
+        <!-- APP PAGES WRAPPER -->
+        <div class="flex-1 overflow-hidden relative glass-card rounded-3xl p-5 shadow-2xl flex flex-col">
+
+            <!-- HALAMAN 1: INPUT UTAMA & NAVIGATION -->
+            <div id="page-1" class="page flex flex-col h-full absolute inset-0 p-5 transition-all duration-300">
+                <div class="text-center my-auto">
+                    <div class="w-20 h-20 mx-auto bg-gradient-to-tr from-indigo-500 to-pink-500 rounded-3xl flex items-center justify-center shadow-lg shadow-indigo-500/30 mb-6">
+                        <i class="fa-solid fa-clipboard-user text-3xl text-white"></i>
+                    </div>
+                    <h2 class="text-lg font-semibold text-gray-200">Panel Kontrol Shift B</h2>
+                    <p class="text-xs text-gray-400 mt-1 px-4">Silakan tambah data unit atau gunakan pemindai kamera perangkat Anda.</p>
+                </div>
+
+                <div class="space-y-3 mt-auto pb-4">
+                    <button onclick="openInputModal()" class="w-full py-3.5 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-semibold rounded-2xl shadow-lg shadow-indigo-500/25 flex items-center justify-center gap-2 transition-all transform active:scale-95">
+                        <i class="fa-solid fa-plus-circle text-lg"></i> Tambah Unit Baru
+                    </button>
+                    <button onclick="openScanner()" class="w-full py-3.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold rounded-2xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 transition-all transform active:scale-95">
+                        <i class="fa-solid fa-barcode text-lg"></i> Scan Barcode Kamera
+                    </button>
+                    <button onclick="switchPage(2)" class="w-full py-3 bg-white/10 hover:bg-white/20 text-gray-300 font-medium rounded-2xl flex items-center justify-center gap-2 transition-all">
+                        <span>Lihat Display & Riwayat</span> <i class="fa-solid fa-arrow-right text-xs"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- HALAMAN 2: INPUT PROBLEM & DISPLAY CURRENT -->
+            <div id="page-2" class="page flex flex-col h-full absolute inset-0 p-5 translate-x-full opacity-0 pointer-events-none transition-all duration-300">
+                <div class="flex items-center justify-between mb-3 shrink-0">
+                    <button onclick="switchPage(1)" class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-gray-300 hover:bg-white/20">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-sm font-semibold text-indigo-300">Detail & Display Unit</h2>
+                    <button onclick="switchPage(3)" class="w-9 h-9 rounded-xl bg-indigo-500/20 text-indigo-300 flex items-center justify-center hover:bg-indigo-500/30">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </button>
+                </div>
+
+                <!-- Form Input Problem & Status -->
+                <div class="glass-card p-3.5 rounded-2xl mb-3 shrink-0 space-y-2.5 border border-white/10">
+                    <div class="flex justify-between items-center text-xs text-gray-300 font-medium bg-black/20 p-2 rounded-xl">
+                        <span>Suffix: <strong id="disp-suffix" class="text-pink-400">-</strong></span>
+                        <span>Body: <strong id="disp-body" class="text-indigo-400">-</strong></span>
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Problem / Kendala</label>
+                        <input type="text" id="input-problem" placeholder="Masukkan deskripsi problem..." class="w-full px-3 py-2 bg-black/30 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                    </div>
+                    <div>
+                        <label class="block text-[11px] font-medium text-gray-400 mb-1">Status Unit</label>
+                        <select id="input-status" class="w-full px-3 py-2 bg-[#161b22] border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                            <option value="OK">OK</option>
+                            <option value="NG">NG</option>
+                        </select>
+                    </div>
+                    <button onclick="saveUnitData()" class="w-full py-2.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:opacity-90 text-white font-semibold rounded-xl text-xs shadow-md shadow-pink-500/20 transition-all">
+                        Simpan Data Unit
+                    </button>
+                </div>
+
+                <!-- Area Display Data -->
+                <div class="flex-1 overflow-hidden flex flex-col">
+                    <h3 class="text-xs font-semibold text-gray-400 mb-2 px-1">Display Unit (Tekan & Tahan untuk Edit/Hapus):</h3>
+                    <div id="unit-display-list" class="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1">
+                        <!-- Dynamic List Data Here -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- HALAMAN 3: RIWAYAT & KIRIM WA -->
+            <div id="page-3" class="page flex flex-col h-full absolute inset-0 p-5 translate-x-full opacity-0 pointer-events-none transition-all duration-300">
+                <div class="flex items-center justify-between mb-3 shrink-0">
+                    <button onclick="switchPage(2)" class="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center text-gray-300 hover:bg-white/20">
+                        <i class="fa-solid fa-arrow-left"></i>
+                    </button>
+                    <h2 class="text-sm font-semibold text-indigo-300">Riwayat & Laporan WA</h2>
+                    <div class="w-9"></div>
+                </div>
+
+                <div class="flex-1 overflow-hidden flex flex-col">
+                    <div class="flex justify-between items-center mb-2 px-1">
+                        <span class="text-xs font-semibold text-gray-400">Rekap Tanggal Shift B</span>
+                        <input type="date" id="filter-date" onchange="renderHistory()" class="bg-black/30 border border-white/10 rounded-lg px-2 py-1 text-[11px] text-gray-200 focus:outline-none">
+                    </div>
+                    <div id="history-list" class="flex-1 overflow-y-auto custom-scroll space-y-2 pr-1 mb-3">
+                        <!-- History List Here -->
+                    </div>
+                    <button onclick="sendWhatsApp()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-green-600 hover:from-emerald-600 hover:to-green-700 text-white font-semibold rounded-2xl shadow-lg shadow-emerald-500/25 flex items-center justify-center gap-2 text-xs transition-all shrink-0">
+                        <i class="fa-brands fa-whatsapp text-base"></i> Kirim Rekap via WhatsApp
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- POP UP INPUT SUFFIX & NOMER BODY (BEBAS) -->
+    <div id="input-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-xs rounded-3xl p-5 border border-white/10 shadow-2xl scale-95 opacity-0 transition-all duration-300" id="modal-content">
+            <h3 class="text-base font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-500 mb-3 text-center">Input Suffix & Body</h3>
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-400 mb-1">Suffix</label>
+                    <input type="text" id="modal-suffix" placeholder="Cth: A1" class="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-xs text-white uppercase focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-400 mb-1">Nomer Body</label>
+                    <input type="text" id="modal-body" placeholder="Cth: 123456" class="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-xs text-white uppercase focus:outline-none focus:border-indigo-500">
+                </div>
+                <div class="flex gap-2 pt-2">
+                    <button onclick="closeInputModal()" class="flex-1 py-2.5 bg-white/10 hover:bg-white/20 text-gray-300 font-medium rounded-xl text-xs">Batal</button>
+                    <button onclick="submitUnitModal()" class="flex-1 py-2.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-semibold rounded-xl text-xs shadow-md shadow-indigo-500/20">Next</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- POP UP EDIT/HAPUS DATA (LONG PRESS) -->
+    <div id="action-modal" class="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="glass-card w-full max-w-xs rounded-3xl p-5 border border-white/10 shadow-2xl scale-95 opacity-0 transition-all duration-300" id="action-modal-content">
+            <h3 class="text-sm font-bold text-gray-200 mb-3 text-center" id="action-unit-title">Opsi Data Unit</h3>
+            <input type="hidden" id="edit-id">
+            <div class="space-y-2.5">
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-400 mb-1">Edit Problem</label>
+                    <input type="text" id="edit-problem" class="w-full px-3 py-2 bg-black/40 border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-medium text-gray-400 mb-1">Edit Status</label>
+                    <select id="edit-status" class="w-full px-3 py-2 bg-[#161b22] border border-white/10 rounded-xl text-xs text-white focus:outline-none focus:border-indigo-500">
+                        <option value="OK">OK</option>
+                        <option value="NG">NG</option>
+                    </select>
+                </div>
+                <div class="grid grid-cols-2 gap-2 pt-2">
+                    <button onclick="deleteUnitData()" class="py-2.5 bg-red-500/20 hover:bg-red-500/30 text-red-400 font-semibold rounded-xl text-xs border border-red-500/30">Hapus</button>
+                    <button onclick="updateUnitData()" class="py-2.5 bg-indigo-500 hover:bg-indigo-600 text-white font-semibold rounded-xl text-xs shadow-md shadow-indigo-500/20">Simpan</button>
+                </div>
+                <button onclick="closeActionModal()" class="w-full py-2 bg-transparent text-gray-400 text-xs mt-1">Batal</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- SCANNER SIMULATOR MODAL (CAMERA) -->
+    <div id="scanner-modal" class="fixed inset-0 z-50 bg-black/90 hidden flex flex-col items-center justify-center p-4">
+        <div class="relative w-full max-w-sm h-80 bg-black rounded-3xl overflow-hidden border border-white/20 flex flex-col items-center justify-center">
+            <div class="absolute inset-0 opacity-40 bg-[radial-gradient(#4f46e5_1px,transparent_1px)] [background-size:16px_16px]"></div>
+            <div class="w-56 h-36 border-2 border-dashed border-pink-500 rounded-2xl relative flex items-center justify-center animate-pulse">
+                <span class="text-[10px] text-pink-400 bg-black/60 px-2 py-1 rounded">Arahkan Kamera ke Barcode</span>
+            </div>
+            <p class="text-xs text-gray-300 mt-4 z-10 text-center px-4">Simulasi Kamera: Masukkan data barcode bebas</p>
+            <div class="mt-3 z-10 flex gap-2">
+                <input type="text" id="simulated-barcode" placeholder="Contoh: SUFFIX-BODY" class="px-3 py-1.5 bg-black/60 border border-white/20 rounded-xl text-xs text-white">
+                <button onclick="processScanResult()" class="px-4 py-1.5 bg-pink-500 text-white rounded-xl text-xs font-semibold">Proses</button>
+            </div>
+            <button onclick="closeScanner()" class="absolute top-4 right-4 text-gray-400 hover:text-white text-lg"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+    </div>
+
+    <!-- SCRIPT APLIKASI -->
+    <script>
+        // Inisialisasi Data & State
+        let units = JSON.parse(localStorage.getItem('rm0_units')) || [];
+        let activeUnit = { suffix: '', body: '' };
+        let longPressTimer;
+
+        // Tanggal & Shift B Display di Judul Utama
+        const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+        const now = new Date();
+        const formattedDateString = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()} - Shift B`;
+        document.getElementById('current-date-shift').innerText = formattedDateString;
+        
+        // Set default filter date to today (YYYY-MM-DD)
+        const todayFormatted = now.toISOString().split('T')[0];
+        document.getElementById('filter-date').value = todayFormatted;
+
+        // Loading Screen Animation
+        window.addEventListener('load', () => {
+            anime({
+                targets: '#loading-screen',
+                opacity: [1, 0],
+                duration: 600,
+                easing: 'easeInOutQuad',
+                complete: function() {
+                    document.getElementById('loading-screen').style.display = 'none';
+                    renderDisplayList();
+                    renderHistory();
+                }
+            });
+        });
+
+        // Transisi Halaman dengan Anime.js
+        function switchPage(targetPageNum) {
+            const pages = document.querySelectorAll('.page');
+            let targetPage = document.getElementById(`page-${targetPageNum}`);
+
+            pages.forEach(p => {
+                if(p !== targetPage) {
+                    anime({
+                        targets: p,
+                        translateX: targetPageNum > parseInt(p.id.split('-')[1]) ? '-100%' : '100%',
+                        opacity: 0,
+                        duration: 300,
+                        easing: 'easeInOutQuad',
+                        complete: () => p.classList.add('pointer-events-none')
+                    });
+                }
+            });
+
+            targetPage.classList.remove('pointer-events-none');
+            anime({
+                targets: targetPage,
+                translateX: ['100%', '0%'],
+                opacity: [0, 1],
+                duration: 350,
+                easing: 'spring(1, 80, 10, 0)'
+            });
+            
+            if(targetPageNum === 2 || targetPageNum === 3) {
+                renderDisplayList();
+                renderHistory();
+            }
+        }
+
+        // Modal Input Suffix & Body (Bebas tanpa aturan ketat)
+        function openInputModal() {
+            const modal = document.getElementById('input-modal');
+            const content = document.getElementById('modal-content');
+            document.getElementById('modal-suffix').value = '';
+            document.getElementById('modal-body').value = '';
+            modal.classList.remove('hidden');
+            anime({ targets: content, scale: [0.8, 1], opacity: [0, 1], duration: 250, easing: 'easeOutBack' });
+        }
+
+        function closeInputModal() {
+            const modal = document.getElementById('input-modal');
+            const content = document.getElementById('modal-content');
+            anime({
+                targets: content,
+                scale: [1, 0.8],
+                opacity: [1, 0],
+                duration: 200,
+                easing: 'easeInQuad',
+                complete: () => modal.classList.add('hidden')
+            });
+        }
+
+        function submitUnitModal() {
+            let suffixInput = document.getElementById('modal-suffix').value.trim().toUpperCase();
+            let bodyInput = document.getElementById('modal-body').value.trim().toUpperCase();
+
+            if(!bodyInput) {
+                alert('Nomer body wajib diisi!');
+                return;
+            }
+
+            activeUnit.suffix = suffixInput || '-';
+            activeUnit.body = bodyInput;
+
+            document.getElementById('disp-suffix').innerText = activeUnit.suffix;
+            document.getElementById('disp-body').innerText = activeUnit.body;
+            document.getElementById('input-problem').value = '';
+
+            closeInputModal();
+            switchPage(2);
+        }
+
+        // Scanner Barcode Kamera
+        function openScanner() {
+            document.getElementById('scanner-modal').classList.remove('hidden');
+        }
+        function closeScanner() {
+            document.getElementById('scanner-modal').classList.add('hidden');
+        }
+        function processScanResult() {
+            let val = document.getElementById('simulated-barcode').value.trim().toUpperCase();
+            if(!val) {
+                alert('Data scan tidak boleh kosong!');
+                return;
+            }
+            activeUnit.body = val;
+            activeUnit.suffix = 'SCAN';
+
+            document.getElementById('disp-suffix').innerText = activeUnit.suffix;
+            document.getElementById('disp-body').innerText = activeUnit.body;
+            
+            closeScanner();
+            switchPage(2);
+        }
+
+        // Simpan Data Unit ke LocalStorage
+        function saveUnitData() {
+            let problem = document.getElementById('input-problem').value.trim();
+            let status = document.getElementById('input-status').value;
+
+            if(!activeUnit.body) {
+                alert('Belum ada data unit yang diinput!');
+                switchPage(1);
+                return;
+            }
+
+            const newRecord = {
+                id: Date.now(),
+                date: todayFormatted,
+                shift: 'Shift B',
+                suffix: activeUnit.suffix,
+                body: activeUnit.body,
+                problem: problem || 'Tanpa Kendala Khusus',
+                status: status
+            };
+
+            units.unshift(newRecord);
+            localStorage.setItem('rm0_units', JSON.stringify(units));
+
+            // Reset active & input
+            activeUnit = { suffix: '', body: '' };
+            document.getElementById('input-problem').value = '';
+            
+            renderDisplayList();
+            alert('Data unit berhasil disimpan!');
+        }
+
+        // Render Display List di Halaman 2
+        function renderDisplayList() {
+            const listContainer = document.getElementById('unit-display-list');
+            listContainer.innerHTML = '';
+
+            const todayUnits = units.filter(u => u.date === todayFormatted);
+
+            if(todayUnits.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">Belum ada data unit untuk hari ini.</div>`;
+                return;
+            }
+
+            todayUnits.forEach((item, index) => {
+                let badgeColor = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                if(item.status === 'NG') badgeColor = 'bg-red-500/20 text-red-400 border-red-500/30';
+
+                const div = document.createElement('div');
+                div.className = "glass-card p-3 rounded-2xl border border-white/10 flex items-center justify-between cursor-pointer transition-all hover:bg-white/10 select-none";
+                div.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <span class="text-xs font-bold text-gray-400 w-5">${index + 1}.</span>
+                        <div>
+                            <div class="text-xs font-semibold text-white tracking-wider">${item.suffix}-${item.body}</div>
+                            <div class="text-[11px] text-gray-400 truncate max-w-[160px]">${item.problem}</div>
+                        </div>
+                    </div>
+                    <span class="text-[10px] px-2.5 py-1 rounded-lg border font-bold ${badgeColor}">${item.status}</span>
+                `;
+
+                // Event Klik untuk Info Detail
+                div.onclick = () => {
+                    alert(`Info Unit:\n\nSuffix-Body: ${item.suffix}-${item.body}\nProblem: ${item.problem}\nStatus: ${item.status}\nTanggal: ${item.date} (${item.shift})`);
+                };
+
+                // Event Klik & Tahan (Long Press) untuk Edit/Hapus
+                div.onmousedown = () => startLongPress(item);
+                div.ontouchstart = () => startLongPress(item);
+                div.onmouseup = cancelLongPress;
+                div.ontouchend = cancelLongPress;
+
+                listContainer.appendChild(div);
+            });
+        }
+
+        function startLongPress(item) {
+            longPressTimer = setTimeout(() => {
+                openActionModal(item);
+            }, 600); // 600ms hold
+        }
+        function cancelLongPress() {
+            clearTimeout(longPressTimer);
+        }
+
+        // Action Modal (Edit / Hapus)
+        function openActionModal(item) {
+            document.getElementById('edit-id').value = item.id;
+            document.getElementById('edit-problem').value = item.problem;
+            document.getElementById('edit-status').value = item.status;
+            document.getElementById('action-unit-title').innerText = `Edit: ${item.suffix}-${item.body}`;
+
+            const modal = document.getElementById('action-modal');
+            const content = document.getElementById('action-modal-content');
+            modal.classList.remove('hidden');
+            anime({ targets: content, scale: [0.8, 1], opacity: [0, 1], duration: 250, easing: 'easeOutBack' });
+        }
+
+        function closeActionModal() {
+            const modal = document.getElementById('action-modal');
+            const content = document.getElementById('action-modal-content');
+            anime({
+                targets: content,
+                scale: [1, 0.8],
+                opacity: [1, 0],
+                duration: 200,
+                easing: 'easeInQuad',
+                complete: () => modal.classList.add('hidden')
+            });
+        }
+
+        function updateUnitData() {
+            let id = parseInt(document.getElementById('edit-id').value);
+            let prob = document.getElementById('edit-problem').value;
+            let stat = document.getElementById('edit-status').value;
+
+            units = units.map(u => {
+                if(u.id === id) {
+                    u.problem = prob;
+                    u.status = stat;
+                }
+                return u;
+            });
+
+            localStorage.setItem('rm0_units', JSON.stringify(units));
+            closeActionModal();
+            renderDisplayList();
+        }
+
+        function deleteUnitData() {
+            if(!confirm('Yakin ingin menghapus data unit ini?')) return;
+            let id = parseInt(document.getElementById('edit-id').value);
+            units = units.filter(u => u.id !== id);
+            localStorage.setItem('rm0_units', JSON.stringify(units));
+            closeActionModal();
+            renderDisplayList();
+        }
+
+        // Render Halaman 3 (Riwayat Berdasarkan Tanggal)
+        function renderHistory() {
+            const selectedDate = document.getElementById('filter-date').value;
+            const historyContainer = document.getElementById('history-list');
+            historyContainer.innerHTML = '';
+
+            const filteredUnits = units.filter(u => u.date === selectedDate);
+
+            if(filteredUnits.length === 0) {
+                historyContainer.innerHTML = `<div class="text-center py-8 text-xs text-gray-500">Tidak ada riwayat unit pada tanggal ${selectedDate}.</div>`;
+                return;
+            }
+
+            filteredUnits.forEach((item, index) => {
+                let badgeColor = 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30';
+                if(item.status === 'NG') badgeColor = 'bg-red-500/20 text-red-400 border-red-500/30';
+
+                const div = document.createElement('div');
+                div.className = "glass-card p-2.5 rounded-xl border border-white/10 flex justify-between items-center text-xs";
+                div.innerHTML = `
+                    <div>
+                        <span class="font-bold text-indigo-300">${index + 1}. ${item.suffix}-${item.body}</span>
+                        <p class="text-[10px] text-gray-400">${item.problem}</p>
+                    </div>
+                    <span class="text-[10px] font-bold px-2.5 py-0.5 rounded border ${badgeColor}">${item.status}</span>
+                `;
+                historyContainer.appendChild(div);
+            });
+        }
+
+        // Kirim Rekap via WhatsApp
+        function sendWhatsApp() {
+            const selectedDate = document.getElementById('filter-date').value;
+            const filteredUnits = units.filter(u => u.date === selectedDate);
+
+            if(filteredUnits.length === 0) {
+                alert('Tidak ada data untuk dikirim pada tanggal tersebut!');
+                return;
+            }
+
+            let text = `📋 *REKAP DATA UNIT RM0 - SHIFT B*%0A`;
+            text += `📅 Tanggal: ${selectedDate}%0A`;
+            text += `-----------------------------------%0A`;
+
+            filteredUnits.forEach((u, i) => {
+                text += `${i + 1}. *${u.suffix}-${u.body}*%0A   Problem: ${u.problem}%0A   Status: ${u.status}%0A`;
+            });
+
+            text += `-----------------------------------%0A*Total Unit:* ${filteredUnits.length} Unit`;
+
+            const waUrl = `https://wa.me/?text=${text}`;
+            window.open(waUrl, '_blank');
+        }
+    </script>
+</body>
+</html>
