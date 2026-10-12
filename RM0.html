@@ -314,7 +314,7 @@
             { id: '2', date: getCalculatedRM0Date(), suffix: 'B', noUnit: 'UN-102', problem: 'Control AC', status: 'NG', checklist: {} }
         ];
         let currentActiveUnitId = null;
-        let scriptUrl = localStorage.getItem('rm0_script_url') || 'https://script.google.com/macros/s/AKfycbwkk5ZoQRIOJ85gHQhS1nAu16dnH0p2rJ5F-eaVvXB5-ZmC8aadbIvyp-uA2MWS-HXN/exec';
+        let scriptUrl = localStorage.getItem('rm0_script_url') || '';
 
         // Initialize Date calculation according to 07:30 rule
         function getCalculatedRM0Date() {
