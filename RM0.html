@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RM0 - Repair Shop Management</title>
+    <!-- Tailwind CSS for modern, sleek UI -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header -->
+    <header class="bg-gradient-to-r from-blue-700 to-indigo-800 text-white shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 py-4 flex flex-col sm:flex-row justify-between items-center gap-3">
+            <div class="flex items-center space-x-3">
+                <div class="bg-white/10 p-2.5 rounded-xl backdrop-blur-md">
+                    <i class="fa-solid fa-wrench text-2xl text-blue-200"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-bold tracking-tight">RM0 Repair Shop</h1>
+                    <p class="text-xs text-blue-200" id="currentDateDisplay">Memuat tanggal...</p>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button onclick="openInputModal()" class="bg-emerald-500 hover:bg-emerald-600 text-white px-4 py-2.5 rounded-xl font-medium shadow-md transition flex items-center gap-2 text-sm">
+                    <i class="fa-solid fa-plus"></i> Input Unit NG
+                </button>
+                <div class="flex bg-blue-900/50 p-1 rounded-xl border border-blue-600/30">
+                    <button id="tabBtnNg" onclick="switchTab('ng')" class="px-4 py-2 rounded-lg text-sm font-medium transition bg-white text-blue-900 shadow">Unit NG (Repair)</button>
+                    <button id="tabBtnOk" onclick="switchTab('ok')" class="px-4 py-2 rounded-lg text-sm font-medium transition text-blue-200 hover:text-white">Unit Selesai (OK)</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 py-8 flex-grow w-full">
+
+        <!-- CONFIG / GOOGLE SHEETS SETTINGS BANNER -->
+        <div class="bg-amber-50 border border-amber-200 rounded-2xl p-4 mb-6 shadow-sm flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="bg-amber-100 text-amber-700 p-2.5 rounded-xl">
+                    <i class="fa-solid fa-cloud-arrow-down"></i>
+                </div>
+                <div>
+                    <h3 class="text-sm font-semibold text-amber-900">Koneksi Google Spreadsheet</h3>
+                    <p class="text-xs text-amber-700">Data tersimpan di LocalStorage & dapat disinkronkan ke Web App Google Apps Script.</p>
+                </div>
+            </div>
+            <button onclick="openConfigModal()" class="text-xs bg-amber-600 hover:bg-amber-700 text-white px-3 py-2 rounded-lg font-medium transition shadow-sm">
+                <i class="fa-solid fa-gear mr-1"></i> Konfigurasi URL Apps Script
+            </button>
+        </div>
+
+        <!-- SECTION: UNIT NG -->
+        <section id="sectionNg" class="space-y-6">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Daftar Unit Masuk Problem (NG)</h2>
+                    <p class="text-xs text-slate-500">Klik item untuk melihat detail problem. Klik & tahan atau gunakan tombol aksi untuk Konfirmasi/Edit/Hapus.</p>
+                </div>
+                <div class="w-full sm:w-72">
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+                        <input type="text" id="searchNgInput" oninput="renderNgList()" placeholder="Cari No Unit / Suffix / Problem..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5" id="ngListContainer">
+                <!-- Dynamic cards rendered here -->
+            </div>
+        </section>
+
+        <!-- SECTION: UNIT OK -->
+        <section id="sectionOk" class="space-y-6 hidden">
+            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-slate-200">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-800">Daftar Unit Selesai (Data OK)</h2>
+                    <p class="text-xs text-slate-500">Unit yang telah lolos seluruh cek item konfirmasi.</p>
+                </div>
+                <div class="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+                    <div class="relative flex-grow sm:w-64">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                            <i class="fa-solid fa-search"></i>
+                        </span>
+                        <input type="text" id="searchOkInput" oninput="renderOkList()" placeholder="Cari data OK..." class="w-full pl-10 pr-4 py-2 text-sm bg-slate-50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                    </div>
+                    <button onclick="exportToExcel()" class="bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> Ekspor Excel
+                    </button>
+                    <button onclick="sendToWhatsApp()" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl text-sm font-medium shadow transition flex items-center gap-2">
+                        <i class="fa-brands fa-whatsapp"></i> Kirim WA
+                    </button>
+                </div>
+            </div>
+
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
+                                <th class="p-4">Tanggal</th>
+                                <th class="p-4">Suffix</th>
+                                <th class="p-4">No Unit</th>
+                                <th class="p-4">Problem</th>
+                                <th class="p-4">Status</th>
+                                <th class="p-4 text-center">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="okTableBody" class="divide-y divide-slate-100 text-sm">
+                            <!-- Dynamic rows -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MODAL 1: INPUT UNIT NG -->
+    <div id="inputModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden transform transition-all animate-in fade-in zoom-in duration-200">
+            <div class="bg-gradient-to-r from-blue-700 to-indigo-800 p-5 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-circle-plus"></i> Input Unit NG (Problem)</h3>
+                <button onclick="closeInputModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            <form id="inputForm" onsubmit="handleSaveUnit(event)" class="p-6 space-y-4">
+                <input type="hidden" id="editUnitId">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Tanggal RM0 (Otomatis &lt; 07:30 kemarin)</label>
+                    <input type="text" id="inputDate" readonly class="w-full bg-slate-100 border border-slate-200 rounded-xl px-4 py-2.5 text-sm text-slate-600 font-medium">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Suffix</label>
+                    <input type="text" id="inputSuffix" required placeholder="Contoh: A, B, C..." class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">No Unit</label>
+                    <input type="text" id="inputNoUnit" required placeholder="Contoh: UN-001" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Problem / Kategori</label>
+                    <select id="inputProblem" required class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                        <option value="">-- Pilih Kategori Problem --</option>
+                        <option value="Rem">Problem terkait Rem</option>
+                        <option value="Kelistrikan indikator">Problem terkait Kelistrikan Indikator</option>
+                        <option value="Elektrik belum cek">Problem terkait Elektrik Belum Cek</option>
+                        <option value="Ganti Engine">Problem terkait Ganti Engine</option>
+                        <option value="Control AC">Problem terkait Control AC</option>
+                    </select>
+                </div>
+                <div class="flex justify-end gap-3 pt-4 border-t border-slate-100">
+                    <button type="button" onclick="closeInputModal()" class="px-5 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium text-sm transition">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-medium text-sm shadow transition">Simpan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL 2: DETAIL PROBLEM INFO -->
+    <div id="detailModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden">
+            <div class="bg-slate-800 p-5 text-white flex justify-between items-center">
+                <h3 class="font-bold text-lg"><i class="fa-solid fa-circle-info mr-2"></i> Informasi Problem Unit</h3>
+                <button onclick="closeDetailModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            <div class="p-6 space-y-4" id="detailContent">
+                <!-- Content populated by JS -->
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-100 flex justify-end">
+                <button onclick="closeDetailModal()" class="bg-slate-700 text-white px-5 py-2 rounded-xl text-sm font-medium">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 3: ACTION / LONG PRESS MENU (Edit, Hapus, Konfirmasi) -->
+    <div id="actionModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-sm w-full overflow-hidden p-6 space-y-4 text-center">
+            <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto text-xl font-bold">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+            <div>
+                <h3 class="font-bold text-lg text-slate-800" id="actionModalTitle">Aksi Unit</h3>
+                <p class="text-xs text-slate-500 mt-1">Pilih tindakan untuk unit ini</p>
+            </div>
+            <div class="grid grid-cols-1 gap-2.5 pt-2">
+                <button onclick="proceedToConfirmation()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white py-3 rounded-xl font-semibold text-sm shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-clipboard-check"></i> Konfirmasi Checklist Item
+                </button>
+                <button onclick="editUnitFromModal()" class="w-full bg-blue-600 hover:bg-blue-700 text-white py-3 rounded-xl font-semibold text-sm shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Data
+                </button>
+                <button onclick="deleteUnit()" class="w-full bg-rose-600 hover:bg-rose-700 text-white py-3 rounded-xl font-semibold text-sm shadow transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash"></i> Hapus Data
+                </button>
+                <button onclick="closeActionModal()" class="w-full bg-slate-100 hover:bg-slate-200 text-slate-700 py-2.5 rounded-xl font-medium text-sm transition">
+                    Tutup (X)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 4: HALAMAN KONFIRMASI CHECKLIST -->
+    <div id="confirmationModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col overflow-hidden">
+            <div class="bg-gradient-to-r from-indigo-700 to-purple-800 p-5 text-white flex justify-between items-center">
+                <div>
+                    <h3 class="font-bold text-lg"><i class="fa-solid fa-tasks mr-2"></i> Halaman Konfirmasi Checklist</h3>
+                    <p class="text-xs text-indigo-200" id="confUnitSubInfo">Unit & Problem info</p>
+                </div>
+                <button onclick="closeConfirmationModal()" class="text-white/80 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-6 flex-grow" id="checklistContainer">
+                <!-- Checklist items populated dynamically based on problem category -->
+            </div>
+            <div class="p-4 bg-slate-50 border-t border-slate-200 flex justify-between items-center">
+                <p class="text-xs text-slate-500 font-medium">Semua item harus berstatus OK untuk memindahkan unit ke Data OK.</p>
+                <div class="flex gap-3">
+                    <button onclick="closeConfirmationModal()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 text-sm font-medium">Batal</button>
+                    <button onclick="submitConfirmation()" class="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium shadow transition">Simpan & Selesai (OK)</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL 5: CONFIG APPS SCRIPT URL -->
+    <div id="configModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-3xl shadow-2xl max-w-md w-full overflow-hidden p-6 space-y-4">
+            <h3 class="font-bold text-lg text-slate-800"><i class="fa-solid fa-gear mr-2 text-blue-600"></i> Konfigurasi Google Sheets (Apps Script)</h3>
+            <p class="text-xs text-slate-500">Masukkan URL Web App Google Apps Script Anda untuk sinkronisasi otomatis ke Google Spreadsheet.</p>
+            <div>
+                <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Web App URL</label>
+                <input type="text" id="scriptUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none">
+            </div>
+            <div class="flex justify-end gap-2 pt-2">
+                <button onclick="closeConfigModal()" class="px-4 py-2 rounded-xl text-slate-600 hover:bg-slate-100 text-sm font-medium">Batal</button>
+                <button onclick="saveConfigUrl()" class="px-4 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium">Simpan URL</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 mt-auto text-center text-xs text-slate-500">
+        RM0 Repair Shop Management App &copy; 2026 &bull; Integrated with Google Spreadsheet
+    </footer>
+
+    <!-- JavaScript Application Logic -->
+    <script>
+        // Checklist definitions per problem category
+        const checklistDefinitions = {
+            "Rem": [
+                "Cek reservoir tank rem",
+                "Cek Nepel rem",
+                "Cek fungsi rem",
+                "Running tes rem",
+                "Cek reservoir tank rem",
+                "Cek Nepel rem",
+                "DS"
+            ],
+            "Kelistrikan indikator": [
+                "Cek Cover fuse box",
+                "Cek jump pro",
+                "Cek indikator",
+                "DS"
+            ],
+            "Elektrik belum cek": [
+                "Indikator Efi",
+                "Indikator ABS",
+                "Indikator air bag",
+                "Indikator immobilizer",
+                "Indikator eps",
+                "Indikator baterai",
+                "Indikator oli",
+                "Fungsi AC",
+                "Fungsi mode AC",
+                "Fungsi air fresh",
+                "Fungsi defroster",
+                "Fungsi double blower",
+                "Cek kipas radiator",
+                "Fungsi lampu depan",
+                "Fungsi lampu belakang",
+                "Fungsi remote",
+                "Fungsi courtesy",
+                "Fungsi defoger",
+                "Fungsi Horn"
+            ],
+            "Ganti Engine": [
+                "Cek LLC",
+                "Cek Rem",
+                "Cek AC"
+            ],
+            "Control AC": [
+                "Cek fungsi AC",
+                "Cek mode AC",
+                "Cek air fresh",
+                "Cek kipas radiator",
+                "Pipa AC",
+                "DS"
+            ]
+        };
+
+        // State data
+        let units = JSON.parse(localStorage.getItem('rm0_units')) || [
+            { id: '1', date: getCalculatedRM0Date(), suffix: 'A', noUnit: 'UN-101', problem: 'Rem', status: 'NG', checklist: {} },
+            { id: '2', date: getCalculatedRM0Date(), suffix: 'B', noUnit: 'UN-102', problem: 'Control AC', status: 'NG', checklist: {} }
+        ];
+        let currentActiveUnitId = null;
+        let scriptUrl = localStorage.getItem('rm0_script_url') || 'https://script.google.com/macros/s/AKfycbwkk5ZoQRIOJ85gHQhS1nAu16dnH0p2rJ5F-eaVvXB5-ZmC8aadbIvyp-uA2MWS-HXN/exec';
+
+        // Initialize Date calculation according to 07:30 rule
+        function getCalculatedRM0Date() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const timeInMinutes = hours * 60 + minutes;
+            const threshold = 7 * 60 + 30; // 07:30
+
+            let targetDate = new Date();
+            if (timeInMinutes < threshold) {
+                targetDate.setDate(targetDate.getDate() - 1); // Yesterday
+            }
+            return targetDate.toISOString().split('T')[0];
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('currentDateDisplay').innerText = `Tanggal Operasional: ${getCalculatedRM0Date()}`;
+            document.getElementById('inputDate').value = getCalculatedRM0Date();
+            if(scriptUrl) document.getElementById('scriptUrlInput').value = scriptUrl;
+            renderNgList();
+            renderOkList();
+        });
+
+        function saveToLocalStorage() {
+            localStorage.setItem('rm0_units', JSON.stringify(units));
+            syncToGoogleSheets();
+        }
+
+        function syncToGoogleSheets() {
+            if(!scriptUrl) return;
+            fetch(scriptUrl, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ action: 'sync', data: units })
+            }).catch(err => console.log('Sync note:', err));
+        }
+
+        // Tab Switching
+        function switchTab(tab) {
+            const btnNg = document.getElementById('tabBtnNg');
+            const btnOk = document.getElementById('tabBtnOk');
+            const secNg = document.getElementById('sectionNg');
+            const secOk = document.getElementById('sectionOk');
+
+            if(tab === 'ng') {
+                btnNg.className = "px-4 py-2 rounded-lg text-sm font-medium transition bg-white text-blue-900 shadow";
+                btnOk.className = "px-4 py-2 rounded-lg text-sm font-medium transition text-slate-200 hover:text-white";
+                secNg.classList.remove('hidden');
+                secOk.classList.add('hidden');
+            } else {
+                btnOk.className = "px-4 py-2 rounded-lg text-sm font-medium transition bg-white text-emerald-900 shadow";
+                btnNg.className = "px-4 py-2 rounded-lg text-sm font-medium transition text-blue-200 hover:text-white";
+                secOk.classList.remove('hidden');
+                secNg.classList.add('hidden');
+            }
+        }
+
+        // Modals Control
+        function openInputModal(id = null) {
+            document.getElementById('inputModal').classList.remove('hidden');
+            document.getElementById('inputDate').value = getCalculatedRM0Date();
+            if(id) {
+                const u = units.find(x => x.id === id);
+                if(u) {
+                    document.getElementById('editUnitId').value = u.id;
+                    document.getElementById('inputSuffix').value = u.suffix;
+                    document.getElementById('inputNoUnit').value = u.noUnit;
+                    document.getElementById('inputProblem').value = u.problem;
+                }
+            } else {
+                document.getElementById('inputForm').reset();
+                document.getElementById('editUnitId').value = '';
+                document.getElementById('inputDate').value = getCalculatedRM0Date();
+            }
+        }
+        function closeInputModal() { document.getElementById('inputModal').classList.add('hidden'); }
+
+        function openDetailModal(id) {
+            const u = units.find(x => x.id === id);
+            if(!u) return;
+            const container = document.getElementById('detailContent');
+            container.innerHTML = `
+                <div class="bg-slate-50 p-4 rounded-2xl space-y-2 border border-slate-200">
+                    <div class="flex justify-between"><span class="text-xs text-slate-500 font-medium">Tanggal:</span><span class="text-sm font-semibold text-slate-800">${u.date}</span></div>
+                    <div class="flex justify-between"><span class="text-xs text-slate-500 font-medium">Suffix:</span><span class="text-sm font-semibold text-slate-800">${u.suffix}</span></div>
+                    <div class="flex justify-between"><span class="text-xs text-slate-500 font-medium">No Unit:</span><span class="text-sm font-semibold text-blue-600">${u.noUnit}</span></div>
+                    <div class="flex justify-between"><span class="text-xs text-slate-500 font-medium">Status:</span><span class="px-2 py-0.5 rounded-full text-xs font-bold ${u.status === 'OK' ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'}">${u.status}</span></div>
+                </div>
+                <div>
+                    <h4 class="text-xs font-semibold uppercase text-slate-500 mb-1">Kategori Problem:</h4>
+                    <p class="text-sm font-bold text-slate-800 bg-blue-50 p-3 rounded-xl border border-blue-100">${u.problem}</p>
+                </div>
+            `;
+            document.getElementById('detailModal').classList.remove('hidden');
+        }
+        function closeDetailModal() { document.getElementById('detailModal').classList.add('hidden'); }
+
+        function openActionModal(id) {
+            currentActiveUnitId = id;
+            const u = units.find(x => x.id === id);
+            if(u) document.getElementById('actionModalTitle').innerText = `Unit: ${u.noUnit} (${u.problem})`;
+            document.getElementById('actionModal').classList.remove('hidden');
+        }
+        function closeActionModal() { document.getElementById('actionModal').classList.add('hidden'); }
+
+        function openConfigModal() { document.getElementById('configModal').classList.remove('hidden'); }
+        function closeConfigModal() { document.getElementById('configModal').classList.add('hidden'); }
+        function saveConfigUrl() {
+            scriptUrl = document.getElementById('scriptUrlInput').value.trim();
+            localStorage.setItem('rm0_script_url', scriptUrl);
+            closeConfigModal();
+            alert('URL Apps Script berhasil disimpan!');
+        }
+
+        // Save Unit (Create / Update)
+        function handleSaveUnit(e) {
+            e.preventDefault();
+            const id = document.getElementById('editUnitId').value;
+            const suffix = document.getElementById('inputSuffix').value;
+            const noUnit = document.getElementById('inputNoUnit').value;
+            const problem = document.getElementById('inputProblem').value;
+            const date = getCalculatedRM0Date();
+
+            if(id) {
+                const u = units.find(x => x.id === id);
+                if(u) {
+                    u.suffix = suffix;
+                    u.noUnit = noUnit;
+                    u.problem = problem;
+                }
+            } else {
+                const newUnit = {
+                    id: Date.now().toString(),
+                    date,
+                    suffix,
+                    noUnit,
+                    problem,
+                    status: 'NG',
+                    checklist: {}
+                };
+                units.push(newUnit);
+            }
+            saveToLocalStorage();
+            closeInputModal();
+            renderNgList();
+            renderOkList();
+        }
+
+        function editUnitFromModal() {
+            closeActionModal();
+            openInputModal(currentActiveUnitId);
+        }
+
+        function deleteUnit() {
+            if(confirm('Apakah Anda yakin ingin menghapus unit ini?')) {
+                units = units.filter(x => x.id !== currentActiveUnitId);
+                saveToLocalStorage();
+                closeActionModal();
+                renderNgList();
+                renderOkList();
+            }
+        }
+
+        // Render NG List
+        function renderNgList() {
+            const container = document.getElementById('ngListContainer');
+            const query = (document.getElementById('searchNgInput').value || '').toLowerCase();
+            const filtered = units.filter(u => u.status === 'NG' && (
+                u.noUnit.toLowerCase().includes(query) ||
+                u.suffix.toLowerCase().includes(query) ||
+                u.problem.toLowerCase().includes(query)
+            ));
+
+            if(filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="col-span-full py-12 text-center text-slate-400 bg-white rounded-2xl border border-slate-200">
+                        <i class="fa-solid fa-clipboard-check text-4xl mb-3 text-emerald-400"></i>
+                        <p class="text-sm font-medium">Tidak ada unit NG yang aktif.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = filtered.map(u => `
+                <div class="bg-white rounded-2xl p-5 shadow-sm border border-slate-200 hover:shadow-md transition flex flex-col justify-between cursor-pointer group relative"
+                     onclick="openDetailModal('${u.id}')"
+                     oncontextmenu="event.preventDefault(); openActionModal('${u.id}');">
+                    <div>
+                        <div class="flex justify-between items-start mb-3">
+                            <span class="bg-rose-100 text-rose-700 text-xs font-bold px-2.5 py-1 rounded-lg">NG Repair</span>
+                            <span class="text-xs text-slate-400 font-medium">${u.date}</span>
+                        </div>
+                        <h3 class="text-lg font-bold text-slate-800 group-hover:text-blue-600 transition flex items-center justify-between">
+                            <span>No: ${u.noUnit}</span>
+                            <span class="text-xs font-semibold bg-slate-100 text-slate-600 px-2 py-1 rounded-md">Suffix: ${u.suffix}</span>
+                        </h3>
+                        <p class="text-xs text-slate-500 mt-2 flex items-center gap-1.5">
+                            <i class="fa-solid fa-triangle-exclamation text-amber-500"></i> ${u.problem}
+                        </p>
+                    </div>
+                    <div class="mt-5 pt-3 border-t border-slate-100 flex justify-between items-center">
+                        <span class="text-xs text-blue-600 font-medium">Klik untuk Detail</span>
+                        <button onclick="event.stopPropagation(); openActionModal('${u.id}')" class="bg-slate-100 hover:bg-blue-600 hover:text-white text-slate-700 px-3 py-1.5 rounded-xl text-xs font-medium transition flex items-center gap-1.5">
+                            <i class="fa-solid fa-ellipsis-vertical"></i> Aksi / Konfirmasi
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Confirmation Workflow
+        function proceedToConfirmation() {
+            closeActionModal();
+            const u = units.find(x => x.id === currentActiveUnitId);
+            if(!u) return;
+
+            document.getElementById('confUnitSubInfo').innerText = `No Unit: ${u.noUnit} | Problem: ${u.problem}`;
+            const checklistContainer = document.getElementById('checklistContainer');
+            
+            const items = checklistDefinitions[u.problem] || ["Cek General", "Running Test", "DS"];
+            
+            checklistContainer.innerHTML = `
+                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl mb-4">
+                    <h4 class="text-xs font-bold text-indigo-900 uppercase tracking-wide">Panduan Konfirmasi Item</h4>
+                    <p class="text-xs text-indigo-700 mt-0.5">Klik tombol OK atau NG pada setiap item checklist di bawah ini. Semua item harus berstatus OK.</p>
+                </div>
+                <div class="space-y-3">
+                    ${items.map((item, idx) => {
+                        const currentStatus = (u.checklist && u.checklist[item]) ? u.checklist[item] : 'NG';
+                        return `
+                            <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                                <span class="text-sm font-medium text-slate-700">${idx + 1}.${item}</span>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="setChecklistItem('${u.id}', '${item}', 'OK')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${currentStatus === 'OK' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-200 text-slate-600 hover:bg-emerald-100'}">OK</button>
+                                    <button type="button" onclick="setChecklistItem('${u.id}', '${item}', 'NG')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${currentStatus === 'NG' ? 'bg-rose-600 text-white shadow' : 'bg-slate-200 text-slate-600 hover:bg-rose-100'}">NG</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+
+            document.getElementById('confirmationModal').classList.remove('hidden');
+        }
+
+        function setChecklistItem(unitId, itemKey, status) {
+            const u = units.find(x => x.id === unitId);
+            if(!u) return;
+            if(!u.checklist) u.checklist = {};
+            u.checklist[itemKey] = status;
+            
+            proceedToConfirmationWithoutClose(unitId);
+        }
+
+        function proceedToConfirmationWithoutClose(unitId) {
+            const u = units.find(x => x.id === unitId);
+            if(!u) return;
+            const checklistContainer = document.getElementById('checklistContainer');
+            const items = checklistDefinitions[u.problem] || ["Cek General", "Running Test", "DS"];
+            
+            checklistContainer.innerHTML = `
+                <div class="bg-indigo-50 border border-indigo-100 p-4 rounded-2xl mb-4">
+                    <h4 class="text-xs font-bold text-indigo-900 uppercase tracking-wide">Panduan Konfirmasi Item</h4>
+                    <p class="text-xs text-indigo-700 mt-0.5">Klik tombol OK atau NG pada setiap item checklist di bawah ini. Semua item harus berstatus OK.</p>
+                </div>
+                <div class="space-y-3">
+                    ${items.map((item, idx) => {
+                        const currentStatus = (u.checklist && u.checklist[item]) ? u.checklist[item] : 'NG';
+                        return `
+                            <div class="flex items-center justify-between p-3.5 bg-slate-50 border border-slate-200 rounded-xl">
+                                <span class="text-sm font-medium text-slate-700">${idx + 1}.${item}</span>
+                                <div class="flex gap-2">
+                                    <button type="button" onclick="setChecklistItem('${u.id}', '${item}', 'OK')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${currentStatus === 'OK' ? 'bg-emerald-600 text-white shadow' : 'bg-slate-200 text-slate-600 hover:bg-emerald-100'}">OK</button>
+                                    <button type="button" onclick="setChecklistItem('${u.id}', '${item}', 'NG')" class="px-3.5 py-1.5 rounded-lg text-xs font-bold transition ${currentStatus === 'NG' ? 'bg-rose-600 text-white shadow' : 'bg-slate-200 text-slate-600 hover:bg-rose-100'}">NG</button>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        function closeConfirmationModal() { document.getElementById('confirmationModal').classList.add('hidden'); }
+
+        function submitConfirmation() {
+            const u = units.find(x => x.id === currentActiveUnitId);
+            if(!u) return;
+
+            const items = checklistDefinitions[u.problem] || ["Cek General", "Running Test", "DS"];
+            let allOk = true;
+            for(let item of items) {
+                if(!u.checklist || u.checklist[item] !== 'OK') {
+                    allOk = false;
+                    break;
+                }
+            }
+
+            if(!allOk) {
+                alert('Peringatan: Belum semua item checklist dikonfirmasi OK! Silakan lengkapi seluruh item.');
+                return;
+            }
+
+            u.status = 'OK';
+            saveToLocalStorage();
+            closeConfirmationModal();
+            renderNgList();
+            renderOkList();
+            alert('Semua item terkonfirmasi OK! Unit berhasil dipindahkan ke Data OK.');
+        }
+
+        // Render OK List
+        function renderOkList() {
+            const tbody = document.getElementById('okTableBody');
+            const query = (document.getElementById('searchOkInput').value || '').toLowerCase();
+            const filtered = units.filter(u => u.status === 'OK' && (
+                u.noUnit.toLowerCase().includes(query) ||
+                u.suffix.toLowerCase().includes(query) ||
+                u.problem.toLowerCase().includes(query)
+            ));
+
+            if(filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="p-8 text-center text-slate-400">Belum ada unit dengan status OK.</td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(u => `
+                <tr class="hover:bg-slate-50 transition border-b border-slate-100">
+                    <td class="p-4 text-slate-600 font-medium">${u.date}</td>
+                    <td class="p-4 text-slate-800 font-semibold">${u.suffix}</td>
+                    <td class="p-4 text-blue-600 font-bold">${u.noUnit}</td>
+                    <td class="p-4 text-slate-700">${u.problem}</td>
+                    <td class="p-4"><span class="bg-emerald-100 text-emerald-700 px-2.5 py-1 rounded-full text-xs font-bold">SELESAI (OK)</span></td>
+                    <td class="p-4 text-center">
+                        <button onclick="revertToNg('${u.id}')" class="text-xs bg-amber-100 hover:bg-amber-200 text-amber-800 px-3 py-1.5 rounded-lg font-medium transition">
+                            <i class="fa-solid fa-rotate-left mr-1"></i> Reset ke NG
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        function revertToNg(id) {
+            const u = units.find(x => x.id === id);
+            if(u) {
+                u.status = 'NG';
+                saveToLocalStorage();
+                renderNgList();
+                renderOkList();
+            }
+        }
+
+        // Export to Excel & Send to WA
+        function exportToExcel() {
+            const okUnits = units.filter(u => u.status === 'OK');
+            if(okUnits.length === 0) {
+                alert('Tidak ada data OK untuk diexport.');
+                return;
+            }
+
+            const dataToExport = okUnits.map((u, idx) => ({
+                No: idx + 1,
+                Tanggal: u.date,
+                Suffix: u.suffix,
+                'No Unit': u.noUnit,
+                Problem: u.problem,
+                Status: u.status
+            }));
+
+            const worksheet = XLSX.utils.json_to_sheet(dataToExport);
+            const workbook = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Data OK RM0");
+            XLSX.writeFile(workbook, `Data_Repair_Shop_RM0_${getCalculatedRM0Date()}.xlsx`);
+        }
+
+        function sendToWhatsApp() {
+            const okUnits = units.filter(u => u.status === 'OK');
+            if(okUnits.length === 0) {
+                alert('Tidak ada data OK untuk dikirim via WhatsApp.');
+                return;
+            }
+
+            let message = `*LAPORAN REPAIR SHOP RM0*\nTanggal: ${getCalculatedRM0Date()}\n\n*Daftar Unit Selesai (OK):*\n`;
+            okUnits.forEach((u, i) => {
+                message += `${i+1}. No Unit: *${u.noUnit}* (Suffix: ${u.suffix}) - Problem: ${u.problem} [OK]\n`;
+            });
+            message += `\nSemua unit telah lolos cek dan terkonfirmasi OK.`;
+
+            const encoded = encodeURIComponent(message);
+            window.open(`https://api.whatsapp.com/send?text=${encoded}`, '_blank');
+        }
+    </script>
+</body>
+</html>
