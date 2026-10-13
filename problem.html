@@ -23,38 +23,49 @@
                 <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Sistem Pengelola Unit Problem</h1>
                 <p class="text-blue-100 text-sm mt-1">Scan barcode unit dan catat masalah dengan cepat & terintegrasi</p>
             </div>
-            <button onclick="openScannerModal()" class="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-5 py-2.5 rounded-xl shadow-md transition transform active:scale-95 flex items-center gap-2">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                </svg>
-                Input Unit (Scan Barcode)
-            </button>
+            <div class="flex items-center gap-2">
+                <button onclick="openScannerModal()" class="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95 flex items-center gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                    Scan Barcode
+                </button>
+            </div>
         </div>
     </header>
 
     <!-- Konten Utama: Daftar Data -->
     <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6">
-        <div class="flex justify-between items-center mb-4">
+        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
             <h2 class="text-lg font-bold text-slate-700">Daftar Unit Problem Terakhir</h2>
-            <button onclick="loadData()" id="btnRefresh" class="text-sm text-blue-600 hover:underline flex items-center gap-1">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                </svg>
-                Muat Ulang Data
-            </button>
+            <div class="flex items-center gap-3">
+                <button onclick="sendWhatsAppReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-sm transition flex items-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/>
+                    </svg>
+                    Kirim Laporan WA
+                </button>
+                <button onclick="loadData()" id="btnRefresh" class="text-sm text-blue-600 hover:underline flex items-center gap-1">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                    Muat Ulang
+                </button>
+            </div>
         </div>
 
-        <!-- Tabel / Card Container -->
+        <!-- Tabel Data (Urutan: Suffix | Nomor Unit | Problem | Status) -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
             <div id="loadingState" class="p-8 text-center text-slate-400">Memuat data dari Google Spreadsheet...</div>
             <div class="overflow-x-auto">
                 <table id="dataTable" class="w-full text-left border-collapse hidden">
                     <thead>
                         <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
-                            <th class="p-4">Waktu</th>
-                            <th class="p-4">Nomor Unit</th>
                             <th class="p-4">Suffix</th>
+                            <th class="p-4">Nomor Unit</th>
                             <th class="p-4">Problem</th>
+                            <th class="p-4">Status</th>
+                            <th class="p-4">Waktu</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="divide-y divide-slate-100 text-sm">
@@ -92,13 +103,21 @@
             <form id="problemForm" onsubmit="submitProblem(event)" class="p-5 space-y-4">
                 <div class="grid grid-cols-2 gap-4">
                     <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span class="block text-xs font-medium text-slate-400 uppercase">Nomor Unit</span>
-                        <span id="displayUnitNumber" class="text-base font-bold text-slate-700">-</span>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
                         <span class="block text-xs font-medium text-slate-400 uppercase">Suffix</span>
                         <span id="displaySuffix" class="text-base font-bold text-slate-700">-</span>
                     </div>
+                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+                        <span class="block text-xs font-medium text-slate-400 uppercase">Nomor Unit</span>
+                        <span id="displayUnitNumber" class="text-base font-bold text-slate-700">-</span>
+                    </div>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Status Unit</label>
+                    <select id="statusInput" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold">
+                        <option value="OK">OK (Normal)</option>
+                        <option value="NG">NG (Not Good / Bermasalah)</option>
+                    </select>
                 </div>
 
                 <div>
@@ -122,16 +141,17 @@
     <!-- Script Utama -->
     <script>
         // ==========================================
-        // PASTIKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI (Berakhiran /exec)
+        // MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI
         // ==========================================
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzE_KXgMnylXmCkm9SV7o_HEUz_reE7i6xCCPKBTEI9Ix_3Qv2V2GPFEe8K3QfzCdte/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHBeKVvb6H33xeTy4Lxmyz49Jrs94hX2902tKxIShLjxFRDOjhDLOGEPSuudaX_QLR/exec';
 
         let html5QrCode = null;
         let scannedDataCache = { unitNumber: '', suffix: '' };
+        let cachedDataList = []; // Menyimpan data untuk fitur WA
 
         window.onload = function() {
             if (SCRIPT_URL.includes('GANTI_DENGAN_URL')) {
-                document.getElementById('loadingState').innerHTML = '<span class="text-amber-600 font-semibold">⚠️ Harap masukkan URL Web App Google Apps Script pada kode Javascript baris ~105.</span>';
+                document.getElementById('loadingState').innerHTML = '<span class="text-amber-600 font-semibold">⚠️ Harap masukkan URL Web App Google Apps Script pada kode Javascript baris ~125.</span>';
                 return;
             }
             loadData();
@@ -156,7 +176,7 @@
             ).then(() => {
                 document.getElementById('scannerMessage').innerText = "Arahkan kamera ke barcode/QR code unit.";
             }).catch(err => {
-                document.getElementById('scannerMessage').innerHTML = `<span class="text-red-500">Gagal membuka kamera: ${err}. Pastikan izin kamera diaktifkan di browser.</span>`;
+                document.getElementById('scannerMessage').innerHTML = `<span class="text-red-500">Gagal membuka kamera: ${err}. Pastikan izin kamera aktif.</span>`;
             });
         }
 
@@ -177,17 +197,12 @@
             }).catch(err => { console.error(err); });
         }
 
-        function onScanFailure(error) {
-            // Abaikan error frame scanning rutin
-        }
+        function onScanFailure(error) {}
 
-        // --- PARSING BARCODE SESUAI ATURAN ---
-        // Suffix: Karakter ke-5 dan ke-4 dari belakang
-        // Nomor Unit: 6 karakter dari karakter ke-12 sampai 17
+        // --- PARSING BARCODE ---
         function parseBarcode(text) {
             let cleanText = text.trim();
             
-            // Suffix (Karakter ke-5 dan ke-4 dari belakang)
             let suffix = "";
             if (cleanText.length >= 5) {
                 let len = cleanText.length;
@@ -196,7 +211,6 @@
                 suffix = "Invalid";
             }
 
-            // Nomor Unit (6 karakter dari indeks 11 s/d 17)
             let unitNumber = "";
             if (cleanText.length >= 17) {
                 unitNumber = cleanText.substring(11, 17);
@@ -207,9 +221,10 @@
             scannedDataCache.unitNumber = unitNumber;
             scannedDataCache.suffix = suffix;
 
-            document.getElementById('displayUnitNumber').innerText = unitNumber;
             document.getElementById('displaySuffix').innerText = suffix;
+            document.getElementById('displayUnitNumber').innerText = unitNumber;
             document.getElementById('problemInput').value = '';
+            document.getElementById('statusInput').value = 'OK';
             document.getElementById('inputModal').classList.remove('hidden');
         }
 
@@ -221,12 +236,14 @@
         function submitProblem(event) {
             event.preventDefault();
             const problemText = document.getElementById('problemInput').value;
+            const statusVal = document.getElementById('statusInput').value;
             const btnSimpan = document.getElementById('btnSimpan');
 
             const payload = {
                 unitNumber: scannedDataCache.unitNumber,
                 suffix: scannedDataCache.suffix,
-                problem: problemText
+                problem: problemText,
+                status: statusVal
             };
 
             btnSimpan.disabled = true;
@@ -238,7 +255,7 @@
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(payload)
             }).then(() => {
-                alert("Data problem berhasil disimpan!");
+                alert("Data berhasil disimpan!");
                 closeInputModal();
                 btnSimpan.disabled = false;
                 btnSimpan.innerText = "Simpan";
@@ -272,27 +289,80 @@
 
                     if (!data || data.length === 0) {
                         emptyState.classList.remove('hidden');
+                        cachedDataList = [];
                         return;
                     }
 
+                    cachedDataList = data; // Simpan untuk format WhatsApp
                     dataTable.classList.remove('hidden');
+
                     data.reverse().forEach(row => {
                         let formattedDate = row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-';
+                        let status = row['Status'] || 'OK';
+                        let problem = row['Problem'] || '-';
+                        
+                        // Warna berdasarkan Status (OK = Hijau, NG = Merah)
+                        let textStyle = status === 'NG' ? 'text-red-600 font-medium' : 'text-emerald-700 font-medium';
+                        let statusBadge = status === 'NG' 
+                            ? '<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">NG ❌</span>' 
+                            : '<span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold">OK ✅</span>';
+
                         let tr = document.createElement('tr');
                         tr.className = "hover:bg-slate-50 transition border-b border-slate-100 last:border-none";
                         tr.innerHTML = `
-                            <td class="p-4 text-xs text-slate-500">${formattedDate}</td>
-                            <td class="p-4 font-bold text-slate-700">${row['Nomor Unit'] || '-'}</td>
                             <td class="p-4"><span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full font-semibold">${row['Suffix'] || '-'}</span></td>
-                            <td class="p-4 text-slate-600">${row['Problem'] || '-'}</td>
+                            <td class="p-4 font-bold text-slate-700">${row['Nomor Unit'] || '-'}</td>
+                            <td class="p-4 ${textStyle}">${problem}</td>
+                            <td class="p-4">${statusBadge}</td>
+                            <td class="p-4 text-xs text-slate-400">${formattedDate}</td>
                         `;
                         tableBody.appendChild(tr);
                     });
                 })
                 .catch(error => {
                     console.error('Error loading data:', error);
-                    loadingState.innerHTML = '<span class="text-red-500">Gagal memuat data dari Spreadsheet. Pastikan URL Web App benar dan sudah di-deploy dengan akses "Anyone".</span>';
+                    loadingState.innerHTML = '<span class="text-red-500">Gagal memuat data dari Spreadsheet.</span>';
                 });
+        }
+
+        // --- KIRIM LAPORAN KE WHATSAPP ---
+        function sendWhatsAppReport() {
+            if (!cachedDataList || cachedDataList.length === 0) {
+                alert("Belum ada data yang dapat dilaporkan.");
+                return;
+            }
+
+            // Mendapatkan Hari, Tanggal, Bulan, Tahun Indonesia
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            
+            const now = new Date();
+            const dayName = days[now.getDay()];
+            const dateNum = now.getDate();
+            const monthName = months[now.getMonth()];
+            const yearNum = now.getFullYear();
+
+            // Format Header sesuai permintaan
+            let waMessage = `*DATA UNIT WIP RM 0 ${dayName}, ${dateNum} ${monthName} ${yearNum} SHIFT B*\n`;
+
+            // Menyusun list data sesuai format yang diminta
+            cachedDataList.forEach((item, index) => {
+                let suffix = item['Suffix'] || '-';
+                let unitNum = item['Nomor Unit'] || '-';
+                let problem = item['Problem'] || '-';
+                let status = item['Status'] || 'OK';
+
+                let symbol = status === 'NG' ? '❌' : '✅';
+
+                waMessage += `${index + 1}. ${suffix} - ${unitNum} ${problem} ${symbol}\n`;
+            });
+
+            // Encode string untuk URL WhatsApp
+            const encodedMessage = encodeURIComponent(waMessage);
+            const waUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
+            
+            // Buka WhatsApp
+            window.open(waUrl, '_blank');
         }
     </script>
 </body>
