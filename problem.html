@@ -16,47 +16,49 @@
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-    <!-- Header / Judul -->
+    <!-- Header / Judul & Navigasi Halaman -->
     <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg py-6 px-4">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
             <div>
                 <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Sistem Pengelola Unit Problem</h1>
-                <p class="text-blue-100 text-sm mt-1">Scan barcode unit dan catat masalah dengan cepat & terintegrasi</p>
+                <p class="text-blue-100 text-sm mt-1">Scan barcode unit dan catat masalah (Cut-off jam 07:30 pagi)</p>
             </div>
             <div class="flex items-center gap-2">
-                <button onclick="openScannerModal()" class="bg-white text-blue-600 hover:bg-blue-50 font-semibold px-4 py-2.5 rounded-xl shadow-md transition transform active:scale-95 flex items-center gap-2 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                    </svg>
-                    Scan Barcode
+                <button onclick="switchTab('input')" id="tabInputBtn" class="bg-white text-blue-600 font-semibold px-4 py-2.5 rounded-xl shadow-md transition text-sm">
+                    Input & Hari Ini
+                </button>
+                <button onclick="switchTab('history')" id="tabHistoryBtn" class="bg-blue-800/60 hover:bg-blue-800 text-white font-semibold px-4 py-2.5 rounded-xl transition text-sm">
+                    Riwayat Tanggal
                 </button>
             </div>
         </div>
     </header>
 
-    <!-- Konten Utama: Daftar Data -->
-    <main class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6">
+    <!-- KONTEN HALAMAN 1: INPUT & HARI INI -->
+    <main id="pageInput" class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6">
         <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-            <h2 class="text-lg font-bold text-slate-700">Daftar Unit Problem Terakhir</h2>
-            <div class="flex items-center gap-3">
+            <div>
+                <h2 class="text-lg font-bold text-slate-700">Data Unit Shift Berjalan</h2>
+                <p class="text-xs text-slate-500">Input sebelum jam 07:30 masuk ke riwayat tanggal kemarin.</p>
+            </div>
+            <div class="flex items-center gap-3 flex-wrap">
+                <button onclick="openScannerModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl shadow-sm transition flex items-center gap-2 text-sm">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
+                    </svg>
+                    Scan Barcode
+                </button>
                 <button onclick="sendWhatsAppReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-sm transition flex items-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="currentColor" viewBox="0 0 24 24">
                         <path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413z"/>
                     </svg>
-                    Kirim Laporan WA
-                </button>
-                <button onclick="loadData()" id="btnRefresh" class="text-sm text-blue-600 hover:underline flex items-center gap-1">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
-                    </svg>
-                    Muat Ulang
+                    Kirim WA
                 </button>
             </div>
         </div>
 
-        <!-- Tabel Data (Urutan: Suffix | Nomor Unit | Problem | Status) -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div id="loadingState" class="p-8 text-center text-slate-400">Memuat data dari Google Spreadsheet...</div>
+            <div id="loadingState" class="p-8 text-center text-slate-400">Memuat data...</div>
             <div class="overflow-x-auto">
                 <table id="dataTable" class="w-full text-left border-collapse hidden">
                     <thead>
@@ -65,16 +67,46 @@
                             <th class="p-4">Nomor Unit</th>
                             <th class="p-4">Problem</th>
                             <th class="p-4">Status</th>
-                            <th class="p-4">Waktu</th>
+                            <th class="p-4">Kategori Tanggal</th>
                         </tr>
                     </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-100 text-sm">
-                        <!-- Data dinamis -->
-                    </tbody>
+                    <tbody id="tableBody" class="divide-y divide-slate-100 text-sm"></tbody>
                 </table>
             </div>
-            <div id="emptyState" class="hidden p-12 text-center text-slate-400">
-                Belum ada data unit problem yang tercatat.
+            <div id="emptyState" class="hidden p-12 text-center text-slate-400">Belum ada data unit problem.</div>
+        </div>
+    </main>
+
+    <!-- KONTEN HALAMAN 2: RIWAYAT TANGGAL -->
+    <main id="pageHistory" class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 hidden">
+        <h2 class="text-lg font-bold text-slate-700 mb-2">Arsip Riwayat per Tanggal</h2>
+        <p class="text-xs text-slate-500 mb-4">Pilih tanggal di bawah ini untuk melihat data unit problem pada tanggal tersebut.</p>
+
+        <!-- Daftar Tombol Tanggal -->
+        <div id="dateListContainer" class="flex flex-wrap gap-2 mb-6">
+            <!-- Daftar tanggal dimuat otomatis -->
+        </div>
+
+        <!-- Detail Data Berdasarkan Tanggal yang Dipilih -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+            <div class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+                <h3 id="selectedDateTitle" class="font-bold text-slate-700 text-sm">Pilih tanggal di atas</h3>
+                <span id="selectedDateCount" class="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">0 data</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
+                            <th class="p-4">Suffix</th>
+                            <th class="p-4">Nomor Unit</th>
+                            <th class="p-4">Problem</th>
+                            <th class="p-4">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="historyTableBody" class="divide-y divide-slate-100 text-sm">
+                        <tr><td colspan="4" class="p-8 text-center text-slate-400">Belum ada tanggal yang dipilih.</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </main>
@@ -143,19 +175,40 @@
         // ==========================================
         // MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI
         // ==========================================
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwHBeKVvb6H33xeTy4Lxmyz49Jrs94hX2902tKxIShLjxFRDOjhDLOGEPSuudaX_QLR/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzlRkyAtw6OOJs2SBrKdIgtjrzPCPqPBxvwqTGFiE0o_PWiq80hnFblNRp92aLUZnhW/exec';
 
         let html5QrCode = null;
         let scannedDataCache = { unitNumber: '', suffix: '' };
-        let cachedDataList = []; // Menyimpan data untuk fitur WA
+        let allMasterData = []; // Menyimpan seluruh data untuk filter tanggal & WhatsApp
 
         window.onload = function() {
             if (SCRIPT_URL.includes('GANTI_DENGAN_URL')) {
-                document.getElementById('loadingState').innerHTML = '<span class="text-amber-600 font-semibold">⚠️ Harap masukkan URL Web App Google Apps Script pada kode Javascript baris ~125.</span>';
+                document.getElementById('loadingState').innerHTML = '<span class="text-amber-600 font-semibold">⚠️ Harap masukkan URL Web App Google Apps Script pada file HTML baris ~160.</span>';
                 return;
             }
             loadData();
         };
+
+        // --- NAVIGASI HALAMAN (TAB) ---
+        function switchTab(tab) {
+            const pageInput = document.getElementById('pageInput');
+            const pageHistory = document.getElementById('pageHistory');
+            const tabInputBtn = document.getElementById('tabInputBtn');
+            const tabHistoryBtn = document.getElementById('tabHistoryBtn');
+
+            if (tab === 'input') {
+                pageInput.classList.remove('hidden');
+                pageHistory.classList.add('hidden');
+                tabInputBtn.className = "bg-white text-blue-600 font-semibold px-4 py-2.5 rounded-xl shadow-md transition text-sm";
+                tabHistoryBtn.className = "bg-blue-800/60 hover:bg-blue-800 text-white font-semibold px-4 py-2.5 rounded-xl transition text-sm";
+            } else {
+                pageInput.classList.add('hidden');
+                pageHistory.classList.remove('hidden');
+                tabHistoryBtn.className = "bg-white text-blue-600 font-semibold px-4 py-2.5 rounded-xl shadow-md transition text-sm";
+                tabInputBtn.className = "bg-blue-800/60 hover:bg-blue-800 text-white font-semibold px-4 py-2.5 rounded-xl transition text-sm";
+                renderDateList();
+            }
+        }
 
         // --- SCANNER MODAL & KAMERA ---
         function openScannerModal() {
@@ -176,7 +229,7 @@
             ).then(() => {
                 document.getElementById('scannerMessage').innerText = "Arahkan kamera ke barcode/QR code unit.";
             }).catch(err => {
-                document.getElementById('scannerMessage').innerHTML = `<span class="text-red-500">Gagal membuka kamera: ${err}. Pastikan izin kamera aktif.</span>`;
+                document.getElementById('scannerMessage').innerHTML = `<span class="text-red-500">Gagal membuka kamera: ${err}</span>`;
             });
         }
 
@@ -289,19 +342,38 @@
 
                     if (!data || data.length === 0) {
                         emptyState.classList.remove('hidden');
-                        cachedDataList = [];
+                        allMasterData = [];
                         return;
                     }
 
-                    cachedDataList = data; // Simpan untuk format WhatsApp
+                    allMasterData = data;
                     dataTable.classList.remove('hidden');
 
-                    data.reverse().forEach(row => {
-                        let formattedDate = row.Timestamp ? new Date(row.Timestamp).toLocaleString('id-ID') : '-';
+                    // Mendapatkan string tanggal hari ini berdasarkan cut-off 07:30
+                    let now = new Date();
+                    let checkDate = new Date(now);
+                    if (now.getHours() * 60 + now.getMinutes() < 450) {
+                        checkDate.setDate(checkDate.getDate() - 1);
+                    }
+                    let todayCategoryStr = checkDate.toISOString().split('T')[0];
+
+                    // Filter data untuk halaman utama (hanya data hari shift berjalan)
+                    let currentShiftData = data.filter(item => {
+                        let itemDate = item['Tanggal'] ? String(item['Tanggal']).split('T')[0] : '';
+                        return itemDate === todayCategoryStr;
+                    });
+
+                    if (currentShiftData.length === 0) {
+                        emptyState.classList.remove('hidden');
+                        dataTable.classList.add('hidden');
+                        return;
+                    }
+
+                    currentShiftData.reverse().forEach(row => {
                         let status = row['Status'] || 'OK';
                         let problem = row['Problem'] || '-';
+                        let catDate = row['Tanggal'] ? String(row['Tanggal']).split('T')[0] : '-';
                         
-                        // Warna berdasarkan Status (OK = Hijau, NG = Merah)
                         let textStyle = status === 'NG' ? 'text-red-600 font-medium' : 'text-emerald-700 font-medium';
                         let statusBadge = status === 'NG' 
                             ? '<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">NG ❌</span>' 
@@ -314,7 +386,7 @@
                             <td class="p-4 font-bold text-slate-700">${row['Nomor Unit'] || '-'}</td>
                             <td class="p-4 ${textStyle}">${problem}</td>
                             <td class="p-4">${statusBadge}</td>
-                            <td class="p-4 text-xs text-slate-400">${formattedDate}</td>
+                            <td class="p-4 text-xs text-slate-500">${catDate}</td>
                         `;
                         tableBody.appendChild(tr);
                     });
@@ -325,44 +397,121 @@
                 });
         }
 
-        // --- KIRIM LAPORAN KE WHATSAPP ---
+        // --- RENDER DAFTAR TANGGAL PADA HALAMAN RIWAYAT ---
+        function renderDateList() {
+            const container = document.getElementById('dateListContainer');
+            container.innerHTML = '';
+
+            if (!allMasterData || allMasterData.length === 0) {
+                container.innerHTML = '<p class="text-xs text-slate-400">Belum ada riwayat data tersimpan.</p>';
+                return;
+            }
+
+            // Ambil unique tanggal dari data
+            let dateSet = new Set();
+            allMasterData.forEach(item => {
+                if (item['Tanggal']) {
+                    let dStr = String(item['Tanggal']).split('T')[0];
+                    dateSet.add(dStr);
+                }
+            });
+
+            let uniqueDates = Array.from(dateSet).sort().reverse();
+
+            uniqueDates.forEach(dateStr => {
+                let btn = document.createElement('button');
+                btn.className = "bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-xs border border-slate-200 transition shadow-sm";
+                btn.innerText = dateStr;
+                btn.onclick = () => showHistoryByDate(dateStr);
+                container.appendChild(btn);
+            });
+        }
+
+        // --- MENAMPILKAN DATA BERDASARKAN TANGGAL YANG DIKLIK ---
+        function showHistoryByDate(dateStr) {
+            document.getElementById('selectedDateTitle').innerText = `Data Tanggal: ${dateStr}`;
+            const historyTableBody = document.getElementById('historyTableBody');
+            historyTableBody.innerHTML = '';
+
+            let filtered = allMasterData.filter(item => {
+                let dStr = item['Tanggal'] ? String(item['Tanggal']).split('T')[0] : '';
+                return dStr === dateStr;
+            });
+
+            document.getElementById('selectedDateCount').innerText = `${filtered.length} data`;
+
+            if (filtered.length === 0) {
+                historyTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400">Tidak ada data pada tanggal ini.</td></tr>`;
+                return;
+            }
+
+            filtered.reverse().forEach(row => {
+                let status = row['Status'] || 'OK';
+                let problem = row['Problem'] || '-';
+                
+                let textStyle = status === 'NG' ? 'text-red-600 font-medium' : 'text-emerald-700 font-medium';
+                let statusBadge = status === 'NG' 
+                    ? '<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">NG ❌</span>' 
+                    : '<span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold">OK ✅</span>';
+
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition border-b border-slate-100 last:border-none";
+                tr.innerHTML = `
+                    <td class="p-4"><span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full font-semibold">${row['Suffix'] || '-'}</span></td>
+                    <td class="p-4 font-bold text-slate-700">${row['Nomor Unit'] || '-'}</td>
+                    <td class="p-4 ${textStyle}">${problem}</td>
+                    <td class="p-4">${statusBadge}</td>
+                `;
+                historyTableBody.appendChild(tr);
+            });
+        }
+
+        // --- KIRIM LAPORAN KE WHATSAPP (SHIF BERJALAN) ---
         function sendWhatsAppReport() {
-            if (!cachedDataList || cachedDataList.length === 0) {
+            if (!allMasterData || allMasterData.length === 0) {
                 alert("Belum ada data yang dapat dilaporkan.");
                 return;
             }
 
-            // Mendapatkan Hari, Tanggal, Bulan, Tahun Indonesia
+            let now = new Date();
+            let checkDate = new Date(now);
+            if (now.getHours() * 60 + now.getMinutes() < 450) {
+                checkDate.setDate(checkDate.getDate() - 1);
+            }
+            let todayCategoryStr = checkDate.toISOString().split('T')[0];
+
+            let currentShiftData = allMasterData.filter(item => {
+                let itemDate = item['Tanggal'] ? String(item['Tanggal']).split('T')[0] : '';
+                return itemDate === todayCategoryStr;
+            });
+
+            if (currentShiftData.length === 0) {
+                alert("Tidak ada data pada shift hari ini untuk dilaporkan.");
+                return;
+            }
+
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             
-            const now = new Date();
-            const dayName = days[now.getDay()];
-            const dateNum = now.getDate();
-            const monthName = months[now.getMonth()];
-            const yearNum = now.getFullYear();
+            const dayName = days[checkDate.getDay()];
+            const dateNum = checkDate.getDate();
+            const monthName = months[checkDate.getMonth()];
+            const yearNum = checkDate.getFullYear();
 
-            // Format Header sesuai permintaan
             let waMessage = `*DATA UNIT WIP RM 0 ${dayName}, ${dateNum} ${monthName} ${yearNum} SHIFT B*\n`;
 
-            // Menyusun list data sesuai format yang diminta
-            cachedDataList.forEach((item, index) => {
+            currentShiftData.forEach((item, index) => {
                 let suffix = item['Suffix'] || '-';
                 let unitNum = item['Nomor Unit'] || '-';
                 let problem = item['Problem'] || '-';
                 let status = item['Status'] || 'OK';
-
                 let symbol = status === 'NG' ? '❌' : '✅';
 
                 waMessage += `${index + 1}. ${suffix} - ${unitNum} ${problem} ${symbol}\n`;
             });
 
-            // Encode string untuk URL WhatsApp
             const encodedMessage = encodeURIComponent(waMessage);
-            const waUrl = `https://api.whatsapp.com/send?text=${encodedMessage}`;
-            
-            // Buka WhatsApp
-            window.open(waUrl, '_blank');
+            window.open(`https://api.whatsapp.com/send?text=${encodedMessage}`, '_blank');
         }
     </script>
 </body>
