@@ -3,489 +3,378 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pengelola Unit Problem</title>
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Library Html5-Qrcode -->
-    <script src="https://unpkg.com/html5-qrcode"></script>
-    <!-- Google Fonts Inter -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        body { font-family: 'Inter', sans-serif; }
-    </style>
+    <title>Unit Repair Problem Manager</title>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-slate-50 text-slate-800 pb-24 select-none">
 
-    <!-- Header / Judul & Navigasi Halaman -->
-    <header class="bg-gradient-to-r from-blue-600 to-indigo-700 text-white shadow-lg py-6 px-4">
-        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-4">
-            <div>
-                <h1 class="text-2xl sm:text-3xl font-bold tracking-tight">Sistem Pengelola Unit Problem</h1>
-                <p class="text-blue-100 text-sm mt-1">Scan barcode unit dan catat masalah (Cut-off jam 07:30 pagi)</p>
-            </div>
-            <div class="flex items-center gap-2">
-                <button onclick="switchTab('input')" id="tabInputBtn" class="bg-white text-blue-600 font-semibold px-4 py-2.5 rounded-xl shadow-md transition text-sm">
-                    Input & Hari Ini
-                </button>
-                <button onclick="switchTab('history')" id="tabHistoryBtn" class="bg-blue-800/60 hover:bg-blue-800 text-white font-semibold px-4 py-2.5 rounded-xl transition text-sm">
-                    Riwayat Tanggal
-                </button>
-            </div>
+    <header class="bg-indigo-600 text-white shadow-md p-4 sticky top-0 z-10 flex justify-between items-center">
+        <div class="max-w-2xl mx-auto flex justify-between items-center w-full">
+            <h1 class="text-lg font-bold"><i class="fa-solid fa-wrench mr-2"></i>Unit Repair Manager</h1>
+            <a href="tampil.html" target="_blank" class="text-xs bg-indigo-500 hover:bg-indigo-400 px-3 py-1.5 rounded-lg font-medium transition flex items-center gap-1.5">
+                <i class="fa-solid fa-eye"></i> Halaman Tampil
+            </a>
         </div>
     </header>
 
-    <!-- KONTEN HALAMAN 1: INPUT & HARI INI -->
-    <main id="pageInput" class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6">
-        <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-4 gap-3">
-            <div>
-                <h2 class="text-lg font-bold text-slate-700">Data Unit Shift Berjalan</h2>
-                <p class="text-xs text-slate-500">Input sebelum jam 07:30 masuk ke riwayat tanggal kemarin.</p>
-            </div>
-            <div class="flex items-center gap-3 flex-wrap">
-                <button onclick="openScannerModal()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold px-4 py-2 rounded-xl shadow-sm transition flex items-center gap-2 text-sm">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v1m6 11h2m-6 0h-2v4m0-11v3m0 0h.01M12 12h4.01M16 20h4M4 12h4m12 0h.01M5 8h2a1 1 0 001-1V5a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1zm12 0h2a1 1 0 001-1V5a1 1 0 00-1-1h-2a1 1 0 00-1 1v2a1 1 0 001 1zM5 20h2a1 1 0 001-1v-2a1 1 0 00-1-1H5a1 1 0 00-1 1v2a1 1 0 001 1z" />
-                    </svg>
-                    Scan Barcode
-                </button>
-                <button onclick="sendWhatsAppReport()" class="bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-semibold px-4 py-2 rounded-xl shadow-sm transition flex items-center gap-2">
-                    Kirim WA
-                </button>
-                <button onclick="loadData()" id="btnRefresh" class="text-sm text-blue-600 hover:underline flex items-center gap-1 font-semibold">
-                    Muat Ulang
+    <main class="max-w-2xl mx-auto p-4 space-y-6">
+        <!-- Panel Scan Barcode -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
+            <label class="block text-sm font-semibold text-slate-700 mb-2">Scan / Input Barcode Unit:</label>
+            <div class="flex gap-2">
+                <div class="relative flex-1">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
+                        <i class="fa-solid fa-barcode"></i>
+                    </span>
+                    <input type="text" id="barcodeInput" placeholder="Scan atau ketik string barcode..." 
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                </div>
+                <button onclick="prosesBarcodeInput()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer">
+                    Proses
                 </button>
             </div>
-        </div>
+            <p class="text-xs text-slate-400 mt-2">Aturan: Suffix (Karakter ke-5 & ke-4 dr belakang) | No. Unit (Karakter 12-17 dr depan)</p>
+        </section>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div id="loadingState" class="p-8 text-center text-slate-400">Memuat data dari Google Spreadsheet...</div>
-            <div class="overflow-x-auto">
-                <table id="dataTable" class="w-full text-left border-collapse hidden">
-                    <thead>
-                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
-                            <th class="p-4">Suffix</th>
-                            <th class="p-4">Nomor Unit</th>
-                            <th class="p-4">Problem</th>
-                            <th class="p-4">Status</th>
-                            <th class="p-4">Kategori Tanggal</th>
-                        </tr>
-                    </thead>
-                    <tbody id="tableBody" class="divide-y divide-slate-100 text-sm"></tbody>
-                </table>
+        <!-- Area Tampil Data Sesi Ini -->
+        <section>
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Daftar Problem Sesi Ini</h2>
+                <span class="text-xs text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 font-medium">
+                    <i class="fa-solid fa-info-circle mr-1"></i> Klik & Tahan pada kartu untuk Edit/Delete
+                </span>
             </div>
-            <div id="emptyState" class="hidden p-12 text-center text-slate-500">
-                <p class="font-semibold mb-1">Tidak ada data untuk shift hari ini.</p>
-                <p class="text-xs text-slate-400">Pastikan data sudah diinput atau periksa tab Riwayat Tanggal.</p>
+            <div id="liveDataContainer" class="space-y-3">
+                <div class="text-center py-8 text-slate-400 text-sm bg-white rounded-xl border border-dashed border-slate-200">
+                    Belum ada data problem yang diinput pada sesi ini.
+                </div>
             </div>
-        </div>
+        </section>
     </main>
 
-    <!-- KONTEN HALAMAN 2: RIWAYAT TANGGAL -->
-    <main id="pageHistory" class="flex-grow max-w-4xl w-full mx-auto p-4 sm:p-6 hidden">
-        <h2 class="text-lg font-bold text-slate-700 mb-2">Arsip Riwayat per Tanggal</h2>
-        <p class="text-xs text-slate-500 mb-4">Pilih tanggal di bawah ini untuk melihat data unit problem pada tanggal tersebut.</p>
-
-        <div id="dateListContainer" class="flex flex-wrap gap-2 mb-6">
-            <span class="text-xs text-slate-400">Memuat daftar tanggal...</span>
+    <!-- Tombol Riwayat Fixed Bottom -->
+    <div class="fixed bottom-0 left-0 right-0 bg-white/90 backdrop-blur-md border-t border-slate-200 p-3 shadow-lg z-20">
+        <div class="max-w-2xl mx-auto flex justify-center">
+            <button onclick="bukaModalRiwayat()" class="w-full sm:w-auto bg-slate-900 hover:bg-slate-800 text-white px-6 py-2.5 rounded-xl text-sm font-semibold shadow-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-clock-rotate-left"></i> Buka Riwayat Data (Database)
+            </button>
         </div>
+    </div>
 
-        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-            <div class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
-                <h3 id="selectedDateTitle" class="font-bold text-slate-700 text-sm">Pilih tanggal di atas</h3>
-                <span id="selectedDateCount" class="text-xs bg-blue-100 text-blue-700 px-2.5 py-1 rounded-full font-semibold">0 data</span>
+    <!-- MODAL 1: FORM INPUT / EDIT PROBLEM -->
+    <div id="modalInput" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col">
+            <div class="bg-indigo-600 text-white px-6 py-4 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-bold text-base"><i class="fa-solid fa-circle-plus mr-2"></i>Form Detail Problem Unit</h3>
+                <button onclick="tutupModal('modalInput')" class="text-indigo-200 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-left border-collapse">
-                    <thead>
-                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase tracking-wider font-semibold border-b border-slate-200">
-                            <th class="p-4">Suffix</th>
-                            <th class="p-4">Nomor Unit</th>
-                            <th class="p-4">Problem</th>
-                            <th class="p-4">Status</th>
-                        </tr>
-                    </thead>
-                    <tbody id="historyTableBody" class="divide-y divide-slate-100 text-sm">
-                        <tr><td colspan="4" class="p-8 text-center text-slate-400">Belum ada tanggal yang dipilih.</td></tr>
-                    </tbody>
-                </table>
+            <div class="p-6 overflow-y-auto space-y-4 flex-1">
+                <input type="hidden" id="editDataId" value="">
+                <div class="grid grid-cols-2 gap-4 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100 text-sm">
+                    <div>
+                        <span class="text-xs text-slate-500 block">Suffix Terdeteksi:</span>
+                        <strong id="valSuffix" class="text-indigo-700 text-base">-</strong>
+                    </div>
+                    <div>
+                        <span class="text-xs text-slate-500 block">Nomor Unit:</span>
+                        <strong id="valNomorUnit" class="text-indigo-700 text-base">-</strong>
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Problem Unit:</label>
+                    <textarea id="inputProblem" rows="3" placeholder="Jelaskan kendala..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Unggah Gambar Problem:</label>
+                    <input type="file" id="inputGambar" accept="image/*" class="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100 cursor-pointer">
+                </div>
+                <div>
+                    <label class="block text-xs font-bold text-slate-600 uppercase mb-1">Keterangan Gambar:</label>
+                    <input type="text" id="inputKeteranganGambar" placeholder="Contoh: Kerusakan pada bagian..." class="w-full p-3 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                </div>
             </div>
-        </div>
-    </main>
-
-    <!-- Modal Scanner Barcode -->
-    <div id="scannerModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
-            <div class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
-                <h3 class="font-bold text-slate-700">Scan Barcode Unit</h3>
-                <button onclick="closeScannerModal()" class="text-slate-400 hover:text-slate-600 font-bold text-xl px-2">&times;</button>
-            </div>
-            <div class="p-4">
-                <div id="reader" class="w-full rounded-xl overflow-hidden"></div>
-                <p id="scannerMessage" class="text-xs text-slate-500 text-center mt-3">Arahkan kamera ke barcode/QR code unit.</p>
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end gap-2">
+                <button onclick="tutupModal('modalInput')" class="px-4 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium rounded-lg transition cursor-pointer">Batal</button>
+                <button onclick="simpanDataUnit()" id="btnSimpan" class="px-5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium rounded-lg transition flex items-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-floppy-disk"></i> Simpan
+                </button>
             </div>
         </div>
     </div>
 
-    <!-- Modal Form Input Problem -->
-    <div id="inputModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
-        <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full overflow-hidden flex flex-col">
-            <div class="p-5 bg-gradient-to-r from-blue-600 to-indigo-600 text-white">
-                <h3 class="font-bold text-lg">Form Input Problem Unit</h3>
-                <p class="text-xs text-blue-100">Verifikasi data hasil pembacaan barcode</p>
-            </div>
-            <form id="problemForm" onsubmit="submitProblem(event)" class="p-5 space-y-4">
-                <div class="grid grid-cols-2 gap-4">
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span class="block text-xs font-medium text-slate-400 uppercase">Suffix</span>
-                        <span id="displaySuffix" class="text-base font-bold text-slate-700">-</span>
-                    </div>
-                    <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
-                        <span class="block text-xs font-medium text-slate-400 uppercase">Nomor Unit</span>
-                        <span id="displayUnitNumber" class="text-base font-bold text-slate-700">-</span>
-                    </div>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Status Unit</label>
-                    <select id="statusInput" class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold">
-                        <option value="OK">OK (Normal)</option>
-                        <option value="NG">NG (Not Good / Bermasalah)</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-slate-600 uppercase mb-1">Keterangan Problem</label>
-                    <textarea id="problemInput" rows="3" required placeholder="Tuliskan detail masalah unit..." class="w-full border border-slate-300 rounded-xl p-3 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"></textarea>
-                </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closeInputModal()" class="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-600 font-semibold py-2.5 rounded-xl transition">Batal</button>
-                    <button type="submit" id="btnSimpan" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2.5 rounded-xl shadow-md transition">Simpan</button>
-                </div>
-            </form>
+    <!-- MODAL MENU AKSI (EDIT / DELETE KARTU) -->
+    <div id="modalAksiCard" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-xs rounded-2xl shadow-xl overflow-hidden p-5 space-y-3 relative">
+            <button onclick="tutupModal('modalAksiCard')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-700 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            <h4 class="font-bold text-slate-800 text-center mb-2">Pilih Aksi Data</h4>
+            <button onclick="aksiEditData()" class="w-full py-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-pen-to-square"></i> Edit Data
+            </button>
+            <button onclick="aksiDeleteData()" class="w-full py-2.5 bg-red-50 hover:bg-red-100 text-red-600 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2 cursor-pointer">
+                <i class="fa-solid fa-trash-can"></i> Hapus Data
+            </button>
         </div>
     </div>
 
-    <!-- Footer -->
-    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
-        &copy; 2026 Pengelola Unit Problem - Terhubung ke Google Spreadsheet
-    </footer>
+    <!-- MODAL RIWAYAT TANGGAL -->
+    <div id="modalRiwayatTanggal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-md rounded-2xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col relative">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-calendar-days mr-2"></i>Pilih Tanggal Riwayat</h3>
+                <button onclick="tutupModal('modalRiwayatTanggal')" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-4 overflow-y-auto space-y-2 flex-1" id="listTanggalContainer">
+                <div class="text-center py-6 text-slate-400 text-sm">Memuat data...</div>
+            </div>
+        </div>
+    </div>
 
-    <!-- Script Utama -->
+    <!-- MODAL DATA PER TANGGAL -->
+    <div id="modalDataTanggal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden max-h-[85vh] flex flex-col relative">
+            <div class="bg-slate-900 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base" id="judulModalTanggal">Data Tanggal</h3>
+                <button onclick="tutupModal('modalDataTanggal')" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-4 overflow-y-auto space-y-2.5 flex-1" id="listDataTanggalContainer"></div>
+        </div>
+    </div>
+
+    <!-- MODAL DETAIL UNIT -->
+    <div id="modalDetailUnit" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
+        <div class="bg-white w-full max-w-lg rounded-2xl shadow-xl overflow-hidden max-h-[90vh] flex flex-col relative">
+            <div class="bg-indigo-600 text-white px-6 py-4 flex justify-between items-center">
+                <h3 class="font-bold text-base"><i class="fa-solid fa-circle-info mr-2"></i>Informasi Lengkap Unit</h3>
+                <button onclick="tutupModal('modalDetailUnit')" class="text-indigo-200 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
+            </div>
+            <div class="p-6 overflow-y-auto space-y-4 flex-1 text-sm" id="detailUnitContent"></div>
+            <div class="bg-slate-50 px-6 py-3 border-t border-slate-100 flex justify-end">
+                <button onclick="tutupModal('modalDetailUnit')" class="px-5 py-2 bg-slate-200 hover:bg-slate-300 text-slate-700 text-sm font-medium rounded-lg transition cursor-pointer">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // ==========================================
-        // MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI
-        // ==========================================
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJm28v1HrhPyBhpizoA652yaE7l5ePqQ29IgotfbZgmKQAvLC9wIoBujR5eMYTOYs/exec';
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyR4Ae9KmoYNHSkUZUQW2PEv_AZAG4Xi5tHYARwwnYYU8X90M6em64Eh88AvmEuqLgqsA/exec";
 
-        let html5QrCode = null;
-        let scannedDataCache = { unitNumber: '', suffix: '' };
-        let allMasterData = [];
+        let temporaryParsedData = { suffix: "", nomorUnit: "" };
+        let activeSelectedCardData = null;
+        let sessionDataList = [];
 
-        window.onload = function() {
-            if (SCRIPT_URL.includes('GANTI_DENGAN_URL')) {
-                document.getElementById('loadingState').innerHTML = '<span class="text-amber-600 font-semibold">⚠️ Harap masukkan URL Web App Google Apps Script pada file HTML baris ~160.</span>';
+        function prosesBarcodeInput() {
+            const rawText = document.getElementById('barcodeInput').value.trim();
+            if (!rawText) {
+                alert('Silakan masukkan string barcode.');
                 return;
             }
-            loadData();
-        };
 
-        function switchTab(tab) {
-            const pageInput = document.getElementById('pageInput');
-            const pageHistory = document.getElementById('pageHistory');
-            const tabInputBtn = document.getElementById('tabInputBtn');
-            const tabHistoryBtn = document.getElementById('tabHistoryBtn');
+            let suffix = rawText.length >= 5 ? rawText.substring(rawText.length - 5, rawText.length - 3) : "Format Salah";
+            let nomorUnit = rawText.length >= 17 ? rawText.substring(11, 17) : (rawText.length >= 12 ? rawText.substring(11) : rawText);
 
-            if (tab === 'input') {
-                pageInput.classList.remove('hidden');
-                pageHistory.classList.add('hidden');
-                tabInputBtn.className = "bg-white text-blue-600 font-semibold px-4 py-2.5 rounded-xl shadow-md transition text-sm";
-                tabHistoryBtn.className = "bg-blue-800/60 hover:bg-blue-800 text-white font-semibold px-4 py-2.5 rounded-xl transition text-sm";
-            } else {
-                pageInput.classList.add('hidden');
-                pageHistory.classList.remove('hidden');
-                tabHistoryBtn.className = "bg-white text-blue-600 font-semibold px-4 py-2.5 rounded-xl shadow-md transition text-sm";
-                tabInputBtn.className = "bg-blue-800/60 hover:bg-blue-800 text-white font-semibold px-4 py-2.5 rounded-xl transition text-sm";
-                renderDateList();
+            temporaryParsedData = { suffix, nomorUnit };
+            document.getElementById('editDataId').value = "";
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-circle-plus mr-2"></i>Form Detail Problem Unit';
+            document.getElementById('valSuffix').textContent = suffix;
+            document.getElementById('valNomorUnit').textContent = nomorUnit;
+            document.getElementById('inputProblem').value = "";
+            document.getElementById('inputGambar').value = "";
+            document.getElementById('inputKeteranganGambar').value = "";
+
+            bukaModal('modalInput');
+        }
+
+        function simpanDataUnit() {
+            const editId = document.getElementById('editDataId').value;
+            const problem = document.getElementById('inputProblem').value.trim();
+            const keteranganGambar = document.getElementById('inputKeteranganGambar').value.trim();
+            const fileInput = document.getElementById('inputGambar');
+            const file = fileInput.files[0];
+
+            if (!problem) {
+                alert('Silakan isi problem unit.');
+                return;
             }
-        }
 
-        function openScannerModal() {
-            document.getElementById('scannerModal').classList.remove('hidden');
-            document.getElementById('scannerMessage').innerText = "Menginisialisasi kamera...";
-            if (!html5QrCode) {
-                html5QrCode = new Html5Qrcode("reader");
-            }
-            html5QrCode.start({ facingMode: "environment" }, { fps: 10, qrbox: { width: 250, height: 150 } }, onScanSuccess, () => {}).then(() => {
-                document.getElementById('scannerMessage').innerText = "Arahkan kamera ke barcode/QR code unit.";
-            }).catch(err => {
-                document.getElementById('scannerMessage').innerHTML = `<span class="text-red-500">Gagal membuka kamera: ${err}</span>`;
-            });
-        }
-
-        function closeScannerModal() {
-            if (html5QrCode && html5QrCode.isScanning) {
-                html5QrCode.stop().then(() => {
-                    document.getElementById('scannerModal').classList.add('hidden');
-                }).catch(err => { console.error(err); });
-            } else {
-                document.getElementById('scannerModal').classList.add('hidden');
-            }
-        }
-
-        function onScanSuccess(decodedText) {
-            html5QrCode.stop().then(() => {
-                document.getElementById('scannerModal').classList.add('hidden');
-                parseBarcode(decodedText);
-            }).catch(err => { console.error(err); });
-        }
-
-        function parseBarcode(text) {
-            let cleanText = text.trim();
-            let suffix = cleanText.length >= 5 ? cleanText.substring(cleanText.length - 5, cleanText.length - 3) : "Invalid";
-            let unitNumber = cleanText.length >= 17 ? cleanText.substring(11, 17) : cleanText;
-
-            scannedDataCache.unitNumber = unitNumber;
-            scannedDataCache.suffix = suffix;
-
-            document.getElementById('displaySuffix').innerText = suffix;
-            document.getElementById('displayUnitNumber').innerText = unitNumber;
-            document.getElementById('problemInput').value = '';
-            document.getElementById('statusInput').value = 'OK';
-            document.getElementById('inputModal').classList.remove('hidden');
-        }
-
-        function closeInputModal() {
-            document.getElementById('inputModal').classList.add('hidden');
-        }
-
-        function submitProblem(event) {
-            event.preventDefault();
-            const problemText = document.getElementById('problemInput').value;
-            const statusVal = document.getElementById('statusInput').value;
             const btnSimpan = document.getElementById('btnSimpan');
+            btnSimpan.disabled = true;
+            btnSimpan.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan...';
 
-            const payload = {
-                unitNumber: scannedDataCache.unitNumber,
-                suffix: scannedDataCache.suffix,
-                problem: problemText,
-                status: statusVal
+            const kirim = (base64, mime, name) => {
+                const payload = {
+                    action: editId ? "edit" : "create",
+                    id: editId || "",
+                    suffix: temporaryParsedData.suffix,
+                    nomorUnit: temporaryParsedData.nomorUnit,
+                    problem: problem,
+                    keteranganGambar: keteranganGambar,
+                    imageBytes: base64 || "",
+                    mimeType: mime || "",
+                    fileName: name || ""
+                };
+
+                fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                }).then(() => {
+                    tutupModal('modalInput');
+                    alert('Data berhasil disimpan!');
+                    document.getElementById('barcodeInput').value = "";
+                    location.reload();
+                }).catch(err => {
+                    alert('Error: ' + err);
+                    btnSimpan.disabled = false;
+                    btnSimpan.innerHTML = '<i class="fa-solid fa-floppy-disk"></i> Simpan';
+                });
             };
 
-            btnSimpan.disabled = true;
-            btnSimpan.innerText = "Menyimpan...";
-
-            fetch(SCRIPT_URL, {
-                method: 'POST',
-                mode: 'no-cors',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-            }).then(() => {
-                alert("Data berhasil disimpan!");
-                closeInputModal();
-                btnSimpan.disabled = false;
-                btnSimpan.innerText = "Simpan";
-                loadData();
-            }).catch(error => {
-                console.error('Error:', error);
-                alert("Terjadi kesalahan saat menyimpan data.");
-                btnSimpan.disabled = false;
-                btnSimpan.innerText = "Simpan";
-            });
+            if (file) {
+                const reader = new FileReader();
+                reader.readAsDataURL(file);
+                reader.onload = () => kirim(reader.result.split(',')[1], file.type, file.name);
+            } else {
+                kirim(null, null, null);
+            }
         }
 
-        function loadData() {
-            if (SCRIPT_URL.includes('GANTI_DENGAN_URL')) return;
-
-            const loadingState = document.getElementById('loadingState');
-            const dataTable = document.getElementById('dataTable');
-            const tableBody = document.getElementById('tableBody');
-            const emptyState = document.getElementById('emptyState');
-
-            loadingState.classList.remove('hidden');
-            dataTable.classList.add('hidden');
-            emptyState.classList.add('hidden');
-
-            fetch(SCRIPT_URL)
-                .then(response => response.json())
+        // Muat data sesi/hari ini saat load
+        window.addEventListener('DOMContentLoaded', () => {
+            fetch(WEB_APP_URL)
+                .then(res => res.json())
                 .then(data => {
-                    loadingState.classList.add('hidden');
-                    tableBody.innerHTML = '';
+                    sessionDataList = data;
+                    renderLiveData(data.slice(-5).reverse()); // Tampilkan 5 data terakhir
+                }).catch(err => console.log(err));
+        });
 
-                    if (!data || data.length === 0) {
-                        emptyState.classList.remove('hidden');
-                        allMasterData = [];
-                        return;
-                    }
-
-                    allMasterData = data;
-                    dataTable.classList.remove('hidden');
-
-                    // Ambil daftar tanggal unik dari database dan urutkan terbaru di atas
-                    let uniqueDates = [];
-                    data.forEach(item => {
-                        if (item['Tanggal']) {
-                            let dStr = String(item['Tanggal']).split('T')[0];
-                            if (!uniqueDates.includes(dStr)) uniqueDates.push(dStr);
-                        }
-                    });
-                    uniqueDates.sort().reverse();
-                    
-                    let activeDateStr = uniqueDates.length > 0 ? uniqueDates[0] : '';
-
-                    let currentShiftData = data.filter(item => {
-                        let itemDate = item['Tanggal'] ? String(item['Tanggal']).split('T')[0] : '';
-                        return itemDate === activeDateStr;
-                    });
-
-                    if (currentShiftData.length === 0) {
-                        emptyState.classList.remove('hidden');
-                        dataTable.classList.add('hidden');
-                        return;
-                    }
-
-                    currentShiftData.reverse().forEach(row => {
-                        let status = row['Status'] || 'OK';
-                        let problem = row['Problem'] || '-';
-                        let catDate = row['Tanggal'] ? String(row['Tanggal']).split('T')[0] : '-';
-                        
-                        let statusBadge = status === 'NG' 
-                            ? '<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">NG ❌</span>' 
-                            : '<span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold">OK ✅</span>';
-
-                        let tr = document.createElement('tr');
-                        tr.className = "hover:bg-slate-50 transition border-b border-slate-100 last:border-none";
-                        tr.innerHTML = `
-                            <td class="p-4"><span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full font-semibold">${row['Suffix'] || '-'}</span></td>
-                            <td class="p-4 font-bold text-slate-700">${row['Nomor Unit'] || '-'}</td>
-                            <td class="p-4 text-slate-700">${problem}</td>
-                            <td class="p-4">${statusBadge}</td>
-                            <td class="p-4 text-xs text-slate-500">${catDate}</td>
-                        `;
-                        tableBody.appendChild(tr);
-                    });
-                })
-                .catch(error => {
-                    console.error('Error loading data:', error);
-                    loadingState.innerHTML = `<span class="text-red-500">Gagal memuat data. Buka <a href="${SCRIPT_URL}" target="_blank" class="underline font-bold">URL Web App ini</a> di tab baru untuk memastikan izin akses/JSON terbuka.</span>`;
-                });
-        }
-
-        function renderDateList() {
-            const container = document.getElementById('dateListContainer');
+        function renderLiveData(items) {
+            const container = document.getElementById('liveDataContainer');
+            if (!items || items.length === 0) return;
             container.innerHTML = '';
 
-            if (!allMasterData || allMasterData.length === 0) {
-                container.innerHTML = '<p class="text-xs text-slate-400">Belum ada riwayat data tersimpan.</p>';
-                return;
-            }
-
-            let dateSet = new Set();
-            allMasterData.forEach(item => {
-                if (item['Tanggal']) {
-                    let dStr = String(item['Tanggal']).split('T')[0];
-                    dateSet.add(dStr);
-                }
-            });
-
-            let uniqueDates = Array.from(dateSet).sort().reverse();
-
-            uniqueDates.forEach(dateStr => {
-                let btn = document.createElement('button');
-                btn.className = "bg-slate-100 hover:bg-blue-50 text-slate-700 hover:text-blue-600 font-semibold px-4 py-2 rounded-xl text-xs border border-slate-200 transition shadow-sm";
-                btn.innerText = dateStr;
-                btn.onclick = () => showHistoryByDate(dateStr);
-                container.appendChild(btn);
-            });
-        }
-
-        function showHistoryByDate(dateStr) {
-            document.getElementById('selectedDateTitle').innerText = `Data Tanggal: ${dateStr}`;
-            const historyTableBody = document.getElementById('historyTableBody');
-            historyTableBody.innerHTML = '';
-
-            let filtered = allMasterData.filter(item => {
-                let dStr = item['Tanggal'] ? String(item['Tanggal']).split('T')[0] : '';
-                return dStr === dateStr;
-            });
-
-            document.getElementById('selectedDateCount').innerText = `${filtered.length} data`;
-
-            if (filtered.length === 0) {
-                historyTableBody.innerHTML = `<tr><td colspan="4" class="p-8 text-center text-slate-400">Tidak ada data pada tanggal ini.</td></tr>`;
-                return;
-            }
-
-            filtered.reverse().forEach(row => {
-                let status = row['Status'] || 'OK';
-                let problem = row['Problem'] || '-';
-                let statusBadge = status === 'NG' 
-                    ? '<span class="bg-red-100 text-red-700 text-xs px-2.5 py-1 rounded-full font-bold">NG ❌</span>' 
-                    : '<span class="bg-emerald-100 text-emerald-700 text-xs px-2.5 py-1 rounded-full font-bold">OK ✅</span>';
-
-                let tr = document.createElement('tr');
-                tr.className = "hover:bg-slate-50 transition border-b border-slate-100 last:border-none";
-                tr.innerHTML = `
-                    <td class="p-4"><span class="bg-blue-100 text-blue-700 text-xs px-2.5 py-1 rounded-full font-semibold">${row['Suffix'] || '-'}</span></td>
-                    <td class="p-4 font-bold text-slate-700">${row['Nomor Unit'] || '-'}</td>
-                    <td class="p-4 text-slate-700">${problem}</td>
-                    <td class="p-4">${statusBadge}</td>
+            items.forEach(item => {
+                let card = document.createElement('div');
+                card.className = "bg-white p-4 rounded-xl shadow-sm border border-slate-100 flex gap-4 items-start relative cursor-pointer active:scale-98 transition";
+                card.innerHTML = `
+                    <div class="w-20 h-20 bg-slate-100 rounded-lg overflow-hidden shrink-0 flex items-center justify-center border border-slate-200">
+                        ${item.fileUrl ? `<img src="${item.fileUrl}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-image text-slate-300"></i>`}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <div class="flex items-center gap-2 mb-1">
+                            <span class="bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-0.5 rounded">Suffix: ${item.suffix}</span>
+                            <span class="bg-slate-100 text-slate-700 text-xs font-bold px-2 py-0.5 rounded">Unit: ${item.nomorUnit}</span>
+                        </div>
+                        <p class="text-sm font-semibold text-slate-800 truncate">${item.problem}</p>
+                        <p class="text-xs text-slate-400 mt-1">Tanggal: ${item.tanggalInput}</p>
+                    </div>
                 `;
-                historyTableBody.appendChild(tr);
+
+                // Logika Long Press (Klik & Tahan 600ms)
+                let pressTimer;
+                card.addEventListener('mousedown', () => { pressTimer = setTimeout(() => triggerAksiCard(item), 600); });
+                card.addEventListener('mouseup', () => clearTimeout(pressTimer));
+                card.addEventListener('touchstart', () => { pressTimer = setTimeout(() => triggerAksiCard(item), 600); });
+                card.addEventListener('touchend', () => clearTimeout(pressTimer));
+
+                container.appendChild(card);
             });
         }
 
-        function sendWhatsAppReport() {
-            if (!allMasterData || allMasterData.length === 0) {
-                alert("Belum ada data yang dapat dilaporkan.");
-                return;
-            }
-
-            // Ambil tanggal aktif terbaru dari data
-            let uniqueDates = [];
-            allMasterData.forEach(item => {
-                if (item['Tanggal']) {
-                    let dStr = String(item['Tanggal']).split('T')[0];
-                    if (!uniqueDates.includes(dStr)) uniqueDates.push(dStr);
-                }
-            });
-            uniqueDates.sort().reverse();
-            let activeDateStr = uniqueDates.length > 0 ? uniqueDates[0] : '';
-
-            let currentShiftData = allMasterData.filter(item => {
-                let itemDate = item['Tanggal'] ? String(item['Tanggal']).split('T')[0] : '';
-                return itemDate === activeDateStr;
-            });
-
-            if (currentShiftData.length === 0) {
-                alert("Tidak ada data pada shift hari ini untuk dilaporkan.");
-                return;
-            }
-
-            // Format tanggal untuk Header WhatsApp
-            let dateObj = new Date(activeDateStr);
-            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
-            
-            let dayName = days[dateObj.getDay()];
-            let dateNum = dateObj.getDate();
-            let monthName = months[dateObj.getMonth()];
-            let yearNum = dateObj.getFullYear();
-
-            let waMessage = `*DATA UNIT WIP RM 0 ${dayName}, ${dateNum} ${monthName} ${yearNum} SHIFT B*\n`;
-
-            currentShiftData.forEach((item, index) => {
-                let suffix = item['Suffix'] || '-';
-                let unitNum = item['Nomor Unit'] || '-';
-                let problem = item['Problem'] || '-';
-                let status = item['Status'] || 'OK';
-                let symbol = status === 'NG' ? '❌' : '✅';
-
-                waMessage += `${index + 1}. ${suffix} - ${unitNum} ${problem} ${symbol}\n`;
-            });
-
-            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(waMessage)}`, '_blank');
+        function triggerAksiCard(item) {
+            activeSelectedCardData = item;
+            bukaModal('modalAksiCard');
         }
+
+        function aksiEditData() {
+            tutupModal('modalAksiCard');
+            temporaryParsedData = { suffix: activeSelectedCardData.suffix, nomorUnit: activeSelectedCardData.nomorUnit };
+            document.getElementById('editDataId').value = activeSelectedCardData.id;
+            document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-pen-to-square mr-2"></i>Edit Problem Unit';
+            document.getElementById('valSuffix').textContent = activeSelectedCardData.suffix;
+            document.getElementById('valNomorUnit').textContent = activeSelectedCardData.nomorUnit;
+            document.getElementById('inputProblem').value = activeSelectedCardData.problem;
+            document.getElementById('inputKeteranganGambar').value = activeSelectedCardData.keteranganGambar || "";
+            bukaModal('modalInput');
+        }
+
+        function aksiDeleteData() {
+            tutupModal('modalAksiCard');
+            if (confirm("Yakin ingin menghapus data unit ini?")) {
+                fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: "delete", id: activeSelectedCardData.id })
+                }).then(() => {
+                    alert("Data berhasil dihapus");
+                    location.reload();
+                });
+            }
+        }
+
+        function bukaModalRiwayat() {
+            bukaModal('modalRiwayatTanggal');
+            const container = document.getElementById('listTanggalContainer');
+            container.innerHTML = '<div class="text-center py-6 text-slate-400 text-sm"><i class="fa-solid fa-spinner fa-spin mr-2"></i>Memuat riwayat...</div>';
+
+            fetch(WEB_APP_URL).then(res => res.json()).then(data => {
+                let grouped = {};
+                data.forEach(item => {
+                    let tgl = item.tanggalInput || "Tanpa Tanggal";
+                    if (!grouped[tgl]) grouped[tgl] = [];
+                    grouped[tgl].push(item);
+                });
+
+                container.innerHTML = '';
+                Object.keys(grouped).sort().reverse().forEach(tgl => {
+                    let btn = document.createElement('button');
+                    btn.className = "w-full text-left p-3.5 bg-slate-50 hover:bg-indigo-50 border border-slate-200 rounded-xl transition flex justify-between items-center group cursor-pointer";
+                    btn.innerHTML = `<span class="font-semibold text-sm text-slate-700">${tgl}</span><span class="bg-slate-200 text-slate-700 text-xs font-bold px-2.5 py-1 rounded-full">${grouped[tgl].length} Item</span>`;
+                    btn.onclick = () => bukaDataPerTanggal(tgl, grouped[tgl]);
+                    container.appendChild(btn);
+                });
+            });
+        }
+
+        function bukaDataPerTanggal(tanggal, items) {
+            document.getElementById('judulModalTanggal').textContent = `Riwayat: ${tanggal}`;
+            bukaModal('modalDataTanggal');
+            const container = document.getElementById('listDataTanggalContainer');
+            container.innerHTML = '';
+            items.forEach(item => {
+                let card = document.createElement('div');
+                card.className = "p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl transition flex gap-3 items-center cursor-pointer";
+                card.innerHTML = `
+                    <div class="w-12 h-12 bg-white rounded-lg overflow-hidden shrink-0 flex items-center justify-center border">
+                        ${item.fileUrl ? `<img src="${item.fileUrl}" class="w-full h-full object-cover">` : `<i class="fa-solid fa-image text-slate-300"></i>`}
+                    </div>
+                    <div class="flex-1 min-w-0">
+                        <span class="text-xs font-bold text-indigo-600">Suffix: ${item.suffix} | Unit: ${item.nomorUnit}</span>
+                        <p class="text-xs font-medium text-slate-800 truncate">${item.problem}</p>
+                    </div>`;
+                card.onclick = () => tampilkanDetailLengkap(item);
+                container.appendChild(card);
+            });
+        }
+
+        function tampilkanDetailLengkap(item) {
+            bukaModal('modalDetailUnit');
+            document.getElementById('detailUnitContent').innerHTML = `
+                <div class="grid grid-cols-2 gap-3 bg-slate-50 p-3 rounded-xl border">
+                    <div><span class="text-xs text-slate-400 block">Suffix</span><strong class="text-indigo-600">${item.suffix}</strong></div>
+                    <div><span class="text-xs text-slate-400 block">Nomor Unit</span><strong class="text-slate-800">${item.nomorUnit}</strong></div>
+                </div>
+                <div><span class="text-xs font-bold text-slate-400 uppercase block mb-1">Waktu:</span><p class="bg-slate-50 p-2.5 rounded-lg border">${item.timestamp}</p></div>
+                <div><span class="text-xs font-bold text-slate-400 uppercase block mb-1">Problem:</span><p class="bg-slate-50 p-3 rounded-lg border font-medium">${item.problem}</p></div>
+                <div><span class="text-xs font-bold text-slate-400 uppercase block mb-1">Keterangan Gambar:</span><p class="bg-slate-50 p-2.5 rounded-lg border">${item.keteranganGambar || '-'}</p></div>
+                ${item.fileUrl ? `<div class="rounded-xl overflow-hidden border bg-slate-100 max-h-50 flex items-center justify-center"><img src="${item.fileUrl}" class="max-h-48 object-contain"></div>` : ''}
+            `;
+        }
+
+        function bukaModal(id) { document.getElementById(id).classList.remove('hidden'); document.getElementById(id).classList.add('flex'); }
+        function tutupModal(id) { document.getElementById(id).classList.remove('flex'); document.getElementById(id).classList.add('hidden'); }
     </script>
 </body>
 </html>
