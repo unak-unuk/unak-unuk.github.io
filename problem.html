@@ -176,7 +176,7 @@
         // ==========================================
         // MASUKKAN URL WEB APP GOOGLE SCRIPT ANDA DI SINI
         // ==========================================
-        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxu8vVDdVrGulEIOOX_-3TEcRldpN61OEckgTCKFolrZQ7VnnbFYjZBwCe3EMJBF-TM/exec';
+        const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbzJm28v1HrhPyBhpizoA652yaE7l5ePqQ29IgotfbZgmKQAvLC9wIoBujR5eMYTOYs/exec';
 
         let html5QrCode = null;
         let scannedDataCache = { unitNumber: '', suffix: '' };
@@ -321,16 +321,21 @@
                     allMasterData = data;
                     dataTable.classList.remove('hidden');
 
-                    let now = new Date();
-                    let checkDate = new Date(now);
-                    if (now.getHours() * 60 + now.getMinutes() < 450) {
-                        checkDate.setDate(checkDate.getDate() - 1);
-                    }
-                    let todayCategoryStr = checkDate.toISOString().split('T')[0];
+                    // Ambil daftar tanggal unik dari database dan urutkan terbaru di atas
+                    let uniqueDates = [];
+                    data.forEach(item => {
+                        if (item['Tanggal']) {
+                            let dStr = String(item['Tanggal']).split('T')[0];
+                            if (!uniqueDates.includes(dStr)) uniqueDates.push(dStr);
+                        }
+                    });
+                    uniqueDates.sort().reverse();
+                    
+                    let activeDateStr = uniqueDates.length > 0 ? uniqueDates[0] : '';
 
                     let currentShiftData = data.filter(item => {
                         let itemDate = item['Tanggal'] ? String(item['Tanggal']).split('T')[0] : '';
-                        return itemDate === todayCategoryStr;
+                        return itemDate === activeDateStr;
                     });
 
                     if (currentShiftData.length === 0) {
@@ -436,16 +441,20 @@
                 return;
             }
 
-            let now = new Date();
-            let checkDate = new Date(now);
-            if (now.getHours() * 60 + now.getMinutes() < 450) {
-                checkDate.setDate(checkDate.getDate() - 1);
-            }
-            let todayCategoryStr = checkDate.toISOString().split('T')[0];
+            // Ambil tanggal aktif terbaru dari data
+            let uniqueDates = [];
+            allMasterData.forEach(item => {
+                if (item['Tanggal']) {
+                    let dStr = String(item['Tanggal']).split('T')[0];
+                    if (!uniqueDates.includes(dStr)) uniqueDates.push(dStr);
+                }
+            });
+            uniqueDates.sort().reverse();
+            let activeDateStr = uniqueDates.length > 0 ? uniqueDates[0] : '';
 
             let currentShiftData = allMasterData.filter(item => {
                 let itemDate = item['Tanggal'] ? String(item['Tanggal']).split('T')[0] : '';
-                return itemDate === todayCategoryStr;
+                return itemDate === activeDateStr;
             });
 
             if (currentShiftData.length === 0) {
@@ -453,10 +462,17 @@
                 return;
             }
 
+            // Format tanggal untuk Header WhatsApp
+            let dateObj = new Date(activeDateStr);
             const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
             const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
             
-            let waMessage = `*DATA UNIT WIP RM 0 ${days[checkDate.getDay()]}, ${checkDate.getDate()} ${months[checkDate.getMonth()]} ${checkDate.getFullYear()} SHIFT B*\n`;
+            let dayName = days[dateObj.getDay()];
+            let dateNum = dateObj.getDate();
+            let monthName = months[dateObj.getMonth()];
+            let yearNum = dateObj.getFullYear();
+
+            let waMessage = `*DATA UNIT WIP RM 0 ${dayName}, ${dateNum} ${monthName} ${yearNum} SHIFT B*\n`;
 
             currentShiftData.forEach((item, index) => {
                 let suffix = item['Suffix'] || '-';
