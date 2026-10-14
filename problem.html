@@ -6,7 +6,6 @@
     <title>Unit Repair Problem Manager</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
-    <!-- Library Html5-Qrcode untuk Scan Kamera -->
     <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 pb-24 select-none">
@@ -21,11 +20,10 @@
     </header>
 
     <main class="max-w-2xl mx-auto p-4 space-y-6">
-        <!-- Panel Scan Barcode / Input Barcode & Kamera -->
+        <!-- Panel Scan Barcode -->
         <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
             <label class="block text-sm font-semibold text-slate-700">Scan / Input Barcode Unit:</label>
             
-            <!-- Input Manual / Hardware Scanner -->
             <div class="flex gap-2">
                 <div class="relative flex-1">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
@@ -40,14 +38,12 @@
                 </button>
             </div>
 
-            <!-- Tombol Buka Kamera -->
             <div>
                 <button type="button" onclick="mulaiScanKamera()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 cursor-pointer">
                     <i class="fa-solid fa-camera"></i> Scan Barcode dengan Kamera Perangkat
                 </button>
             </div>
 
-            <!-- Area Tampilan Kamera (Hidden by default) -->
             <div id="reader-container" class="hidden space-y-2">
                 <div id="reader" class="w-full rounded-xl overflow-hidden border border-slate-200 bg-black"></div>
                 <button type="button" onclick="hentikanScanKamera()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-xs font-semibold transition cursor-pointer">
@@ -55,7 +51,7 @@
                 </button>
             </div>
 
-            <p class="text-xs text-slate-400">Aturan: Suffix (Karakter ke-5 & ke-4 dr belakang) | No. Unit (Karakter 12-17 dr depan)</p>
+            <p class="text-xs text-slate-400">Aturan: Suffix (Karakter ke-6 & ke-5 dr belakang) | No. Unit (Karakter 12-17 dr depan)</p>
         </section>
 
         <!-- Area Tampil Data Sesi Ini -->
@@ -124,7 +120,7 @@
         </div>
     </div>
 
-    <!-- MODAL MENU AKSI (EDIT / DELETE KARTU) -->
+    <!-- MODAL MENU AKSI -->
     <div id="modalAksiCard" class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs hidden items-center justify-center p-4 z-50">
         <div class="bg-white w-full max-w-xs rounded-2xl shadow-xl overflow-hidden p-5 space-y-3 relative">
             <button onclick="tutupModal('modalAksiCard')" class="absolute top-3 right-3 text-slate-400 hover:text-slate-700 cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
@@ -145,9 +141,7 @@
                 <h3 class="font-bold text-base"><i class="fa-solid fa-calendar-days mr-2"></i>Pilih Tanggal Riwayat</h3>
                 <button onclick="tutupModal('modalRiwayatTanggal')" class="text-slate-400 hover:text-white cursor-pointer"><i class="fa-solid fa-xmark text-lg"></i></button>
             </div>
-            <div class="p-4 overflow-y-auto space-y-2 flex-1" id="listTanggalContainer">
-                <div class="text-center py-6 text-slate-400 text-sm">Memuat data...</div>
-            </div>
+            <div class="p-4 overflow-y-auto space-y-2 flex-1" id="listTanggalContainer"></div>
         </div>
     </div>
 
@@ -177,13 +171,12 @@
     </div>
 
     <script>
-        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyR4Ae9KmoYNHSkUZUQW2PEv_AZAG4Xi5tHYARwwnYYU8X90M6em64Eh88AvmEuqLgqsA/exec";
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwtznlnSqeNzLYhtdILSrn4JI7wlIE7vSvfJt85jRs-KkIsc2ywCIggkYLpGDNQEmWN5g/exec";
 
         let temporaryParsedData = { suffix: "", nomorUnit: "" };
         let activeSelectedCardData = null;
         let html5QrCode = null;
 
-        // 1. Logika Parsing Barcode & Ekstraksi Karakter
         function prosesBarcodeInput(scannedText = null) {
             const inputElement = document.getElementById('barcodeInput');
             const rawText = scannedText || inputElement.value.trim();
@@ -193,18 +186,17 @@
                 return;
             }
 
-            // Masukkan teks ke input jika dari kamera
             inputElement.value = rawText;
 
-            // Suffix: karakter ke-5 dan ke-4 dari belakang
+            // Suffix: Karakter ke-6 dan ke-5 dari belakang
             let suffix = "";
-            if (rawText.length >= 5) {
-                suffix = rawText.substring(rawText.length - 5, rawText.length - 3);
+            if (rawText.length >= 6) {
+                suffix = rawText.substring(rawText.length - 6, rawText.length - 4);
             } else {
                 suffix = "Format Salah";
             }
 
-            // Nomor Unit: karakter ke-12 sampai ke-17 dari depan
+            // Nomor Unit: Karakter ke-12 sampai ke-17 dari depan
             let nomorUnit = "";
             if (rawText.length >= 17) {
                 nomorUnit = rawText.substring(11, 17);
@@ -227,7 +219,6 @@
             bukaModal('modalInput');
         }
 
-        // 2. Kontrol Kamera Scanner
         function mulaiScanKamera() {
             const container = document.getElementById('reader-container');
             container.classList.remove('hidden');
@@ -239,16 +230,13 @@
             const config = { fps: 10, qrbox: { width: 250, height: 150 } };
             
             html5QrCode.start(
-                { facingMode: "environment" }, // Gunakan kamera belakang HP secara otomatis
+                { facingMode: "environment" },
                 config,
-                (decodedText, decodedResult) => {
-                    // Berhasil scan barcode
+                (decodedText) => {
                     hentikanScanKamera();
                     prosesBarcodeInput(decodedText);
                 },
-                (errorMessage) => {
-                    // Error scanning frame (diabaikan agar kamera terus mencari)
-                }
+                () => {}
             ).catch(err => {
                 alert("Gagal mengakses kamera: " + err);
                 container.classList.add('hidden');
@@ -259,13 +247,12 @@
             if (html5QrCode && html5QrCode.isScanning) {
                 html5QrCode.stop().then(() => {
                     document.getElementById('reader-container').classList.add('hidden');
-                }).catch(err => console.log("Gagal menghentikan kamera", err));
+                }).catch(err => console.log(err));
             } else {
                 document.getElementById('reader-container').classList.add('hidden');
             }
         }
 
-        // 3. Simpan Data ke Spreadsheet
         function simpanDataUnit() {
             const editId = document.getElementById('editDataId').value;
             const problem = document.getElementById('inputProblem').value.trim();
@@ -321,7 +308,6 @@
             }
         }
 
-        // Muat data sesi/hari ini saat load
         window.addEventListener('DOMContentLoaded', () => {
             fetch(WEB_APP_URL)
                 .then(res => res.json())
