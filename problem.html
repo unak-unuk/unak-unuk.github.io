@@ -6,6 +6,8 @@
     <title>Unit Repair Problem Manager</title>
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Library Html5-Qrcode untuk Scan Kamera -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
 </head>
 <body class="bg-slate-50 text-slate-800 pb-24 select-none">
 
@@ -19,27 +21,46 @@
     </header>
 
     <main class="max-w-2xl mx-auto p-4 space-y-6">
-        <!-- Panel Scan Barcode -->
-        <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-100">
-            <label class="block text-sm font-semibold text-slate-700 mb-2">Scan / Input Barcode Unit:</label>
+        <!-- Panel Scan Barcode / Input Barcode & Kamera -->
+        <section class="bg-white p-5 rounded-xl shadow-sm border border-slate-100 space-y-4">
+            <label class="block text-sm font-semibold text-slate-700">Scan / Input Barcode Unit:</label>
+            
+            <!-- Input Manual / Hardware Scanner -->
             <div class="flex gap-2">
                 <div class="relative flex-1">
                     <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400">
                         <i class="fa-solid fa-barcode"></i>
                     </span>
-                    <input type="text" id="barcodeInput" placeholder="Scan atau ketik string barcode..." 
-                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm">
+                    <input type="text" id="barcodeInput" placeholder="Ketik atau scan manual lalu Enter..." 
+                        class="w-full pl-10 pr-4 py-2.5 bg-slate-50 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                        onkeydown="if(event.key === 'Enter') { prosesBarcodeInput(); }">
                 </div>
-                <button onclick="prosesBarcodeInput()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer">
+                <button type="button" onclick="prosesBarcodeInput()" class="bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-lg text-sm font-medium transition cursor-pointer">
                     Proses
                 </button>
             </div>
-            <p class="text-xs text-slate-400 mt-2">Aturan: Suffix (Karakter ke-5 & ke-4 dr belakang) | No. Unit (Karakter 12-17 dr depan)</p>
+
+            <!-- Tombol Buka Kamera -->
+            <div>
+                <button type="button" onclick="mulaiScanKamera()" class="w-full bg-slate-800 hover:bg-slate-900 text-white py-2.5 rounded-lg text-sm font-medium transition flex items-center justify-center gap-2 cursor-pointer">
+                    <i class="fa-solid fa-camera"></i> Scan Barcode dengan Kamera Perangkat
+                </button>
+            </div>
+
+            <!-- Area Tampilan Kamera (Hidden by default) -->
+            <div id="reader-container" class="hidden space-y-2">
+                <div id="reader" class="w-full rounded-xl overflow-hidden border border-slate-200 bg-black"></div>
+                <button type="button" onclick="hentikanScanKamera()" class="w-full bg-red-50 hover:bg-red-100 text-red-600 py-2 rounded-lg text-xs font-semibold transition cursor-pointer">
+                    Tutup Kamera
+                </button>
+            </div>
+
+            <p class="text-xs text-slate-400">Aturan: Suffix (Karakter ke-5 & ke-4 dr belakang) | No. Unit (Karakter 12-17 dr depan)</p>
         </section>
 
         <!-- Area Tampil Data Sesi Ini -->
         <section>
-            <div class="flex justify-between items-center mb-3">
+            <div class="flex justify-between items-center mb-2">
                 <h2 class="text-sm font-bold text-slate-500 uppercase tracking-wider">Daftar Problem Sesi Ini</h2>
                 <span class="text-xs text-amber-600 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200 font-medium">
                     <i class="fa-solid fa-info-circle mr-1"></i> Klik & Tahan pada kartu untuk Edit/Delete
@@ -160,19 +181,41 @@
 
         let temporaryParsedData = { suffix: "", nomorUnit: "" };
         let activeSelectedCardData = null;
-        let sessionDataList = [];
+        let html5QrCode = null;
 
-        function prosesBarcodeInput() {
-            const rawText = document.getElementById('barcodeInput').value.trim();
+        // 1. Logika Parsing Barcode & Ekstraksi Karakter
+        function prosesBarcodeInput(scannedText = null) {
+            const inputElement = document.getElementById('barcodeInput');
+            const rawText = scannedText || inputElement.value.trim();
+            
             if (!rawText) {
-                alert('Silakan masukkan string barcode.');
+                alert('Silakan masukkan atau scan string barcode terlebih dahulu.');
                 return;
             }
 
-            let suffix = rawText.length >= 5 ? rawText.substring(rawText.length - 5, rawText.length - 3) : "Format Salah";
-            let nomorUnit = rawText.length >= 17 ? rawText.substring(11, 17) : (rawText.length >= 12 ? rawText.substring(11) : rawText);
+            // Masukkan teks ke input jika dari kamera
+            inputElement.value = rawText;
+
+            // Suffix: karakter ke-5 dan ke-4 dari belakang
+            let suffix = "";
+            if (rawText.length >= 5) {
+                suffix = rawText.substring(rawText.length - 5, rawText.length - 3);
+            } else {
+                suffix = "Format Salah";
+            }
+
+            // Nomor Unit: karakter ke-12 sampai ke-17 dari depan
+            let nomorUnit = "";
+            if (rawText.length >= 17) {
+                nomorUnit = rawText.substring(11, 17);
+            } else if (rawText.length >= 12) {
+                nomorUnit = rawText.substring(11);
+            } else {
+                nomorUnit = rawText; 
+            }
 
             temporaryParsedData = { suffix, nomorUnit };
+            
             document.getElementById('editDataId').value = "";
             document.getElementById('modalTitle').innerHTML = '<i class="fa-solid fa-circle-plus mr-2"></i>Form Detail Problem Unit';
             document.getElementById('valSuffix').textContent = suffix;
@@ -184,6 +227,45 @@
             bukaModal('modalInput');
         }
 
+        // 2. Kontrol Kamera Scanner
+        function mulaiScanKamera() {
+            const container = document.getElementById('reader-container');
+            container.classList.remove('hidden');
+
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+            
+            html5QrCode.start(
+                { facingMode: "environment" }, // Gunakan kamera belakang HP secara otomatis
+                config,
+                (decodedText, decodedResult) => {
+                    // Berhasil scan barcode
+                    hentikanScanKamera();
+                    prosesBarcodeInput(decodedText);
+                },
+                (errorMessage) => {
+                    // Error scanning frame (diabaikan agar kamera terus mencari)
+                }
+            ).catch(err => {
+                alert("Gagal mengakses kamera: " + err);
+                container.classList.add('hidden');
+            });
+        }
+
+        function hentikanScanKamera() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('reader-container').classList.add('hidden');
+                }).catch(err => console.log("Gagal menghentikan kamera", err));
+            } else {
+                document.getElementById('reader-container').classList.add('hidden');
+            }
+        }
+
+        // 3. Simpan Data ke Spreadsheet
         function simpanDataUnit() {
             const editId = document.getElementById('editDataId').value;
             const problem = document.getElementById('inputProblem').value.trim();
@@ -244,8 +326,7 @@
             fetch(WEB_APP_URL)
                 .then(res => res.json())
                 .then(data => {
-                    sessionDataList = data;
-                    renderLiveData(data.slice(-5).reverse()); // Tampilkan 5 data terakhir
+                    renderLiveData(data.slice(-5).reverse());
                 }).catch(err => console.log(err));
         });
 
@@ -271,7 +352,6 @@
                     </div>
                 `;
 
-                // Logika Long Press (Klik & Tahan 600ms)
                 let pressTimer;
                 card.addEventListener('mousedown', () => { pressTimer = setTimeout(() => triggerAksiCard(item), 600); });
                 card.addEventListener('mouseup', () => clearTimeout(pressTimer));
