@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manajemen Unit Data - Database Google Sheets</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary-color: #1e293b;
+            --secondary-color: #0284c7;
+            --success-color: #16a34a;
+            --danger-color: #dc2626;
+            --warning-color: #d97706;
+            --bg-color: #f1f5f9;
+            --border-color: #cbd5e1;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-color); color: #334155; padding: 20px; }
+
+        .container { max-width: 1200px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
+        
+        header { background: var(--primary-color); color: white; padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; }
+        header h1 { font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
+        header span { font-size: 0.8rem; background: var(--secondary-color); padding: 5px 10px; border-radius: 4px; }
+
+        .content { padding: 25px; }
+
+        /* Card Form */
+        .card { background: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; margin-bottom: 25px; }
+        .card h3 { margin-bottom: 15px; font-size: 0.95rem; color: var(--primary-color); border-bottom: 2px solid var(--bg-color); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
+        
+        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: #475569; }
+        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem; }
+        .form-group textarea { resize: vertical; height: 38px; }
+        
+        .btn { padding: 9px 16px; border: none; border-radius: 4px; font-size: 0.85rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
+        .btn-primary { background: var(--secondary-color); color: white; margin-top: 15px; }
+        .btn-primary:hover { background: #0369a1; }
+        .btn-danger { background: var(--danger-color); color: white; padding: 5px 10px; font-size: 0.75rem; }
+        .btn-danger:hover { background: #b91c1c; }
+
+        /* Tabel Data */
+        .table-responsive { overflow-x: auto; }
+        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; text-align: left; }
+        th, td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); }
+        th { background: #f8fafc; color: #1e293b; font-weight: 600; }
+        tr:hover { background: #f8fafc; }
+
+        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
+        .badge-ok { background: #dcfce7; color: #15803d; }
+        .badge-ng { background: #fee2e2; color: #b91c1c; }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+
+        #loading { display: none; text-align: center; padding: 20px; font-style: italic; color: #64748b; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><i class="fa-solid fa-server"></i> Database Unit Repair & Inspection</h1>
+        <span><i class="fa-solid fa-cloud"></i> Google Sheets Backend</span>
+    </header>
+
+    <div class="content">
+        <!-- Form Input Unit (INSERT) -->
+        <div class="card">
+            <h3><i class="fa-solid fa-circle-plus"></i> Input Unit Data Baru</h3>
+            <form id="unitForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label>Tanggal</label>
+                        <input type="date" id="tanggal" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Suffix</label>
+                        <input type="text" id="suffix" placeholder="Contoh: SFX-01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Nomer Unit</label>
+                        <input type="text" id="nomer_unit" placeholder="Contoh: UNT-8890" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Problem / Kerusakan</label>
+                        <textarea id="problem" placeholder="Deskripsi kendala unit..." required></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Status</label>
+                        <select id="status">
+                            <option value="Pending">Pending</option>
+                            <option value="OK">OK (Selesai)</option>
+                            <option value="NG">NG (Not Good)</option>
+                        </select>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Unit</button>
+            </form>
+        </div>
+
+        <!-- Tabel Data Unit -->
+        <div class="card">
+            <h3><i class="fa-solid fa-table-list"></i> Daftar Record Unit Tersimpan</h3>
+            <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Sinkronisasi data dengan Spreadsheet...</div>
+            <div class="table-responsive">
+                <table id="unitTable">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Tanggal</th>
+                            <th>Suffix</th>
+                            <th>Nomer Unit</th>
+                            <th>Problem</th>
+                            <th>Status</th>
+                            <th>Timestamp</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <!-- Data dinamis dimasukkan via JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA ---
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbL3L_afnmqB78rUqj1IHteKU-936eTMvow85aXITTNNOgsRV2oXBcRbcEsKQq_TpD/exec";
+
+    document.addEventListener("DOMContentLoaded", () => {
+        // Otomatis set tanggal hari ini pada form input
+        document.getElementById("tanggal").valueAsDate = new Date();
+        fetchUnits();
+    });
+
+    // Fungsi Ambil Data (SELECT)
+    function fetchUnits() {
+        const loading = document.getElementById("loading");
+        const tbody = document.querySelector("#unitTable tbody");
+        loading.style.display = "block";
+        tbody.innerHTML = "";
+
+        fetch(WEB_APP_URL)
+            .then(response => response.json())
+            .then(data => {
+                loading.style.display = "none";
+                data.forEach(row => {
+                    let badgeClass = "badge-pending";
+                    if(row.status === "OK") badgeClass = "badge-ok";
+                    if(row.status === "NG") badgeClass = "badge-ng";
+
+                    let tr = document.createElement("tr");
+                    tr.innerHTML = `
+                        <td><code>${row.id || ''}</code></td>
+                        <td>${row.tanggal || ''}</td>
+                        <td><strong>${row.suffix || ''}</strong></td>
+                        <td>${row.nomer_unit || ''}</td>
+                        <td>${row.problem || ''}</td>
+                        <td><span class="badge ${badgeClass}">${row.status || ''}</span></td>
+                        <td style="font-size: 0.75rem; color: #64748b;">${row.timestamp || ''}</td>
+                        <td><button class="btn btn-danger" onclick="deleteUnit('${row.id}')"><i class="fa-solid fa-trash"></i></button></td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            })
+            .catch(error => {
+                loading.style.display = "none";
+                alert("Gagal mengambil data: " + error);
+            });
+    }
+
+    // Fungsi Tambah Data (INSERT)
+    document.getElementById("unitForm").addEventListener("submit", function(e) {
+        e.preventDefault();
+        const btn = document.getElementById("submitBtn");
+        btn.disabled = true;
+        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan ke Sheet...`;
+
+        const payload = {
+            action: "insert",
+            tanggal: document.getElementById("tanggal").value,
+            suffix: document.getElementById("suffix").value,
+            nomer_unit: document.getElementById("nomer_unit").value,
+            problem: document.getElementById("problem").value,
+            status: document.getElementById("status").value
+        };
+
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(result => {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Data Unit`;
+            if(result.result === "success") {
+                document.getElementById("problem").value = "";
+                document.getElementById("suffix").value = "";
+                document.getElementById("nomer_unit").value = "";
+                fetchUnits(); // Refresh tabel
+            } else {
+                alert("Gagal menyimpan data ke Google Spreadsheet.");
+            }
+        })
+        .catch(error => {
+            btn.disabled = false;
+            btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Data Unit`;
+            alert("Terjadi kesalahan koneksi: " + error);
+        });
+    });
+
+    // Fungsi Hapus Data (DELETE)
+    function deleteUnit(id) {
+        if(!confirm("Yakin ingin menghapus unit dengan ID: " + id + "?")) return;
+
+        const payload = {
+            action: "delete",
+            id: id
+        };
+
+        fetch(WEB_APP_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        })
+        .then(response => response.json())
+        .then(result => {
+            if(result.result === "success") {
+                fetchUnits(); // Refresh tabel
+            } else {
+                alert("Gagal menghapus baris data.");
+            }
+        })
+        .catch(error => alert("Kesalahan: " + error));
+    }
+</script>
+
+</body>
+</html>
