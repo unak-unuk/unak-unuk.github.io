@@ -1,244 +1,925 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="id" class="dark">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manajemen Unit Data - Database Google Sheets</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    
-    <style>
-        :root {
-            --primary-color: #1e293b;
-            --secondary-color: #0284c7;
-            --success-color: #16a34a;
-            --danger-color: #dc2626;
-            --warning-color: #d97706;
-            --bg-color: #f1f5f9;
-            --border-color: #cbd5e1;
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MySQL Web Studio - Google Sheets Edition</title>
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Inter Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Fira+Code:wght@400;500&display=swap" rel="stylesheet">
+  
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['Fira Code', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#f0f9ff',
+              100: '#e0f2fe',
+              500: '#0284c7',
+              600: '#0284c7',
+              700: '#0369a1',
+              900: '#0c4a6e',
+            },
+            darkbg: {
+              900: '#0f172a',
+              800: '#1e293b',
+              700: '#334155',
+              600: '#475569',
+            }
+          }
         }
-
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Inter', sans-serif; }
-        body { background-color: var(--bg-color); color: #334155; padding: 20px; }
-
-        .container { max-width: 1200px; margin: 0 auto; background: #fff; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); overflow: hidden; }
-        
-        header { background: var(--primary-color); color: white; padding: 18px 25px; display: flex; justify-content: space-between; align-items: center; }
-        header h1 { font-size: 1.2rem; font-weight: 600; display: flex; align-items: center; gap: 10px; }
-        header span { font-size: 0.8rem; background: var(--secondary-color); padding: 5px 10px; border-radius: 4px; }
-
-        .content { padding: 25px; }
-
-        /* Card Form */
-        .card { background: #fff; border: 1px solid var(--border-color); border-radius: 6px; padding: 20px; margin-bottom: 25px; }
-        .card h3 { margin-bottom: 15px; font-size: 0.95rem; color: var(--primary-color); border-bottom: 2px solid var(--bg-color); padding-bottom: 8px; display: flex; align-items: center; gap: 8px; }
-        
-        .form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; }
-        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 5px; color: #475569; }
-        .form-group input, .form-group select, .form-group textarea { width: 100%; padding: 8px 12px; border: 1px solid var(--border-color); border-radius: 4px; font-size: 0.85rem; }
-        .form-group textarea { resize: vertical; height: 38px; }
-        
-        .btn { padding: 9px 16px; border: none; border-radius: 4px; font-size: 0.85rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; }
-        .btn-primary { background: var(--secondary-color); color: white; margin-top: 15px; }
-        .btn-primary:hover { background: #0369a1; }
-        .btn-danger { background: var(--danger-color); color: white; padding: 5px 10px; font-size: 0.75rem; }
-        .btn-danger:hover { background: #b91c1c; }
-
-        /* Tabel Data */
-        .table-responsive { overflow-x: auto; }
-        table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 0.85rem; text-align: left; }
-        th, td { padding: 12px 14px; border-bottom: 1px solid var(--border-color); }
-        th { background: #f8fafc; color: #1e293b; font-weight: 600; }
-        tr:hover { background: #f8fafc; }
-
-        .badge { padding: 3px 8px; border-radius: 4px; font-size: 0.75rem; font-weight: 600; display: inline-block; }
-        .badge-ok { background: #dcfce7; color: #15803d; }
-        .badge-ng { background: #fee2e2; color: #b91c1c; }
-        .badge-pending { background: #fef3c7; color: #b45309; }
-
-        #loading { display: none; text-align: center; padding: 20px; font-style: italic; color: #64748b; }
-    </style>
+      }
+    }
+  </script>
+  <style>
+    /* Custom Scrollbars */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: rgba(0, 0, 0, 0.05);
+    }
+    .dark ::-webkit-scrollbar-track {
+      background: rgba(255, 255, 255, 0.05);
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.5);
+      border-radius: 4px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(107, 114, 128, 0.8);
+    }
+  </style>
 </head>
-<body>
+<body class="bg-gray-100 dark:bg-darkbg-900 text-gray-800 dark:text-gray-100 font-sans antialiased h-screen flex flex-col overflow-hidden select-none">
 
-<div class="container">
-    <header>
-        <h1><i class="fa-solid fa-server"></i> Database Unit Repair & Inspection</h1>
-        <span><i class="fa-solid fa-cloud"></i> Google Sheets Backend</span>
-    </header>
+  <!-- LOGIN MODAL GUARD -->
+  <div id="loginGuardModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
+    <div class="bg-white dark:bg-darkbg-800 border border-gray-200 dark:border-gray-700 w-full max-w-sm rounded-xl p-6 shadow-2xl relative">
+      <div class="text-center mb-6">
+        <div class="w-12 h-12 bg-sky-500/10 text-sky-500 rounded-full flex items-center justify-center mx-auto mb-3 text-xl border border-sky-500/20">
+          <i class="fa-solid fa-shield-halved"></i>
+        </div>
+        <h2 class="text-lg font-bold text-gray-900 dark:text-white">SheetSQL Access</h2>
+        <p class="text-xs text-gray-500 dark:text-gray-400 mt-1">Masukkan kredensial untuk membuka antarmuka database</p>
+      </div>
 
-    <div class="content">
-        <!-- Form Input Unit (INSERT) -->
-        <div class="card">
-            <h3><i class="fa-solid fa-circle-plus"></i> Input Unit Data Baru</h3>
-            <form id="unitForm">
-                <div class="form-grid">
-                    <div class="form-group">
-                        <label>Tanggal</label>
-                        <input type="date" id="tanggal" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Suffix</label>
-                        <input type="text" id="suffix" placeholder="Contoh: SFX-01" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Nomer Unit</label>
-                        <input type="text" id="nomer_unit" placeholder="Contoh: UNT-8890" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Problem / Kerusakan</label>
-                        <textarea id="problem" placeholder="Deskripsi kendala unit..." required></textarea>
-                    </div>
-                    <div class="form-group">
-                        <label>Status</label>
-                        <select id="status">
-                            <option value="Pending">Pending</option>
-                            <option value="OK">OK (Selesai)</option>
-                            <option value="NG">NG (Not Good)</option>
-                        </select>
-                    </div>
-                </div>
-                <button type="submit" class="btn btn-primary" id="submitBtn"><i class="fa-solid fa-floppy-disk"></i> Simpan Data Unit</button>
-            </form>
+      <form onsubmit="handleLoginSubmit(event)" class="space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Username</label>
+          <div class="relative">
+            <i class="fa-solid fa-user absolute left-3 top-2.5 text-xs text-gray-400"></i>
+            <input type="text" id="loginUsername" required placeholder="admin" class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-300 dark:border-gray-700 rounded-lg pl-8 pr-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500">
+          </div>
         </div>
 
-        <!-- Tabel Data Unit -->
-        <div class="card">
-            <h3><i class="fa-solid fa-table-list"></i> Daftar Record Unit Tersimpan</h3>
-            <div id="loading"><i class="fa-solid fa-spinner fa-spin"></i> Sinkronisasi data dengan Spreadsheet...</div>
-            <div class="table-responsive">
-                <table id="unitTable">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Tanggal</th>
-                            <th>Suffix</th>
-                            <th>Nomer Unit</th>
-                            <th>Problem</th>
-                            <th>Status</th>
-                            <th>Timestamp</th>
-                            <th>Aksi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <!-- Data dinamis dimasukkan via JavaScript -->
-                    </tbody>
-                </table>
-            </div>
+        <div>
+          <label class="block text-xs font-semibold text-gray-700 dark:text-gray-300 mb-1">Password</label>
+          <div class="relative">
+            <i class="fa-solid fa-lock absolute left-3 top-2.5 text-xs text-gray-400"></i>
+            <input type="password" id="loginPassword" required placeholder="••••••••" class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-300 dark:border-gray-700 rounded-lg pl-8 pr-3 py-2 text-xs focus:outline-none focus:ring-2 focus:ring-sky-500">
+          </div>
         </div>
+
+        <div id="loginErrorMsg" class="hidden text-[11px] text-red-500 text-center font-medium">
+          Username atau password salah! (Default: admin / admin123)
+        </div>
+
+        <button type="submit" class="w-full bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs py-2.5 rounded-lg transition shadow-md shadow-sky-600/20">
+          Masuk ke System
+        </button>
+      </form>
+
+      <div class="mt-4 pt-3 border-t border-gray-200 dark:border-gray-700 text-center">
+        <span class="text-[10px] text-gray-400">Default Login: <code class="text-sky-400">admin</code> / <code class="text-sky-400">admin123</code></span>
+      </div>
     </div>
-</div>
+  </div>
 
-<script>
-    // --- GANTI DENGAN URL WEB APP GOOGLE APPS SCRIPT ANDA ---
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxbL3L_afnmqB78rUqj1IHteKU-936eTMvow85aXITTNNOgsRV2oXBcRbcEsKQq_TpD/exec";
+  <!-- Top Navigation Bar -->
+  <header class="bg-white dark:bg-darkbg-800 border-b border-gray-200 dark:border-gray-700 h-14 flex items-center justify-between px-3 md:px-4 z-20 shrink-0">
+    <div class="flex items-center space-x-2 md:space-x-3">
+      <!-- Mobile Sidebar Trigger Button -->
+      <button onclick="toggleSidebar()" class="lg:hidden p-2 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-darkbg-700 rounded-lg focus:outline-none" title="Toggle Sidebar Navigation">
+        <i class="fa-solid fa-bars text-base"></i>
+      </button>
 
-    document.addEventListener("DOMContentLoaded", () => {
-        // Otomatis set tanggal hari ini pada form input
-        document.getElementById("tanggal").valueAsDate = new Date();
-        fetchUnits();
-    });
+      <div class="flex items-center gap-2 text-sky-500 font-bold text-base md:text-lg">
+        <i class="fa-solid fa-database text-lg md:text-xl"></i>
+        <span class="hidden sm:inline">SheetSQL Studio</span>
+      </div>
+      <span class="text-[10px] sm:text-xs bg-sky-100 dark:bg-sky-900/60 text-sky-700 dark:text-sky-300 font-semibold px-2 py-0.5 rounded-full border border-sky-300 dark:border-sky-700">v2.4 Mobile</span>
+      
+      <!-- Connection Mode Indicator -->
+      <div id="modeBadge" class="hidden sm:flex items-center gap-1.5 px-2 py-0.5 md:py-1 rounded-md text-[10px] md:text-xs font-medium bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+        <span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+        <span id="modeText">Mock Mode</span>
+      </div>
+    </div>
 
-    // Fungsi Ambil Data (SELECT)
-    function fetchUnits() {
-        const loading = document.getElementById("loading");
-        const tbody = document.querySelector("#unitTable tbody");
-        loading.style.display = "block";
-        tbody.innerHTML = "";
+    <!-- Right Controls -->
+    <div class="flex items-center space-x-2 md:space-x-3">
+      <!-- Quick SQL Trigger -->
+      <button onclick="switchTab('sql')" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-semibold px-2.5 md:px-3 py-1.5 rounded-md flex items-center gap-1.5 transition">
+        <i class="fa-solid fa-terminal"></i> <span class="hidden sm:inline">SQL Console</span>
+      </button>
 
-        fetch(WEB_APP_URL)
-            .then(response => response.json())
-            .then(data => {
-                loading.style.display = "none";
-                data.forEach(row => {
-                    let badgeClass = "badge-pending";
-                    if(row.status === "OK") badgeClass = "badge-ok";
-                    if(row.status === "NG") badgeClass = "badge-ng";
+      <!-- Theme Toggle -->
+      <button id="themeToggleBtn" onclick="toggleTheme()" class="p-2 text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white rounded-lg hover:bg-gray-100 dark:hover:bg-darkbg-700">
+        <i class="fa-solid fa-moon dark:hidden"></i>
+        <i class="fa-solid fa-sun hidden dark:inline"></i>
+      </button>
 
-                    let tr = document.createElement("tr");
-                    tr.innerHTML = `
-                        <td><code>${row.id || ''}</code></td>
-                        <td>${row.tanggal || ''}</td>
-                        <td><strong>${row.suffix || ''}</strong></td>
-                        <td>${row.nomer_unit || ''}</td>
-                        <td>${row.problem || ''}</td>
-                        <td><span class="badge ${badgeClass}">${row.status || ''}</span></td>
-                        <td style="font-size: 0.75rem; color: #64748b;">${row.timestamp || ''}</td>
-                        <td><button class="btn btn-danger" onclick="deleteUnit('${row.id}')"><i class="fa-solid fa-trash"></i></button></td>
-                    `;
-                    tbody.appendChild(tr);
-                });
-            })
-            .catch(error => {
-                loading.style.display = "none";
-                alert("Gagal mengambil data: " + error);
-            });
+      <!-- Sync Modal Button -->
+      <button onclick="switchTab('sync')" class="p-2 text-gray-500 dark:text-gray-400 hover:text-green-600 dark:hover:text-green-400 rounded-lg hover:bg-gray-100 dark:hover:bg-darkbg-700 relative" title="Google Sheets Sync Settings">
+        <i class="fa-solid fa-file-excel text-base"></i>
+        <span id="syncPulse" class="hidden absolute top-1 right-1 w-2 h-2 bg-green-500 rounded-full animate-ping"></span>
+      </button>
+
+      <!-- Logout Button -->
+      <button onclick="logout()" class="p-2 text-red-500 hover:bg-red-500/10 rounded-lg transition" title="Logout">
+        <i class="fa-solid fa-right-from-bracket"></i>
+      </button>
+    </div>
+  </header>
+
+  <!-- Main Workspace Layout -->
+  <div class="flex-1 flex overflow-hidden relative">
+
+    <!-- Mobile Overlay Backdrop -->
+    <div id="sidebarOverlay" onclick="closeSidebar()" class="fixed inset-0 bg-black/50 z-30 lg:hidden hidden transition-opacity duration-300"></div>
+
+    <!-- Sidebar: Slide-out drawer on Mobile -->
+    <aside id="mainSidebar" class="fixed lg:relative inset-y-0 left-0 w-64 bg-white dark:bg-darkbg-800 border-r border-gray-200 dark:border-gray-700 flex flex-col z-40 transition-transform duration-300 transform -translate-x-full lg:translate-x-0 shrink-0">
+      
+      <!-- Drawer Close Button for Mobile -->
+      <div class="p-2 lg:hidden flex justify-between items-center border-b border-gray-200 dark:border-gray-700">
+        <span class="text-xs font-bold text-gray-500 px-2 uppercase">Menu Database</span>
+        <button onclick="closeSidebar()" class="p-1 text-gray-400 hover:text-gray-600 dark:hover:text-white">
+          <i class="fa-solid fa-xmark text-lg"></i>
+        </button>
+      </div>
+
+      <!-- Database Selector Dropdown -->
+      <div class="p-3 border-b border-gray-200 dark:border-gray-700">
+        <label class="text-[10px] font-bold tracking-wider text-gray-400 uppercase block mb-1">Active Database</label>
+        <div class="flex items-center justify-between bg-gray-50 dark:bg-darkbg-900 border border-gray-200 dark:border-gray-700 rounded-md p-2">
+          <div class="flex items-center gap-2 overflow-hidden">
+            <i class="fa-solid fa-server text-sky-500 text-sm"></i>
+            <span id="activeDbName" class="font-semibold text-xs truncate">production_app_db</span>
+          </div>
+          <i class="fa-solid fa-circle text-[8px] text-emerald-500" title="Connected"></i>
+        </div>
+      </div>
+
+      <!-- Tables Header & Actions -->
+      <div class="px-3 pt-3 pb-1 flex items-center justify-between">
+        <span class="text-[11px] font-bold text-gray-400 uppercase tracking-wider">Tables (<span id="tableCount">0</span>)</span>
+        <button onclick="openCreateTableModal(); closeSidebar();" class="text-xs text-sky-600 dark:text-sky-400 hover:underline flex items-center gap-1 font-medium">
+          <i class="fa-solid fa-plus text-[10px]"></i> New Table
+        </button>
+      </div>
+
+      <!-- Search Input for Tables -->
+      <div class="px-3 mb-2">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-2.5 top-2.5 text-xs text-gray-400"></i>
+          <input type="text" id="tableSearchInput" onkeyup="filterTableList()" placeholder="Filter tables..." class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-200 dark:border-gray-700 rounded pl-7 pr-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500">
+        </div>
+      </div>
+
+      <!-- Navigation Tree List -->
+      <div class="flex-1 overflow-y-auto px-2 space-y-0.5" id="sidebarTableList">
+        <!-- Tables populated by JS -->
+      </div>
+
+      <!-- System Quick Info Footer -->
+      <div class="p-3 border-t border-gray-200 dark:border-gray-700 bg-gray-50/50 dark:bg-darkbg-900/50 text-[11px] text-gray-500 dark:text-gray-400">
+        <div class="flex justify-between mb-1">
+          <span>Engine:</span>
+          <span class="font-mono text-gray-700 dark:text-gray-300" id="engineStat">GoogleSheets</span>
+        </div>
+        <div class="flex justify-between">
+          <span>Latency:</span>
+          <span class="font-mono text-emerald-600 dark:text-emerald-400" id="latencyStat">~12ms</span>
+        </div>
+      </div>
+    </aside>
+
+    <!-- Content Workspace -->
+    <main class="flex-1 flex flex-col bg-gray-50 dark:bg-darkbg-900 overflow-hidden w-full">
+      
+      <!-- Top Navigation Tabs -->
+      <div class="bg-white dark:bg-darkbg-800 border-b border-gray-200 dark:border-gray-700 px-2 sm:px-4 flex items-center justify-between shrink-0 overflow-x-auto">
+        <div class="flex space-x-1 shrink-0" id="tabNavButtons">
+          <button onclick="switchTab('browse')" id="tabBtn-browse" class="tab-btn px-3 sm:px-4 py-3 text-xs font-medium border-b-2 border-sky-500 text-sky-600 dark:text-sky-400 flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-table-cells"></i> Browse
+          </button>
+          <button onclick="switchTab('structure')" id="tabBtn-structure" class="tab-btn px-3 sm:px-4 py-3 text-xs font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-sitemap"></i> Structure
+          </button>
+          <button onclick="switchTab('sql')" id="tabBtn-sql" class="tab-btn px-3 sm:px-4 py-3 text-xs font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-terminal"></i> SQL Console
+          </button>
+          <button onclick="switchTab('sync')" id="tabBtn-sync" class="tab-btn px-3 sm:px-4 py-3 text-xs font-medium border-b-2 border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 flex items-center gap-2 whitespace-nowrap">
+            <i class="fa-solid fa-cloud-arrow-up text-green-500"></i> Sync Setup
+          </button>
+        </div>
+
+        <!-- Current Breadcrumb -->
+        <div class="text-xs text-gray-400 hidden md:flex items-center gap-1 font-mono shrink-0 pl-2">
+          <i class="fa-solid fa-folder-tree"></i>
+          <span>production_app_db</span> / <span id="currentTableBreadcrumb" class="text-sky-500 font-semibold">users</span>
+        </div>
+      </div>
+
+      <!-- TAB CONTENT PANELS -->
+      <div class="flex-1 overflow-auto p-3 sm:p-4 relative" id="tabContentArea">
+        
+        <!-- 1. BROWSE DATA TAB -->
+        <div id="tab-browse" class="tab-content flex flex-col h-full space-y-3">
+          <!-- Data Controls Toolbar -->
+          <div class="bg-white dark:bg-darkbg-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 flex flex-wrap items-center justify-between gap-2 shadow-sm">
+            <div class="flex items-center gap-2 flex-wrap w-full sm:w-auto">
+              <button onclick="openAddRowModal()" class="flex-1 sm:flex-none bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold px-3 py-2 sm:py-1.5 rounded flex items-center justify-center gap-1.5 shadow-sm">
+                <i class="fa-solid fa-plus"></i> Insert Row
+              </button>
+              <button onclick="refreshActiveTable()" class="bg-gray-100 dark:bg-darkbg-700 hover:bg-gray-200 text-gray-700 dark:text-gray-300 text-xs font-medium px-3 py-2 sm:py-1.5 rounded flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate"></i> Refresh
+              </button>
+              <button onclick="exportTableCSV()" class="bg-gray-100 dark:bg-darkbg-700 hover:bg-gray-200 text-gray-700 dark:text-gray-300 text-xs font-medium px-3 py-2 sm:py-1.5 rounded flex items-center gap-1.5">
+                <i class="fa-solid fa-file-csv"></i> <span class="hidden sm:inline">Export CSV</span>
+              </button>
+            </div>
+
+            <!-- Search inside table -->
+            <div class="flex items-center gap-2 w-full sm:w-auto">
+              <div class="relative w-full sm:w-64">
+                <i class="fa-solid fa-filter absolute left-2.5 top-2.5 text-xs text-gray-400"></i>
+                <input type="text" id="gridFilterInput" onkeyup="renderDataGrid()" placeholder="Filter records..." class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-200 dark:border-gray-700 rounded pl-7 pr-3 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-sky-500">
+              </div>
+            </div>
+          </div>
+
+          <!-- Main Interactive Table Grid -->
+          <div class="flex-1 bg-white dark:bg-darkbg-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden flex flex-col shadow-sm">
+            <div class="flex-1 overflow-auto">
+              <table class="w-full text-left text-xs border-collapse" id="mainDataGrid">
+                <thead class="bg-gray-50 dark:bg-darkbg-900/80 sticky top-0 border-b border-gray-200 dark:border-gray-700 text-gray-500 uppercase tracking-wider font-semibold z-10">
+                  <tr id="dataGridHead"></tr>
+                </thead>
+                <tbody id="dataGridBody" class="divide-y divide-gray-200 dark:divide-gray-700 font-mono"></tbody>
+              </table>
+            </div>
+
+            <div class="bg-gray-50 dark:bg-darkbg-900/60 px-4 py-2 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between text-xs text-gray-500">
+              <div id="gridPaginationInfo">Showing records</div>
+              <div class="flex items-center space-x-2">
+                <button class="px-2 py-1 rounded bg-white dark:bg-darkbg-800 border border-gray-300 dark:border-gray-700 disabled:opacity-50" disabled>Prev</button>
+                <button class="px-2 py-1 rounded bg-white dark:bg-darkbg-800 border border-gray-300 dark:border-gray-700 disabled:opacity-50" disabled>Next</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. STRUCTURE / SCHEMA TAB -->
+        <div id="tab-structure" class="tab-content hidden flex-col space-y-4">
+          <div class="bg-white dark:bg-darkbg-800 p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm flex justify-between items-center">
+            <div>
+              <h3 class="font-semibold text-sm">Table Structure: <span id="structureTableName" class="text-sky-500 font-mono">users</span></h3>
+              <p class="text-xs text-gray-400">Define columns & data types.</p>
+            </div>
+            <button onclick="openAddColumnModal()" class="bg-sky-600 hover:bg-sky-700 text-white text-xs font-medium px-3 py-1.5 rounded flex items-center gap-1.5">
+              <i class="fa-solid fa-plus"></i> Add Column
+            </button>
+          </div>
+
+          <div class="bg-white dark:bg-darkbg-800 rounded-lg border border-gray-200 dark:border-gray-700 overflow-x-auto shadow-sm">
+            <table class="w-full text-left text-xs border-collapse min-w-[500px]">
+              <thead class="bg-gray-50 dark:bg-darkbg-900 border-b border-gray-200 dark:border-gray-700 text-gray-500 uppercase tracking-wider font-semibold">
+                <tr>
+                  <th class="p-3">#</th>
+                  <th class="p-3">Column Name</th>
+                  <th class="p-3">Data Type</th>
+                  <th class="p-3">Nullable</th>
+                  <th class="p-3">Key</th>
+                  <th class="p-3 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody id="structureTableBody" class="divide-y divide-gray-200 dark:divide-gray-700 font-mono"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- 3. SQL QUERY CONSOLE TAB -->
+        <div id="tab-sql" class="tab-content hidden flex-col h-full space-y-4">
+          <div class="bg-white dark:bg-darkbg-800 p-3 sm:p-4 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm space-y-3">
+            <div class="flex items-center justify-between">
+              <label class="text-xs font-semibold text-gray-700 dark:text-gray-300 flex items-center gap-2">
+                <i class="fa-solid fa-code text-sky-500"></i> SQL Query Editor
+              </label>
+              <div class="flex gap-1.5">
+                <button onclick="setQuickSQL('SELECT * FROM users LIMIT 10;')" class="text-[10px] sm:text-[11px] bg-gray-100 dark:bg-darkbg-700 px-2 py-1 rounded hover:bg-gray-200">SELECT users</button>
+              </div>
+            </div>
+            
+            <textarea id="sqlQueryInput" rows="4" class="w-full font-mono text-xs sm:text-sm p-3 bg-gray-900 text-emerald-400 rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-sky-500" placeholder="Type your SQL query here..."></textarea>
+            
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] sm:text-xs text-gray-400">Supported: <code class="text-sky-400">SELECT</code></span>
+              <button onclick="executeSQLQuery()" class="bg-sky-600 hover:bg-sky-700 text-white font-semibold text-xs px-3 sm:px-4 py-1.5 sm:py-2 rounded flex items-center gap-2">
+                <i class="fa-solid fa-play"></i> Run Query
+              </button>
+            </div>
+          </div>
+
+          <div class="flex-1 bg-white dark:bg-darkbg-800 rounded-lg border border-gray-200 dark:border-gray-700 p-3 sm:p-4 flex flex-col overflow-hidden shadow-sm">
+            <div class="flex items-center justify-between mb-2">
+              <h4 class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Results Grid</h4>
+              <span id="sqlExecutionStatus" class="text-xs text-emerald-500 font-mono font-medium">Ready</span>
+            </div>
+            <div id="sqlResultContainer" class="flex-1 overflow-auto bg-gray-50 dark:bg-darkbg-900 rounded border border-gray-200 dark:border-gray-700 p-2 font-mono text-xs">
+              <p class="text-gray-400 italic">No query executed yet.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- 4. GOOGLE SHEETS SYNC SETTINGS TAB -->
+        <div id="tab-sync" class="tab-content hidden flex-col space-y-4">
+          <div class="bg-white dark:bg-darkbg-800 p-4 sm:p-5 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+            <div class="flex items-center gap-3 mb-4">
+              <div class="w-10 h-10 rounded-full bg-green-100 dark:bg-green-950 flex items-center justify-center text-green-600 text-xl shrink-0">
+                <i class="fa-solid fa-file-excel"></i>
+              </div>
+              <div>
+                <h3 class="text-sm sm:text-base font-bold text-gray-800 dark:text-gray-100">Google Sheets Integration</h3>
+                <p class="text-xs text-gray-400">Hubungkan database dengan Google Sheets secara langsung.</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div class="space-y-3">
+                <div>
+                  <label class="block text-xs font-semibold mb-1">Data Storage Mode</label>
+                  <select id="dataModeSelect" onchange="toggleDataMode()" class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-xs">
+                    <option value="mock">Local Mock State (Memory)</option>
+                    <option value="gsheets" selected>Google Sheets Web App API (Live Sync)</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label class="block text-xs font-semibold mb-1">Google Apps Script Web App URL</label>
+                  <input type="text" id="gasUrlInput" placeholder="https://script.google.com/macros/s/.../exec" class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-xs font-mono">
+                </div>
+
+                <div class="pt-2">
+                  <button onclick="saveSyncSettings()" class="bg-green-600 hover:bg-green-700 text-white font-semibold text-xs px-4 py-2 rounded flex items-center gap-2">
+                    <i class="fa-solid fa-floppy-disk"></i> Save & Connect API
+                  </button>
+                </div>
+              </div>
+
+              <!-- Setup Instructions & Google Apps Script Backend Code -->
+              <div class="bg-gray-900 text-gray-200 rounded-lg p-3 sm:p-4 font-mono text-xs overflow-y-auto max-h-64 sm:max-h-80 border border-gray-800">
+                <div class="flex justify-between items-center mb-2 pb-2 border-b border-gray-800">
+                  <span class="text-emerald-400 font-semibold"><i class="fa-solid fa-code"></i> Apps Script Code</span>
+                  <button onclick="copyAppsScriptCode()" class="bg-gray-800 hover:bg-gray-700 px-2 py-1 rounded text-[10px] text-gray-300">Copy Code</button>
+                </div>
+                <pre id="gasCodeSnippet" class="text-[10px] sm:text-[11px] text-gray-300 whitespace-pre-wrap">
+function doGet(e) {
+  var ss = SpreadsheetApp.getActiveSpreadsheet();
+  var action = (e && e.parameter && e.parameter.action) ? e.parameter.action : "users";
+  var sheet = ss.getSheetByName(action);
+  if (!sheet) return ContentService.createTextOutput(JSON.stringify({error: "Sheet not found"})).setMimeType(ContentService.MimeType.JSON);
+  var data = sheet.getDataRange().getValues();
+  var headers = data[0];
+  var rows = [];
+  for (var i = 1; i < data.length; i++) {
+    var obj = {};
+    for (var j = 0; j < headers.length; j++) { obj[headers[j]] = data[i][j]; }
+    rows.push(obj);
+  }
+  return ContentService.createTextOutput(JSON.stringify({headers: headers, data: rows})).setMimeType(ContentService.MimeType.JSON);
+}</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </main>
+  </div>
+
+  <!-- MODAL: ADD / EDIT ROW -->
+  <div id="rowModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-darkbg-800 rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-lg overflow-hidden shadow-2xl">
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-darkbg-900">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-200" id="rowModalTitle">Insert Record</h3>
+        <button onclick="closeModal('rowModal')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <form id="rowModalForm" onsubmit="handleRowModalSubmit(event)" class="p-4 space-y-3 max-h-[60vh] overflow-y-auto"></form>
+      <div class="px-4 py-3 bg-gray-50 dark:bg-darkbg-900 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-2">
+        <button onclick="closeModal('rowModal')" type="button" class="px-3 py-1.5 text-xs font-medium rounded bg-gray-200 dark:bg-darkbg-700 hover:bg-gray-300 text-gray-700 dark:text-gray-300">Cancel</button>
+        <button type="submit" form="rowModalForm" class="px-3 py-1.5 text-xs font-medium rounded bg-sky-600 hover:bg-sky-700 text-white">Save Record</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CREATE NEW TABLE -->
+  <div id="createTableModal" class="fixed inset-0 bg-black/60 backdrop-blur-sm hidden items-center justify-center z-50 p-4">
+    <div class="bg-white dark:bg-darkbg-800 rounded-lg border border-gray-200 dark:border-gray-700 w-full max-w-md overflow-hidden shadow-2xl">
+      <div class="px-4 py-3 border-b border-gray-200 dark:border-gray-700 flex justify-between items-center bg-gray-50 dark:bg-darkbg-900">
+        <h3 class="font-bold text-xs uppercase tracking-wider text-gray-700 dark:text-gray-200">Create New Table</h3>
+        <button onclick="closeModal('createTableModal')" class="text-gray-400 hover:text-gray-600"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="p-4 space-y-3">
+        <div>
+          <label class="block text-xs font-semibold mb-1">Table Name (Harus sama dengan nama Sheet)</label>
+          <input type="text" id="newTableNameInput" placeholder="e.g. products" class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-300 dark:border-gray-700 rounded px-3 py-2 text-xs font-mono">
+        </div>
+      </div>
+      <div class="px-4 py-3 bg-gray-50 dark:bg-darkbg-900 border-t border-gray-200 dark:border-gray-700 flex justify-end space-x-2">
+        <button onclick="closeModal('createTableModal')" class="px-3 py-1.5 text-xs font-medium rounded bg-gray-200 dark:bg-darkbg-700 hover:bg-gray-300 text-gray-700 dark:text-gray-300">Cancel</button>
+        <button onclick="submitCreateTable()" class="px-3 py-1.5 text-xs font-medium rounded bg-sky-600 hover:bg-sky-700 text-white">Add Table</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --- Authentication Guard System ---
+    let isAuthenticated = false;
+
+    function checkAuthGuard() {
+      const authSession = sessionStorage.getItem('sheetsql_auth');
+      if (authSession === 'true') {
+        isAuthenticated = true;
+        document.getElementById('loginGuardModal').classList.add('hidden');
+      } else {
+        isAuthenticated = false;
+        document.getElementById('loginGuardModal').classList.remove('hidden');
+      }
     }
 
-    // Fungsi Tambah Data (INSERT)
-    document.getElementById("unitForm").addEventListener("submit", function(e) {
-        e.preventDefault();
-        const btn = document.getElementById("submitBtn");
-        btn.disabled = true;
-        btn.innerHTML = `<i class="fa-solid fa-spinner fa-spin"></i> Menyimpan ke Sheet...`;
+    function handleLoginSubmit(e) {
+      e.preventDefault();
+      const user = document.getElementById('loginUsername').value;
+      const pass = document.getElementById('loginPassword').value;
 
-        const payload = {
-            action: "insert",
-            tanggal: document.getElementById("tanggal").value,
-            suffix: document.getElementById("suffix").value,
-            nomer_unit: document.getElementById("nomer_unit").value,
-            problem: document.getElementById("problem").value,
-            status: document.getElementById("status").value
-        };
+      if (user === 'admin' && pass === 'admin123') {
+        sessionStorage.setItem('sheetsql_auth', 'true');
+        isAuthenticated = true;
+        document.getElementById('loginGuardModal').classList.add('hidden');
+        document.getElementById('loginErrorMsg').classList.add('hidden');
+      } else {
+        document.getElementById('loginErrorMsg').classList.remove('hidden');
+      }
+    }
 
-        fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        })
+    function logout() {
+      sessionStorage.removeItem('sheetsql_auth');
+      isAuthenticated = false;
+      document.getElementById('loginGuardModal').classList.remove('hidden');
+    }
+
+    // --- Mobile Swipe Gesture Mechanics for Sidebar ---
+    let touchStartX = 0;
+    let touchEndX = 0;
+
+    function handleTouchStart(e) {
+      touchStartX = e.changedTouches[0].screenX;
+    }
+
+    function handleTouchEnd(e) {
+      touchEndX = e.changedTouches[0].screenX;
+      handleSwipeGesture();
+    }
+
+    function handleSwipeGesture() {
+      const swipeDistance = touchEndX - touchStartX;
+      const threshold = 60;
+      if (swipeDistance > threshold && touchStartX < 50) {
+        openSidebar();
+      } else if (swipeDistance < -threshold) {
+        closeSidebar();
+      }
+    }
+
+    function openSidebar() {
+      document.getElementById('mainSidebar').classList.remove('-translate-x-full');
+      document.getElementById('sidebarOverlay').classList.remove('hidden');
+    }
+
+    function closeSidebar() {
+      document.getElementById('mainSidebar').classList.add('-translate-x-full');
+      document.getElementById('sidebarOverlay').classList.add('hidden');
+    }
+
+    function toggleSidebar() {
+      const sidebar = document.getElementById('mainSidebar');
+      if (sidebar.classList.contains('-translate-x-full')) {
+        openSidebar();
+      } else {
+        closeSidebar();
+      }
+    }
+
+    document.addEventListener('touchstart', handleTouchStart, false);
+    document.addEventListener('touchend', handleTouchEnd, false);
+
+    // --- Application State ---
+    let dbState = {
+      activeTable: 'users',
+      mode: 'gsheets',
+      gasUrl: '',
+      schema: {
+        users: [
+          { name: 'id', type: 'INT', primaryKey: true, nullable: false },
+          { name: 'name', type: 'VARCHAR(255)', primaryKey: false, nullable: false },
+          { name: 'email', type: 'VARCHAR(255)', primaryKey: false, nullable: false }
+        ],
+        products: [
+          { name: 'id', type: 'INT', primaryKey: true, nullable: false },
+          { name: 'product_name', type: 'VARCHAR(255)', primaryKey: false, nullable: false }
+        ]
+      },
+      data: {
+        users: [],
+        products: []
+      }
+    };
+
+    let editingRowIndex = null;
+
+    window.onload = function() {
+      checkAuthGuard();
+      renderSidebarTables();
+      // Load saved settings if any
+      const savedUrl = localStorage.getItem('sheetsql_gas_url');
+      if (savedUrl) {
+        document.getElementById('gasUrlInput').value = savedUrl;
+        dbState.gasUrl = savedUrl;
+        fetchDataFromGoogleSheets(dbState.activeTable);
+      }
+    };
+
+    // --- Navigation & Tabs ---
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab-content').forEach(el => {
+        el.classList.add('hidden');
+        el.classList.remove('flex');
+      });
+      
+      const targetTab = document.getElementById(`tab-${tabId}`);
+      if (targetTab) {
+        targetTab.classList.remove('hidden');
+        targetTab.classList.add('flex');
+      }
+
+      document.querySelectorAll('.tab-btn').forEach(btn => {
+        btn.classList.remove('border-sky-500', 'text-sky-600', 'dark:text-sky-400');
+        btn.classList.add('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+      });
+
+      const activeBtn = document.getElementById(`tabBtn-${tabId}`);
+      if (activeBtn) {
+        activeBtn.classList.add('border-sky-500', 'text-sky-600', 'dark:text-sky-400');
+        activeBtn.classList.remove('border-transparent', 'text-gray-500', 'dark:text-gray-400');
+      }
+
+      if (tabId === 'structure') renderStructureTable();
+    }
+
+    function toggleTheme() {
+      document.documentElement.classList.toggle('dark');
+    }
+
+    // --- Google Sheets Fetch Logic ---
+    function fetchDataFromGoogleSheets(tableName) {
+      const gasUrl = dbState.gasUrl;
+      if (!gasUrl) return;
+
+      const targetUrl = `${gasUrl}?action=${tableName}`;
+      document.getElementById('latencyStat').innerText = "Loading...";
+      const startTime = performance.now();
+
+      fetch(targetUrl)
         .then(response => response.json())
-        .then(result => {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Data Unit`;
-            if(result.result === "success") {
-                document.getElementById("problem").value = "";
-                document.getElementById("suffix").value = "";
-                document.getElementById("nomer_unit").value = "";
-                fetchUnits(); // Refresh tabel
-            } else {
-                alert("Gagal menyimpan data ke Google Spreadsheet.");
-            }
+        .then(res => {
+          const endTime = performance.now();
+          const latency = Math.round(endTime - startTime);
+          document.getElementById('latencyStat').innerText = `~${latency}ms`;
+
+          if (res && res.headers && res.data) {
+            dbState.schema[tableName] = res.headers.map((h, idx) => ({
+              name: h,
+              type: 'VARCHAR(255)',
+              primaryKey: idx === 0,
+              nullable: idx !== 0
+            }));
+            dbState.data[tableName] = res.data;
+          } else {
+            dbState.data[tableName] = [];
+          }
+
+          renderSidebarTables();
+          renderActiveTableData();
         })
-        .catch(error => {
-            btn.disabled = false;
-            btn.innerHTML = `<i class="fa-solid fa-floppy-disk"></i> Simpan Data Unit`;
-            alert("Terjadi kesalahan koneksi: " + error);
+        .catch(err => {
+          console.error("Gagal menarik data:", err);
+          document.getElementById('latencyStat').innerText = "Error";
+          renderSidebarTables();
+          renderActiveTableData();
         });
-    });
-
-    // Fungsi Hapus Data (DELETE)
-    function deleteUnit(id) {
-        if(!confirm("Yakin ingin menghapus unit dengan ID: " + id + "?")) return;
-
-        const payload = {
-            action: "delete",
-            id: id
-        };
-
-        fetch(WEB_APP_URL, {
-            method: "POST",
-            body: JSON.stringify(payload)
-        })
-        .then(response => response.json())
-        .then(result => {
-            if(result.result === "success") {
-                fetchUnits(); // Refresh tabel
-            } else {
-                alert("Gagal menghapus baris data.");
-            }
-        })
-        .catch(error => alert("Kesalahan: " + error));
     }
-</script>
 
+    // --- Sidebar Functions ---
+    function renderSidebarTables() {
+      const container = document.getElementById('sidebarTableList');
+      const tableNames = Object.keys(dbState.schema);
+      document.getElementById('tableCount').innerText = tableNames.length;
+
+      container.innerHTML = tableNames.map(tableName => {
+        const isActive = tableName === dbState.activeTable;
+        return `
+          <button onclick="selectActiveTable('${tableName}')" class="w-full flex items-center justify-between px-2.5 py-2 rounded-md text-xs font-medium transition ${isActive ? 'bg-sky-50 dark:bg-sky-950/60 text-sky-600 dark:text-sky-400' : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-darkbg-700'}">
+            <div class="flex items-center gap-2 overflow-hidden">
+              <i class="fa-solid fa-table text-gray-400 text-xs"></i>
+              <span class="truncate">${tableName}</span>
+            </div>
+            <span class="text-[10px] text-gray-400 font-mono">${(dbState.data[tableName] || []).length}</span>
+          </button>
+        `;
+      }).join('');
+    }
+
+    function selectActiveTable(tableName) {
+      dbState.activeTable = tableName;
+      document.getElementById('currentTableBreadcrumb').innerText = tableName;
+      document.getElementById('structureTableName').innerText = tableName;
+      
+      if (dbState.mode === 'gsheets' && dbState.gasUrl) {
+        fetchDataFromGoogleSheets(tableName);
+      } else {
+        renderSidebarTables();
+        renderActiveTableData();
+      }
+      closeSidebar();
+    }
+
+    function filterTableList() {
+      const filter = document.getElementById('tableSearchInput').value.toLowerCase();
+      document.querySelectorAll('#sidebarTableList button').forEach(btn => {
+        const text = btn.innerText.toLowerCase();
+        btn.style.display = text.includes(filter) ? 'flex' : 'none';
+      });
+    }
+
+    // --- Data Grid Renderer ---
+    function renderActiveTableData() {
+      const tableName = dbState.activeTable;
+      const columns = dbState.schema[tableName] || [];
+      const rows = dbState.data[tableName] || [];
+      const filter = (document.getElementById('gridFilterInput')?.value || '').toLowerCase();
+
+      const headContainer = document.getElementById('dataGridHead');
+      headContainer.innerHTML = `
+        <th class="p-2.5 w-10 text-center"><input type="checkbox" class="rounded"></th>
+        ${columns.map(col => `<th class="p-2.5"><span>${col.name}</span></th>`).join('')}
+        <th class="p-2.5 text-right w-20">Actions</th>
+      `;
+
+      const filteredRows = rows.filter(row => {
+        return Object.values(row).some(val => String(val).toLowerCase().includes(filter));
+      });
+
+      const bodyContainer = document.getElementById('dataGridBody');
+      if (filteredRows.length === 0) {
+        bodyContainer.innerHTML = `<tr><td colspan="${columns.length + 2}" class="p-8 text-center text-gray-400 italic">No records found</td></tr>`;
+      } else {
+        bodyContainer.innerHTML = filteredRows.map((row, index) => `
+          <tr class="hover:bg-gray-50 dark:hover:bg-darkbg-700/50 transition border-b border-gray-100 dark:border-gray-700/50">
+            <td class="p-2.5 text-center"><input type="checkbox" class="rounded"></td>
+            ${columns.map(col => `<td class="p-2.5 whitespace-nowrap">${row[col.name] !== undefined ? row[col.name] : '<span class="text-gray-400 italic">NULL</span>'}</td>`).join('')}
+            <td class="p-2.5 text-right space-x-1 whitespace-nowrap">
+              <button onclick="openEditRowModal(${index})" class="text-sky-600 dark:text-sky-400 hover:text-sky-800 p-1" title="Edit Row"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="deleteRow(${index})" class="text-red-500 hover:text-red-700 p-1" title="Delete Row"><i class="fa-solid fa-trash"></i></button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      document.getElementById('gridPaginationInfo').innerText = `Showing ${filteredRows.length} of ${rows.length} records`;
+    }
+
+    // --- CRUD Operations ---
+    function openAddRowModal() {
+      editingRowIndex = null;
+      document.getElementById('rowModalTitle').innerText = `Insert Record into '${dbState.activeTable}'`;
+      const form = document.getElementById('rowModalForm');
+      const columns = dbState.schema[dbState.activeTable] || [];
+
+      form.innerHTML = columns.map(col => `
+        <div>
+          <label class="block text-xs font-semibold mb-1">${col.name} <span class="text-gray-400 font-normal">(${col.type})</span></label>
+          <input type="text" name="${col.name}" class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-300 dark:border-gray-700 rounded px-3 py-1.5 text-xs font-mono">
+        </div>
+      `).join('');
+
+      document.getElementById('rowModal').classList.remove('hidden');
+      document.getElementById('rowModal').classList.add('flex');
+    }
+
+    function openEditRowModal(index) {
+      editingRowIndex = index;
+      document.getElementById('rowModalTitle').innerText = `Edit Record in '${dbState.activeTable}'`;
+      const form = document.getElementById('rowModalForm');
+      const columns = dbState.schema[dbState.activeTable] || [];
+      const rowData = dbState.data[dbState.activeTable][index];
+
+      form.innerHTML = columns.map(col => `
+        <div>
+          <label class="block text-xs font-semibold mb-1">${col.name} <span class="text-gray-400 font-normal">(${col.type})</span></label>
+          <input type="text" name="${col.name}" value="${rowData[col.name] || ''}" class="w-full bg-gray-50 dark:bg-darkbg-900 border border-gray-300 dark:border-gray-700 rounded px-3 py-1.5 text-xs font-mono">
+        </div>
+      `).join('');
+
+      document.getElementById('rowModal').classList.remove('hidden');
+      document.getElementById('rowModal').classList.add('flex');
+    }
+
+    function handleRowModalSubmit(e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+      const newRecord = {};
+      formData.forEach((value, key) => { newRecord[key] = value; });
+
+      if (editingRowIndex !== null) {
+        dbState.data[dbState.activeTable][editingRowIndex] = newRecord;
+      } else {
+        dbState.data[dbState.activeTable].push(newRecord);
+      }
+
+      closeModal('rowModal');
+      renderActiveTableData();
+      renderSidebarTables();
+    }
+
+    function deleteRow(index) {
+      if (confirm('Are you sure you want to delete this record?')) {
+        dbState.data[dbState.activeTable].splice(index, 1);
+        renderActiveTableData();
+        renderSidebarTables();
+      }
+    }
+
+    function renderStructureTable() {
+      const columns = dbState.schema[dbState.activeTable] || [];
+      const tbody = document.getElementById('structureTableBody');
+
+      tbody.innerHTML = columns.map((col, idx) => `
+        <tr class="hover:bg-gray-50 dark:hover:bg-darkbg-700/50 border-b border-gray-100 dark:border-gray-700/50">
+          <td class="p-3 text-gray-400">${idx + 1}</td>
+          <td class="p-3 font-bold text-sky-600 dark:text-sky-400">${col.name}</td>
+          <td class="p-3"><span class="bg-gray-100 dark:bg-darkbg-700 px-2 py-0.5 rounded text-[11px] font-mono">${col.type}</span></td>
+          <td class="p-3">${col.nullable ? 'YES' : 'NO'}</td>
+          <td class="p-3">${col.primaryKey ? 'PRI' : '-'}</td>
+          <td class="p-3 text-right">
+            <button onclick="removeColumn(${idx})" class="text-red-500 hover:underline text-xs">Drop</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openCreateTableModal() {
+      document.getElementById('createTableModal').classList.remove('hidden');
+      document.getElementById('createTableModal').classList.add('flex');
+    }
+
+    function submitCreateTable() {
+      const name = document.getElementById('newTableNameInput').value.trim();
+      if (!name) return alert('Masukkan nama tabel / nama sheet!');
+
+      dbState.schema[name] = [
+        { name: 'id', type: 'INT', primaryKey: true, nullable: false },
+        { name: 'nama', type: 'VARCHAR(255)', primaryKey: false, nullable: true }
+      ];
+      dbState.data[name] = [];
+
+      closeModal('createTableModal');
+      selectActiveTable(name);
+    }
+
+    function closeModal(id) {
+      document.getElementById(id).classList.add('hidden');
+      document.getElementById(id).classList.remove('flex');
+    }
+
+    function executeSQLQuery() {
+      const sql = document.getElementById('sqlQueryInput').value.trim();
+      const outputContainer = document.getElementById('sqlResultContainer');
+      const statusEl = document.getElementById('sqlExecutionStatus');
+
+      if (!sql) return;
+      statusEl.innerText = "Executing...";
+
+      setTimeout(() => {
+        try {
+          const tableName = dbState.activeTable;
+          const data = dbState.data[tableName] || [];
+          statusEl.innerText = `OK, ${data.length} rows`;
+
+          if (data.length === 0) {
+            outputContainer.innerHTML = `<p class="text-gray-400 italic">Query executed. No rows returned.</p>`;
+            return;
+          }
+
+          outputContainer.innerHTML = `
+            <table class="w-full text-left text-xs border-collapse">
+              <thead class="border-b border-gray-300 dark:border-gray-700 font-bold">
+                <tr>${Object.keys(data[0]).map(k => `<th class="p-2">${k}</th>`).join('')}</tr>
+              </thead>
+              <tbody>
+                ${data.map(r => `<tr>${Object.values(r).map(v => `<td class="p-2 border-b border-gray-200 dark:border-gray-800">${v}</td>`).join('')}</tr>`).join('')}
+              </tbody>
+            </table>
+          `;
+        } catch (err) {
+          statusEl.innerText = "Error";
+          outputContainer.innerHTML = `<div class="p-3 text-red-500 font-mono">Execution Error</div>`;
+        }
+      }, 200);
+    }
+
+    function setQuickSQL(query) {
+      document.getElementById('sqlQueryInput').value = query;
+    }
+
+    function toggleDataMode() {
+      const mode = document.getElementById('dataModeSelect').value;
+      dbState.mode = mode;
+      document.getElementById('modeText').innerText = mode === 'gsheets' ? 'Live Sheets' : 'Mock Mode';
+    }
+
+    function saveSyncSettings() {
+      const mode = document.getElementById('dataModeSelect').value;
+      const url = document.getElementById('gasUrlInput').value.trim();
+
+      dbState.mode = mode;
+      dbState.gasUrl = url;
+      localStorage.setItem('sheetsql_gas_url', url);
+
+      if (mode === 'gsheets' && url) {
+        document.getElementById('modeText').innerText = 'Live Sheets';
+        alert("Pengaturan disimpan! Menarik data dari Google Sheets...");
+        fetchDataFromGoogleSheets(dbState.activeTable);
+      } else {
+        document.getElementById('modeText').innerText = 'Mock Mode';
+        alert("Pengaturan disimpan ke Mock Mode.");
+        renderSidebarTables();
+        renderActiveTableData();
+      }
+    }
+
+    function copyAppsScriptCode() {
+      const code = document.getElementById('gasCodeSnippet').innerText;
+      navigator.clipboard.writeText(code);
+      alert("Kode Apps Script berhasil disalin!");
+    }
+
+    function refreshActiveTable() {
+      if (dbState.mode === 'gsheets' && dbState.gasUrl) {
+        fetchDataFromGoogleSheets(dbState.activeTable);
+      } else {
+        renderActiveTableData();
+        alert("Tabel berhasil di-refresh.");
+      }
+    }
+
+    function exportTableCSV() {
+      const rows = dbState.data[dbState.activeTable] || [];
+      if (!rows.length) return alert("Tidak ada data untuk diexport");
+
+      const headers = Object.keys(rows[0]).join(",");
+      const body = rows.map(r => Object.values(r).join(",")).join("\n");
+      const csvContent = "data:text/csv;charset=utf-8," + headers + "\n" + body;
+
+      const link = document.createElement("a");
+      link.setAttribute("href", encodeURI(csvContent));
+      link.setAttribute("download", `${dbState.activeTable}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    }
+  </script>
 </body>
 </html>
