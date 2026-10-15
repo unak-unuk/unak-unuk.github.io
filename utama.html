@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Index - Sistem CRUD & Scan Barcode</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; background: #f4f4f9; margin: 0; padding: 20px; color: #333; }
+        h1, h2 { color: #2c3e50; }
+        .container { max-width: 800px; margin: auto; background: white; padding: 20px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        button { padding: 10px 15px; background: #3498db; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 14px; }
+        button:hover { background: #2980b9; }
+        .btn-danger { background: #e74c3c; }
+        .btn-danger:hover { background: #c0392b; }
+        .btn-success { background: #2ecc71; }
+        .btn-success:hover { background: #27ae60; }
+        
+        /* Scanner Area */
+        #reader { width: 100%; max-width: 400px; margin: 15px auto; display: none; }
+        
+        /* Table */
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 12px; text-align: left; }
+        th { background: #f8f9fa; }
+        .text-ok { color: #27ae60; font-weight: bold; }
+        .text-ng { color: #c0392b; font-weight: bold; }
+
+        /* Modal Pop-up */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; }
+        .modal-content { background: white; padding: 25px; border-radius: 8px; width: 90%; max-width: 450px; position: relative; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .close-btn { position: absolute; top: 15px; right: 15px; font-size: 20px; cursor: pointer; color: #aaa; }
+        .close-btn:hover { color: #000; }
+        .form-group { margin-bottom: 15px; }
+        .form-group label { display: block; margin-bottom: 5px; font-weight: bold; }
+        .form-group input, .form-group textarea, .form-group select { width: 100%; padding: 8px; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+        
+        .nav-links { margin-bottom: 20px; }
+        .nav-links a { margin-right: 15px; text-decoration: none; color: #3498db; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-links">
+        <a href="index.html">Index (CRUD)</a>
+        <a href="view.html" target="_blank">View Data</a>
+        <a href="data.html" target="_blank">Database View</a>
+    </div>
+
+    <h1>Sistem Input & CRUD Unit</h1>
+    
+    <div>
+        <button onclick="openInputModal()">+ Input Manual</button>
+        <button onclick="toggleScanner()" class="btn-success">📷 Scan Barcode</button>
+    </div>
+
+    <div id="reader"></div>
+
+    <h2>Daftar Unit</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>No Urut</th>
+                <th>Suffix</th>
+                <th>No Unit</th>
+                <th>Problem</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody id="tableData">
+            <tr><td colspan="5" style="text-align:center;">Memuat data...</td></tr>
+        </tbody>
+    </table>
+</div>
+
+<!-- Modal Input / Edit -->
+<div id="inputModal" class="modal">
+    <div class="modal-content">
+        <span class="close-btn" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Form Input Data Unit</h2>
+        <form id="unitForm" onsubmit="handleFormSubmit(event)">
+            <input type="hidden" id="dataId">
+            <div class="form-group">
+                <label>Suffix (Karakter ke-6 & 5 dari belakang):</label>
+                <input type="text" id="suffix" required>
+            </div>
+            <div class="form-group">
+                <label>Nomer Unit (Karakter ke-12 s/d 17):</label>
+                <input type="text" id="unitNo" required>
+            </div>
+            <div class="form-group">
+                <label>Problem:</label>
+                <textarea id="problem" rows="3" required></textarea>
+            </div>
+            <div class="form-group">
+                <label>WIP:</label>
+                <label><input type="radio" name="wip" value="WIP 1" checked> WIP 1</label>
+                <label><input type="radio" name="wip" value="WIP 2"> WIP 2</label>
+            </div>
+            <div class="form-group">
+                <label>Status:</label>
+                <select id="status">
+                    <option value="OK">OK</option>
+                    <option value="NG">NG</option>
+                </select>
+            </div>
+            <button type="submit" class="btn-success" style="width:100%;">Simpan</button>
+        </form>
+    </div>
+</div>
+
+<!-- Modal Detail / Aksi (Klik & Klik Tahan) -->
+<div id="actionModal" class="modal">
+    <div class="modal-content" style="text-align: center;">
+        <span class="close-btn" onclick="closeActionModal()">&times;</span>
+        <h2>Informasi Data Unit</h2>
+        <div id="detailContent" style="text-align: left; margin: 15px 0; background: #f9f9f9; padding: 10px; border-radius: 4px;"></div>
+        <div id="actionButtons" style="display:none; gap: 10px; justify-content: center;">
+            <button onclick="editData()" class="btn-success">Edit</button>
+            <button onclick="deleteData()" class="btn-danger">Hapus</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycby28sihhGYpIq96nWemrjRh4DW9yw3wqw3GMrW0YbvMA5DzqMbCoU08attU2q1KFCJa/exec';
+    let allData = [];
+    let selectedRowData = null;
+    let html5QrCode = null;
+    let scannerIsRunning = false;
+    let pressTimer;
+
+    document.addEventListener("DOMContentLoaded", fetchData);
+
+    function fetchData() {
+        fetch(API_URL + "?action=get")
+            .then(res => res.json())
+            .then(data => {
+                allData = data;
+                renderTable(data);
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById("tableData").innerHTML = `<tr><td colspan="5" style="text-align:center; color:red;">Gagal memuat data</td></tr>`;
+            });
+    }
+
+    function renderTable(data) {
+        const tbody = document.getElementById("tableData");
+        tbody.innerHTML = "";
+        if (data.length === 0) {
+            tbody.innerHTML = `<tr><td colspan="5" style="text-align:center;">Belum ada data</td></tr>`;
+            return;
+        }
+
+        data.forEach((item, index) => {
+            let tr = document.createElement("tr");
+            let statusClass = item.status === "OK" ? "text-ok" : "text-ng";
+            
+            tr.innerHTML = `
+                <td>${index + 1}</td>
+                <td>${item.suffix || ''}</td>
+                <td>${item.unitNo || ''}</td>
+                <td>${item.problem || ''}</td>
+                <td class="${statusClass}">${item.status || ''}</td>
+            `;
+
+            // Event Klik Biasa (Menampilkan Informasi)
+            tr.addEventListener("click", () => showDetail(item, false));
+
+            // Event Klik Tahan (Long Press untuk Edit & Hapus)
+            tr.addEventListener("mousedown", () => {
+                pressTimer = setTimeout(() => showDetail(item, true), 800);
+            });
+            tr.addEventListener("mouseup", () => clearTimeout(pressTimer));
+            tr.addEventListener("touchstart", () => {
+                pressTimer = setTimeout(() => showDetail(item, true), 800);
+            });
+            tr.addEventListener("touchend", () => clearTimeout(pressTimer));
+
+            tbody.appendChild(tr);
+        });
+    }
+
+    function openInputModal(suffix = "", unitNo = "") {
+        document.getElementById("unitForm").reset();
+        document.getElementById("dataId").value = "";
+        document.getElementById("modalTitle").innerText = "Form Input Data Unit";
+        document.getElementById("suffix").value = suffix;
+        document.getElementById("unitNo").value = unitNo;
+        document.getElementById("inputModal").style.display = "flex";
+    }
+
+    function closeModal() {
+        document.getElementById("inputModal").style.display = "none";
+    }
+
+    function closeActionModal() {
+        document.getElementById("actionModal").style.display = "none";
+    }
+
+    function showDetail(item, showActions) {
+        selectedRowData = item;
+        let content = `
+            <p><b>Suffix:</b> ${item.suffix}</p>
+            <p><b>Nomor Unit:</b> ${item.unitNo}</p>
+            <p><b>Problem:</b> ${item.problem}</p>
+            <p><b>WIP:</b> ${item.wip}</p>
+            <p><b>Status:</b> <span class="${item.status === 'OK' ? 'text-ok' : 'text-ng'}">${item.status}</span></p>
+            <p><small>Waktu: ${item.timestamp}</small></p>
+        `;
+        document.getElementById("detailContent").innerHTML = content;
+        document.getElementById("actionButtons").style.display = showActions ? "flex" : "none";
+        document.getElementById("actionModal").style.display = "flex";
+    }
+
+    function editData() {
+        closeActionModal();
+        document.getElementById("modalTitle").innerText = "Edit Data Unit";
+        document.getElementById("dataId").value = selectedRowData.id;
+        document.getElementById("suffix").value = selectedRowData.suffix;
+        document.getElementById("unitNo").value = selectedRowData.unitNo;
+        document.getElementById("problem").value = selectedRowData.problem;
+        document.querySelector(`input[name="wip"][value="${selectedRowData.wip}"]`).checked = true;
+        document.getElementById("status").value = selectedRowData.status;
+        document.getElementById("inputModal").style.display = "flex";
+    }
+
+    function deleteData() {
+        if (confirm("Yakin ingin menghapus data ini?")) {
+            fetch(API_URL, {
+                method: "POST",
+                body: JSON.stringify({ action: "delete", id: selectedRowData.id })
+            })
+            .then(res => res.json())
+            .then(res => {
+                alert(res.message);
+                closeActionModal();
+                fetchData();
+            });
+        }
+    }
+
+    function handleFormSubmit(e) {
+        e.preventDefault();
+        const id = document.getElementById("dataId").value;
+        const payload = {
+            action: id ? "update" : "add",
+            id: id,
+            suffix: document.getElementById("suffix").value,
+            unitNo: document.getElementById("unitNo").value,
+            problem: document.getElementById("problem").value,
+            wip: document.querySelector('input[name="wip"]:checked').value,
+            status: document.getElementById("status").value
+        };
+
+        fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify(payload)
+        })
+        .then(res => res.json())
+        .then(res => {
+            alert(res.message);
+            closeModal();
+            fetchData();
+        });
+    }
+
+    // Barcode Scanner Logic
+    function toggleScanner() {
+        const readerDiv = document.getElementById("reader");
+        if (!scannerIsRunning) {
+            readerDiv.style.display = "block";
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: 250 },
+                decodedText => {
+                    processScannedCode(decodedText);
+                    stopScanner();
+                },
+                errorMessage => {}
+            ).catch(err => {
+                alert("Gagal membuka kamera: " + err);
+            });
+            scannerIsRunning = true;
+        } else {
+            stopScanner();
+        }
+    }
+
+    function stopScanner() {
+        if (html5QrCode && scannerIsRunning) {
+            html5QrCode.stop().then(() => {
+                scannerIsRunning = false;
+                document.getElementById("reader").style.display = "none";
+            }).catch(err => console.log(err));
+        }
+    }
+
+    function processScannedCode(code) {
+        // Ambil karakter ke-12 sampai 17 untuk Nomer Unit (Index 11 hingga 17)
+        // Ambil karakter ke-6 dan 5 dari belakang untuk Suffix
+        let unitNo = "";
+        let suffix = "";
+
+        if (code.length >= 17) {
+            unitNo = code.substring(11, 17);
+        } else {
+            unitNo = code; // Fallback jika panjang teks kurang dari ketentuan
+        }
+
+        if (code.length >= 6) {
+            let char6FromBack = code.charAt(code.length - 6);
+            let char5FromBack = code.charAt(code.length - 5);
+            suffix = char6FromBack + char5FromBack;
+        }
+
+        openInputModal(suffix, unitNo);
+    }
+</script>
+
+</body>
+</html>
