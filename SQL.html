@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Database View - MySQL Style</title>
+    <style>
+        body { font-family: 'Courier New', Courier, monospace; background: #1e1e1e; margin: 0; padding: 20px; color: #d4d4d4; }
+        h1 { color: #4ec9b0; font-family: Arial, sans-serif; }
+        .container { max-width: 1000px; margin: auto; background: #252526; padding: 20px; border-radius: 8px; box-shadow: 0 4px 15px rgba(0,0,0,0.5); border: 1px solid #333; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 13px; }
+        th, td { border: 1px solid #3f3f46; padding: 10px; text-align: left; }
+        th { background: #2d2d30; color: #569cd6; }
+        tr:nth-child(even) { background: #2a2d2e; }
+        tr:hover { background: #37373d; }
+        .text-ok { color: #4ec9b0; font-weight: bold; }
+        .text-ng { color: #f44747; font-weight: bold; }
+        .nav-links { margin-bottom: 20px; font-family: Arial, sans-serif; }
+        .nav-links a { margin-right: 15px; text-decoration: none; color: #4ec9b0; font-weight: bold; }
+        .meta-info { color: #858585; font-size: 12px; margin-top: 10px; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="nav-links">
+        <a href="index.html">Index (CRUD)</a>
+        <a href="view.html" target="_blank">View Data</a>
+        <a href="data.html">Database View</a>
+    </div>
+
+    <h1>Database Inspector [MySQL Console Style]</h1>
+    <div class="meta-info" id="queryInfo">Executing: SELECT * FROM Database...</div>
+    
+    <div style="overflow-x: auto;">
+        <table>
+            <thead>
+                <tr>
+                    <th>id</th>
+                    <th>timestamp</th>
+                    <th>suffix</th>
+                    <th>unitNo</th>
+                    <th>problem</th>
+                    <th>wip</th>
+                    <th>status</th>
+                </tr>
+            </thead>
+            <tbody id="dbTableData">
+                <tr><td colspan="7" style="text-align:center;">Loading rows...</td></tr>
+            </tbody>
+        </table>
+    </div>
+    <div class="meta-info" id="rowCount">0 rows returned.</div>
+</div>
+
+<script>
+    const API_URL = 'https://script.google.com/macros/s/AKfycby28sihhGYpIq96nWemrjRh4DW9yw3wqw3GMrW0YbvMA5DzqMbCoU08attU2q1KFCJa/exec';
+
+    document.addEventListener("DOMContentLoaded", () => {
+        fetch(API_URL + "?action=get")
+            .then(res => res.json())
+            .then(data => {
+                const tbody = document.getElementById("dbTableData");
+                tbody.innerHTML = "";
+                if (data.length === 0) {
+                    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;">Empty set (0.00 sec)</td></tr>`;
+                    document.getElementById("rowCount").innerText = "0 rows in set.";
+                    return;
+                }
+
+                data.forEach(item => {
+                    let tr = document.createElement("tr");
+                    let statusClass = item.status === "OK" ? "text-ok" : "text-ng";
+                    tr.innerHTML = `
+                        <td>${item.id || ''}</td>
+                        <td>${item.timestamp || ''}</td>
+                        <td>${item.suffix || ''}</td>
+                        <td>${item.unitNo || ''}</td>
+                        <td>${item.problem || ''}</td>
+                        <td>${item.wip || ''}</td>
+                        <td class="${statusClass}">${item.status || ''}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+                document.getElementById("rowCount").innerText = `${data.length} rows in set.`;
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById("dbTableData").innerHTML = `<tr><td colspan="7" style="text-align:center; color:#f44747;">Error loading database</td></tr>`;
+            });
+    });
+</script>
+
+</body>
+</html>
