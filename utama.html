@@ -212,16 +212,8 @@
     </style>
 </head>
 <body>
-
-<div class="container">
-    <div class="nav-links">
-        <a href="index.html" class="active">Index (CRUD)</a>
-        <a href="view.html" target="_blank">View Data</a>
-        <a href="data.html" target="_blank">Database Console</a>
-    </div>
-
     <header>
-        <h1>Manajemen Inspeksi Kendaraan</h1>
+        <h1>Manajemen Unit</h1>
         <p>Sistem input manual & pemindaian barcode terintegrasi dengan Google Spreadsheet.</p>
     </header>
 
@@ -240,7 +232,6 @@
                     <th>Suffix</th>
                     <th>No Unit</th>
                     <th>Problem</th>
-                    <th>Status</th>
                 </tr>
             </thead>
             <tbody id="tableData">
@@ -272,8 +263,7 @@
             <div class="form-group">
                 <label>WIP Area:</label>
                 <div class="radio-group">
-                    <label><input type="radio" name="wip" value="WIP 1" checked> WIP 1</label>
-                    <label><input type="radio" name="wip" value="WIP 2"> WIP 2</label>
+                    <label><input type="radio" name="wip" value="WIP 1" checked> WIP</label>
                 </div>
             </div>
             <div class="form-group">
@@ -342,7 +332,6 @@
                 <td>${item.suffix || '-'}</td>
                 <td><code>${item.unitNo || '-'}</code></td>
                 <td>${item.problem || '-'}</td>
-                <td><span class="badge ${badgeClass}">${item.status || '-'}</span></td>
             `;
 
             tr.addEventListener("click", () => showDetail(item, false));
