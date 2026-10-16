@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Laporan WIP RM0</title>
+    <!-- Tailwind CSS untuk Desain Keren & Modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome untuk Ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Html5-Qrcode Scanner Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Poppins', sans-serif; }
+    </style>
+</head>
+<body class="bg-gradient-to-br from-indigo-900 via-purple-900 to-pink-800 min-h-screen text-white pb-20">
+
+    <!-- Header -->
+    <header class="max-w-4xl mx-auto p-6 text-center">
+        <h1 class="text-3xl md:text-4xl font-extrabold tracking-wide drop-shadow-lg text-transparent bg-clip-text bg-gradient-to-r from-yellow-300 via-pink-300 to-cyan-300">
+            <i class="fa-solid fa-industry mr-2"></i> Laporan WIP RM0
+        </h1>
+        <p class="text-sm text-purple-200 mt-1" id="current-date-display"></p>
+    </header>
+
+    <!-- Main Container -->
+    <main class="max-w-4xl mx-auto px-4">
+        
+        <!-- Action Buttons Bar -->
+        <div class="flex flex-wrap gap-3 justify-between items-center mb-6 bg-white/10 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white/20">
+            <div class="flex gap-2">
+                <button onclick="openMainChoiceModal()" class="bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 text-white font-semibold px-5 py-2.5 rounded-xl shadow-lg transition transform hover:scale-105 flex items-center gap-2">
+                    <i class="fa-solid fa-plus-circle"></i> Tambah WIP
+                </button>
+                <button onclick="switchView('today')" id="btn-view-today" class="bg-cyan-500 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-calendar-day"></i> Hari Ini
+                </button>
+                <button onclick="switchView('history')" id="btn-view-history" class="bg-white/20 hover:bg-white/30 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2">
+                    <i class="fa-solid fa-clock-rotate-left"></i> Riwayat
+                </button>
+            </div>
+            <div>
+                <button onclick="sendWhatsApp()" class="bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg transition transform hover:scale-105 flex items-center gap-2">
+                    <i class="fa-brands fa-whatsapp text-lg"></i> Kirim WA
+                </button>
+            </div>
+        </div>
+
+        <!-- Filter Riwayat (Hidden by default) -->
+        <div id="history-filter-section" class="hidden mb-6 bg-white/10 backdrop-blur-md p-4 rounded-2xl shadow-xl border border-white/20 flex items-center gap-4">
+            <label class="text-sm font-medium text-purple-200">Pilih Tanggal:</label>
+            <input type="date" id="filter-date" onchange="renderData()" class="bg-white/20 border border-white/30 rounded-xl px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-pink-400">
+        </div>
+
+        <!-- Display Unit Container -->
+        <div class="bg-white/10 backdrop-blur-md rounded-3xl shadow-2xl border border-white/20 overflow-hidden">
+            <div class="p-5 border-b border-white/10 flex justify-between items-center">
+                <h2 id="section-title" class="text-xl font-bold text-pink-300">Display Unit Hari Ini</h2>
+                <span id="unit-count" class="text-xs bg-pink-500/30 border border-pink-400/50 px-3 py-1 rounded-full text-pink-200 font-semibold">0 Unit</span>
+            </div>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-black/20 text-purple-200 text-sm uppercase tracking-wider">
+                            <th class="p-4">No</th>
+                            <th class="p-4">Suffix</th>
+                            <th class="p-4">Nomor Unit</th>
+                            <th class="p-4">Problem</th>
+                            <th class="p-4 text-center">Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="unit-table-body" class="divide-y divide-white/10 text-sm">
+                        <!-- Data Rows Injected Here -->
+                    </tbody>
+                </table>
+            </div>
+            <div id="empty-state" class="p-12 text-center text-purple-300 hidden">
+                <i class="fa-solid fa-box-open text-4xl mb-3 opacity-60"></i>
+                <p>Belum ada data unit WIP.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- ================= MODALS ================= -->
+
+    <!-- 1. Modal Pilih Aksi (Tambah / Scan) -->
+    <div id="modal-choice" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 border border-white/20 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center">
+            <h3 class="text-xl font-bold text-pink-300 mb-6">Pilih Metode Input WIP</h3>
+            <div class="flex flex-col gap-4">
+                <button onclick="openInputForm()" class="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-4 rounded-2xl shadow-lg transition flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-keyboard text-lg"></i> Manual Input
+                </button>
+                <button onclick="openScanner()" class="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-semibold py-3 px-4 rounded-2xl shadow-lg transition flex items-center justify-center gap-3">
+                    <i class="fa-solid fa-barcode text-lg"></i> Scan Barcode
+                </button>
+                <button onclick="closeModal('modal-choice')" class="bg-white/10 hover:bg-white/20 text-purple-200 font-semibold py-2.5 rounded-2xl transition">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 2. Modal Scanner Barcode -->
+    <div id="modal-scanner" class="fixed inset-0 bg-black/80 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 border border-white/20 rounded-3xl p-6 w-full max-w-md shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-lg font-bold text-pink-300">Scan Barcode Barcode Unit</h3>
+                <button onclick="closeScanner()" class="text-white/70 hover:text-white"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <div id="reader" class="rounded-2xl overflow-hidden border border-white/20 mb-4 bg-black"></div>
+            <p class="text-xs text-purple-300 text-center mb-4">Arahkan kamera ke barcode. Otomatis mengambil Suffix & Nomor Unit.</p>
+            <button onclick="closeScanner()" class="w-full bg-white/10 hover:bg-white/20 text-purple-200 font-semibold py-2.5 rounded-2xl transition">
+                Tutup / Batal
+            </button>
+        </div>
+    </div>
+
+    <!-- 3. Modal Form Input / Edit Data -->
+    <div id="modal-form" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 border border-white/20 rounded-3xl p-6 w-full max-w-md shadow-2xl max-h-[90vh] overflow-y-auto">
+            <h3 id="form-title" class="text-xl font-bold text-pink-300 mb-4">Form Input WIP RM0</h3>
+            <form id="wip-form" onsubmit="saveWipData(event)" class="space-y-4">
+                <input type="hidden" id="edit-index" value="">
+                <div>
+                    <label class="block text-xs font-semibold text-purple-200 mb-1">Suffix</label>
+                    <input type="text" id="input-suffix" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-pink-400" placeholder="Contoh: A1">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-purple-200 mb-1">Nomor Unit</label>
+                    <input type="text" id="input-unit" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-pink-400" placeholder="Karakter 12-17 atau manual">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-purple-200 mb-1">Problem</label>
+                    <textarea id="input-problem" rows="3" required class="w-full bg-white/10 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:ring-2 focus:ring-pink-400" placeholder="Deskripsi kendala / problem..."></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-purple-200 mb-1">Check WIP / Status (OK / NG)</label>
+                    <div class="grid grid-cols-2 gap-3">
+                        <label class="cursor-pointer bg-white/10 border border-white/20 rounded-xl p-3 flex items-center justify-center gap-2 has-[:checked]:bg-green-600/40 has-[:checked]:border-green-400 transition">
+                            <input type="radio" name="status" value="OK" required class="accent-green-500">
+                            <span class="font-bold text-green-300">OK</span>
+                        </label>
+                        <label class="cursor-pointer bg-white/10 border border-white/20 rounded-xl p-3 flex items-center justify-center gap-2 has-[:checked]:bg-red-600/40 has-[:checked]:border-red-400 transition">
+                            <input type="radio" name="status" value="NG" required class="accent-red-500">
+                            <span class="font-bold text-red-300">NG</span>
+                        </label>
+                    </div>
+                </div>
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeModal('modal-form')" class="flex-1 bg-white/10 hover:bg-white/20 text-purple-200 font-semibold py-3 rounded-xl transition">
+                        Batal
+                    </button>
+                    <button type="submit" class="flex-1 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-600 hover:to-purple-700 text-white font-semibold py-3 rounded-xl shadow-lg transition">
+                        Simpan
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- 4. Modal Detail Data (Klik Sekali) -->
+    <div id="modal-detail" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 border border-white/20 rounded-3xl p-6 w-full max-w-sm shadow-2xl">
+            <h3 class="text-xl font-bold text-pink-300 mb-4 border-b border-white/10 pb-2">Detail Informasi Unit</h3>
+            <div class="space-y-3 text-sm mb-6">
+                <p><strong class="text-purple-300">Suffix - Nomor unit:</strong><br><span id="detail-unit-str" class="text-lg font-semibold text-white"></span></p>
+                <p><strong class="text-purple-300">Problem:</strong><br><span id="detail-problem-str" class="text-white"></span></p>
+                <p><strong class="text-purple-300">Status:</strong><br><span id="detail-status-str" class="font-bold"></span></p>
+                <p><strong class="text-purple-300">Tanggal:</strong><br><span id="detail-date-str" class="text-white"></span></p>
+            </div>
+            <button onclick="closeModal('modal-detail')" class="w-full bg-white/10 hover:bg-white/20 text-purple-200 font-semibold py-2.5 rounded-xl transition">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <!-- 5. Modal Aksi Lanjutan (Klik Tahan / Long Press untuk Edit & Hapus) -->
+    <div id="modal-action-options" class="fixed inset-0 bg-black/70 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+        <div class="bg-gradient-to-br from-indigo-950 to-purple-950 border border-white/20 rounded-3xl p-6 w-full max-w-sm shadow-2xl text-center">
+            <h3 class="text-lg font-bold text-pink-300 mb-4">Pilih Aksi Data</h3>
+            <input type="hidden" id="selected-data-index" value="">
+            <div class="flex flex-col gap-3">
+                <button onclick="editData()" class="bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Data
+                </button>
+                <button onclick="deleteData()" class="bg-red-600 hover:bg-red-700 text-white font-semibold py-3 px-4 rounded-xl shadow-lg transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash"></i> Hapus Data
+                </button>
+                <button onclick="closeModal('modal-action-options')" class="bg-white/10 hover:bg-white/20 text-purple-200 font-semibold py-2.5 rounded-xl transition">
+                    Batal
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Logika Aplikasi -->
+    <script>
+        // --- KONFIGURASI GOOGLE APPS SCRIPT WEB APP URL ---
+        // Masukkan URL Web App Google Apps Script Anda di bawah ini:
+        const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyQ7L85t7_aBuCIuYz54a74fxBfe1APZOM5u8uzegxHwETdHDBxeWIFtnmyinHQGMVh/exec";
+
+        let allData = [];
+        let currentMode = 'today'; // 'today' atau 'history'
+        let html5QrCode = null;
+        let longPressTimer = null;
+
+        // Inisialisasi Tanggal Hari Ini
+        const todayStr = new Date().toISOString().split('T')[0];
+        document.getElementById('current-date-display').innerText = new Date().toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
+        document.getElementById('filter-date').value = todayStr;
+
+        // Ambil data saat halaman dimuat
+        window.onload = function() {
+            fetchData();
+        };
+
+        // Fungsi Ambil Data dari Google Sheets / LocalStorage Backup
+        async function fetchData() {
+            if (WEB_APP_URL === "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+                // Gunakan LocalStorage jika URL belum diatur
+                allData = JSON.parse(localStorage.getItem('wip_rm0_data')) || [];
+                renderData();
+                return;
+            }
+
+            try {
+                let response = await fetch(WEB_APP_URL);
+                let result = await response.json();
+                allData = result;
+                renderData();
+            } catch (error) {
+                console.error("Gagal mengambil data dari Google Sheets:", error);
+                allData = JSON.parse(localStorage.getItem('wip_rm0_data')) || [];
+                renderData();
+            }
+        }
+
+        // Render Data ke Tabel
+        function renderData() {
+            const tbody = document.getElementById('unit-table-body');
+            tbody.innerHTML = '';
+
+            let filtered = [];
+            if (currentMode === 'today') {
+                document.getElementById('section-title').innerText = "Display Unit Hari Ini";
+                document.getElementById('history-filter-section').classList.add('hidden');
+                filtered = allData.filter(item => item.tanggal === todayStr);
+            } else {
+                document.getElementById('section-title').innerText = "Riwayat Unit WIP";
+                document.getElementById('history-filter-section').classList.remove('hidden');
+                const selectedDate = document.getElementById('filter-date').value;
+                filtered = allData.filter(item => item.tanggal === selectedDate);
+            }
+
+            document.getElementById('unit-count').innerText = `${filtered.length} Unit`;
+
+            if (filtered.length === 0) {
+                document.getElementById('empty-state').classList.remove('hidden');
+                return;
+            } else {
+                document.getElementById('empty-state').classList.add('hidden');
+            }
+
+            filtered.forEach((item, index) => {
+                // Cari index asli di allData untuk keperluan edit/hapus
+                let realIndex = allData.findIndex(d => d === item);
+                
+                let tr = document.createElement('tr');
+                tr.className = "hover:bg-white/5 transition cursor-pointer select-none";
+                
+                // Event klik biasa (menampilkan detail)
+                tr.onclick = () => showDetail(realIndex);
+                
+                // Event klik tahan (Long Press / Touch & Mouse hold) untuk edit/hapus
+                tr.onmousedown = () => startLongPress(realIndex);
+                tr.onmouseup = cancelLongPress;
+                tr.ontouchstart = () => startLongPress(realIndex);
+                tr.ontouchend = cancelLongPress;
+
+                let statusBadge = item.status === 'OK' 
+                    ? `<span class="text-green-400 font-bold bg-green-500/20 px-3 py-1 rounded-full border border-green-500/30">OK</span>`
+                    : `<span class="text-red-400 font-bold bg-red-500/20 px-3 py-1 rounded-full border border-red-500/30">NG</span>`;
+
+                tr.innerHTML = `
+                    <td class="p-4 font-medium">${index + 1}</td>
+                    <td class="p-4 font-semibold text-pink-200">${item.suffix}</td>
+                    <td class="p-4 font-mono">${item.nomorUnit}</td>
+                    <td class="p-4 truncate max-w-xs">${item.problem}</td>
+                    <td class="p-4 text-center">${statusBadge}</td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // Switch View (Hari Ini / Riwayat)
+        function switchView(mode) {
+            currentMode = mode;
+            if (mode === 'today') {
+                document.getElementById('btn-view-today').className = "bg-cyan-500 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2";
+                document.getElementById('btn-view-history').className = "bg-white/25 hover:bg-white/30 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2";
+            } else {
+                document.getElementById('btn-view-history').className = "bg-cyan-500 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2";
+                document.getElementById('btn-view-today').className = "bg-white/25 hover:bg-white/30 text-white font-semibold px-4 py-2.5 rounded-xl shadow-lg transition flex items-center gap-2";
+            }
+            renderData();
+        }
+
+        // Long Press Handler
+        function startLongPress(realIndex) {
+            longPressTimer = setTimeout(() => {
+                openActionOptions(realIndex);
+            }, 600); // 600ms tahan
+        }
+        function cancelLongPress() {
+            clearTimeout(longPressTimer);
+        }
+
+        function openActionOptions(realIndex) {
+            document.getElementById('selected-data-index').value = realIndex;
+            document.getElementById('modal-action-options').classList.remove('hidden');
+        }
+
+        // Modal Controls
+        function openMainChoiceModal() {
+            document.getElementById('modal-choice').classList.remove('hidden');
+        }
+
+        function openInputForm(suffix = '', nomorUnit = '', problem = '', status = '', editIdx = '') {
+            closeModal('modal-choice');
+            document.getElementById('wip-form').reset();
+            document.getElementById('edit-index').value = editIdx;
+            
+            if (editIdx !== '') {
+                document.getElementById('form-title').innerText = "Edit Data WIP RM0";
+                document.getElementById('input-suffix').value = suffix;
+                document.getElementById('input-unit').value = nomorUnit;
+                document.getElementById('input-problem').value = problem;
+                if(status) {
+                    document.querySelector(`input[name="status"][value="${status}"]`).checked = true;
+                }
+            } else {
+                document.getElementById('form-title').innerText = "Form Input WIP RM0";
+                document.getElementById('input-suffix').value = suffix;
+                document.getElementById('input-unit').value = nomorUnit;
+            }
+            document.getElementById('modal-form').classList.remove('hidden');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.add('hidden');
+        }
+
+        // Scanner Barcode Logic
+        function openScanner() {
+            closeModal('modal-choice');
+            document.getElementById('modal-scanner').classList.remove('hidden');
+            
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    // Berhasil scan barcode
+                    parseBarcodeResult(decodedText);
+                    stopScanner();
+                },
+                (errorMessage) => {
+                    // Scanning error or finding...
+                }
+            ).catch((err) => {
+                alert("Gagal membuka kamera: " + err);
+                closeScanner();
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('modal-scanner').classList.add('hidden');
+                }).catch(err => console.log(err));
+            } else {
+                document.getElementById('modal-scanner').classList.add('hidden');
+            }
+        }
+
+        function closeScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    document.getElementById('modal-scanner').classList.add('hidden');
+                }).catch(() => {
+                    document.getElementById('modal-scanner').classList.add('hidden');
+                });
+            } else {
+                document.getElementById('modal-scanner').classList.add('hidden');
+            }
+        }
+
+        // Parsing Barcode sesuai ketentuan:
+        // Suffix: Karakter ke-6 dan ke-5 dari belakang
+        // Nomor Unit: Karakter ke-12 sampai ke-17
+        function parseBarcodeResult(text) {
+            let suffix = "";
+            let nomorUnit = "";
+
+            if (text.length >= 6) {
+                // Karakter ke-6 dan ke-5 dari belakang (Contoh: jika panjang 10, index dari belakang)
+                // Panjang - 6 dan Panjang - 5
+                let len = text.length;
+                suffix = text.substring(len - 6, len - 4); 
+            }
+            
+            if (text.length >= 17) {
+                // Karakter ke-12 sampai 17 (index 11 sampai 17)
+                nomorUnit = text.substring(11, 17);
+            } else if (text.length >= 6) {
+                nomorUnit = text.substring(0, 6); // Fallback jika pendek
+            } else {
+                nomorUnit = text;
+            }
+
+            openInputForm(suffix, nomorUnit);
+        }
+
+        // Simpan Data (Tambah / Edit)
+        async function saveWipData(event) {
+            event.preventDefault();
+            const editIdx = document.getElementById('edit-index').value;
+            const suffix = document.getElementById('input-suffix').value;
+            const nomorUnit = document.getElementById('input-unit').value;
+            const problem = document.getElementById('input-problem').value;
+            const status = document.querySelector('input[name="status"]:checked').value;
+
+            const newData = {
+                tanggal: todayStr,
+                suffix: suffix,
+                nomorUnit: nomorUnit,
+                problem: problem,
+                status: status
+            };
+
+            if (editIdx !== '') {
+                allData[editIdx] = newData;
+            } else {
+                allData.push(newData);
+            }
+
+            // Simpan ke LocalStorage sebagai backup instan
+            localStorage.setItem('wip_rm0_data', JSON.stringify(allData));
+
+            // Kirim ke Google Sheets jika URL aktif
+            if (WEB_APP_URL !== "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+                try {
+                    await fetch(WEB_APP_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(newData)
+                    });
+                } catch (e) {
+                    console.error("Gagal sinkronisasi Google Sheets:", e);
+                }
+            }
+
+            closeModal('modal-form');
+            renderData();
+            alert("Data WIP berhasil disimpan!");
+        }
+
+        // Tampilkan Detail
+        function showDetail(realIndex) {
+            const item = allData[realIndex];
+            document.getElementById('detail-unit-str').innerText = `${item.suffix} - ${item.nomorUnit}`;
+            document.getElementById('detail-problem-str').innerText = item.problem;
+            
+            const statusEl = document.getElementById('detail-status-str');
+            statusEl.innerText = item.status;
+            statusEl.className = item.status === 'OK' ? 'text-green-400 font-bold text-lg' : 'text-red-400 font-bold text-lg';
+            
+            document.getElementById('detail-date-str').innerText = item.tanggal;
+            document.getElementById('modal-detail').classList.remove('hidden');
+        }
+
+        // Edit Data dari Action Options
+        function editData() {
+            const realIndex = document.getElementById('selected-data-index').value;
+            closeModal('modal-action-options');
+            const item = allData[realIndex];
+            openInputForm(item.suffix, item.nomorUnit, item.problem, item.status, realIndex);
+        }
+
+        // Hapus Data
+        async function deleteData() {
+            const realIndex = document.getElementById('selected-data-index').value;
+            closeModal('modal-action-options');
+            
+            if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+                let deletedItem = allData[realIndex];
+                allData.splice(realIndex, 1);
+                localStorage.setItem('wip_rm0_data', JSON.stringify(allData));
+
+                if (WEB_APP_URL !== "YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE") {
+                    try {
+                        await fetch(WEB_APP_URL, {
+                            method: 'POST',
+                            mode: 'no-cors',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ action: 'delete', suffix: deletedItem.suffix, nomorUnit: deletedItem.nomorUnit })
+                        });
+                    } catch (e) {
+                        console.error("Gagal hapus dari Google Sheets:", e);
+                    }
+                }
+                renderData();
+            }
+        }
+
+        // Kirim WhatsApp Format Sesuai Ketentuan
+        function sendWhatsApp() {
+            const selectedDate = currentMode === 'today' ? todayStr : document.getElementById('filter-date').value;
+            let filtered = allData.filter(item => item.tanggal === selectedDate);
+
+            // Format Tanggal Indonesia
+            let dateObj = new Date(selectedDate);
+            let optionsDate = { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' };
+            let formattedDateStr = dateObj.toLocaleDateString('id-ID', optionsDate);
+
+            let text = `*Daftar unit WIP RM 0 ${formattedDateStr}*\n`;
+            text += `Total unit : ${filtered.length}\n\n`;
+
+            filtered.forEach((item, index) => {
+                let statusSymbol = item.status === 'OK' ? '✅' : '❌';
+                text += `${index + 1}. ${item.suffix}-${item.nomorUnit} ${statusSymbol}\n`;
+                text += `   - ${item.problem}\n`;
+            });
+
+            let encodedText = encodeURIComponent(text);
+            window.open(`https://api.whatsapp.com/send?text=${encodedText}`, '_blank');
+        }
+    </script>
+</body>
+</html>
