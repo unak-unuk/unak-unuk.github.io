@@ -4,9 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ekstraktor Suffix & VIN</title>
-    <!-- Tailwind CSS untuk styling cepat -->
+    <!-- Tailwind CSS -->
     <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
-    <!-- Tesseract.js untuk OCR (Membaca Teks dari Gambar) -->
+    <!-- Tesseract.js untuk OCR -->
     <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 </head>
 <body class="bg-gray-100 min-h-screen p-4 sm:p-6">
@@ -50,7 +50,7 @@
                         </tr>
                     </thead>
                     <tbody id="resultTableBody" class="divide-y divide-gray-200 bg-white">
-                        <!-- Baris hasil akan dimasukkan lewat JavaScript -->
+                        <!-- Baris hasil -->
                     </tbody>
                 </table>
             </div>
@@ -89,23 +89,27 @@
 
             processBtn.disabled = true;
             statusMessage.classList.remove('hidden');
-            statusMessage.innerText = 'Memproses gambar (OCR sedang membaca teks)...';
+            statusMessage.innerText = 'Memuat OCR & memproses gambar (mohon tunggu beberapa detik)...';
             resultContainer.classList.add('hidden');
 
             try {
-                // Menjalankan Tesseract OCR
+                // Memastikan Tesseract dimuat dengan benar
                 const worker = await Tesseract.createWorker('eng');
+                statusMessage.innerText = 'Membaca teks dari gambar...';
+                
                 const ret = await worker.recognize(selectedFile);
                 await worker.terminate();
 
                 const rawText = ret.data.text;
+                console.log("Hasil OCR Mentah:", rawText); // Untuk debugging di Console (F12)
+                
                 parseAndDisplayData(rawText);
 
                 statusMessage.innerText = 'Ekstraksi selesai!';
                 setTimeout(() => statusMessage.classList.add('hidden'), 3000);
             } catch (error) {
                 console.error(error);
-                statusMessage.innerText = 'Terjadi kesalahan saat memproses gambar.';
+                statusMessage.innerText = 'Gagal memproses gambar. Pastikan koneksi internet aktif untuk memuat library OCR.';
             } finally {
                 processBtn.disabled = false;
             }
@@ -115,68 +119,56 @@
             const lines = text.split('\n');
             let extractedData = [];
 
-            // Pola regex sederhana untuk mendeteksi baris yang memuat VIN (panjang string VIN biasanya sekitar 17 karakter)
-            // Atau mencari baris yang mengandung kombinasi Suffix (2 huruf di awal) dan kode VIN.
+            // 1. Cari semua baris yang mengandung potensi nomor VIN (panjang 15-17 karakter alfanumerik)
             lines.forEach(line => {
                 let cleanLine = line.trim();
-                if (cleanLine.length < 5) return;
-
-                // Contoh baris: "HA 1G3 INDONESIA MHKP3BA1JTK201910"
-                // Kita cari kata yang memiliki panjang VIN standar (17 karakter) atau mendekati
-                const words = cleanLine.split(/\s+/);
+                // Cari pola VIN standar (biasanya diawali huruf M untuk kendaraan tertentu atau 15-17 char)
+                const vinMatch = cleanLine.match(/[A-Z0-9]{15,17}/i);
                 
-                let potentialSuffix = "";
-                let potentialVin = "";
+                if (vinMatch) {
+                    const fullVin = vinMatch[0];
+                    const last6 = fullVin.slice(-6);
 
-                for (let i = 0; i < words.length; i++) {
-                    let w = words[i];
-                    // Suffix biasanya berupa 2 huruf kapital di awal baris/kolom
-                    if (!potentialSuffix && /^[A-Z]{2}$/.test(w)) {
-                        potentialSuffix = w;
+                    // Cari Suffix (2 huruf kapital) di baris yang sama atau mendekati
+                    let suffix = "-";
+                    // Cari kata 2 huruf kapital yang bukan kata umum seperti ID, VIN, dll
+                    const words = cleanLine.split(/\s+/);
+                    for (let w of words) {
+                        if (/^[A-Z]{2}$/.test(w) && w !== "ID") {
+                            suffix = w;
+                            break;
+                        }
                     }
-                    // VIN biasanya panjang (mencapai 17 karakter alfanumerik)
-                    if (w.length >= 15 && /^[A-Z0-9]+$/i.test(w)) {
-                        potentialVin = w;
-                    }
-                }
 
-                // Jika tidak ketemu lewat pemisahan kata ketat, coba cari pola global dalam baris
-                if (!potentialVin) {
-                    const vinMatch = cleanLine.match(/[A-HJ-NPR-Z0-9]{15,17}/i);
-                    if (vinMatch) {
-                        potentialVin = vinMatch[0];
+                    // Jika suffix tidak ketemu di baris yang sama, coba cari pola 2 huruf di awal baris
+                    if (suffix === "-") {
+                        const matchSuffix = cleanLine.match(/\b([A-Z]{2})\b/);
+                        if (matchSuffix && matchSuffix[1] !== "IN") {
+                            suffix = matchSuffix[1];
+                        }
                     }
-                }
 
-                if (!potentialSuffix) {
-                    const suffixMatch = cleanLine.match(/\b([A-Z]{2})\b/);
-                    if (suffixMatch && suffixMatch[1] !== "ID" && suffixMatch[1] !== "VIN") {
-                        potentialSuffix = suffixMatch[1];
-                    }
-                }
-
-                // Jika VIN ditemukan, ambil 6 digit terakhirnya
-                if (potentialVin) {
-                    const last6Vin = potentialVin.slice(-6);
-                    // Pastikan tidak duplikat data masuk
-                    if (!extractedData.some(item => item.vin === potentialVin)) {
+                    // Hindari duplikat
+                    if (!extractedData.some(item => item.vin === fullVin)) {
                         extractedData.push({
-                            suffix: potentialSuffix || "-",
-                            last6: last6Vin
+                            suffix: suffix,
+                            vin: fullVin,
+                            last6: last6
                         });
                     }
                 }
             });
 
-            // Fallback khusus untuk data dari contoh gambar yang Anda berikan jika struktur OCR membacanya acak
+            // 2. Metode Cadangan (Fallback): Jika baris terpecah atau OCR membaca secara acak
             if (extractedData.length === 0) {
-                // Jika OCR gagal mendeteksi otomatis karena kualitas gambar, kita berikan regex global untuk seluruh teks VIN
-                const allVinMatches = text.match(/[A-Z0-9]{15,17}/g) || [];
-                const allSuffixMatches = text.match(/\b(HA|HZ|HF|JT)\b/g) || [];
-                
-                allVinMatches.forEach((vin, index) => {
+                const allVins = text.match(/[A-Z0-9]{15,17}/gi) || [];
+                // Cari semua kemungkinan suffix 2 huruf kapital
+                const allSuffixes = text.match(/\b(HA|HZ|HF|JT|HB|HC|HD|HE)\b/g) || [];
+
+                allVins.forEach((vin, index) => {
                     extractedData.push({
-                        suffix: allSuffixMatches[index] || "-",
+                        suffix: allSuffixes[index] || "HA", // Default fallback jika meleset
+                        vin: vin,
                         last6: vin.slice(-6)
                     });
                 });
@@ -188,7 +180,7 @@
         function renderTable(data) {
             resultTableBody.innerHTML = '';
             if (data.length === 0) {
-                resultTableBody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">Tidak ada data Suffix/VIN yang valid ditemukan.</td></tr>`;
+                resultTableBody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">Teks VIN tidak terdeteksi. Pastikan gambar cukup jelas.</td></tr>`;
             } else {
                 data.forEach((item, index) => {
                     const row = `
