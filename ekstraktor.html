@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ekstraktor Suffix & VIN</title>
+    <!-- Tailwind CSS untuk styling cepat -->
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+    <!-- Tesseract.js untuk OCR (Membaca Teks dari Gambar) -->
+    <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+</head>
+<body class="bg-gray-100 min-h-screen p-4 sm:p-6">
+    <div class="max-w-3xl mx-auto bg-white rounded-xl shadow-md overflow-hidden p-6">
+        <h1 class="text-2xl font-bold text-gray-800 mb-2">Ekstraktor Suffix & 6 Digit VIN</h1>
+        <p class="text-gray-600 text-sm mb-6">Unggah gambar tabel untuk mengekstrak Suffix dan 6 karakter terakhir nomor VIN secara otomatis.</p>
+
+        <!-- Area Upload -->
+        <div class="mb-6">
+            <label class="block mb-2 text-sm font-medium text-gray-700">Pilih Gambar Tabel</label>
+            <input type="file" id="imageInput" accept="image/*" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+        </div>
+
+        <!-- Pratinjau Gambar -->
+        <div id="previewContainer" class="mb-6 hidden">
+            <p class="text-sm font-medium text-gray-700 mb-2">Pratinjau Gambar:</p>
+            <img id="imagePreview" class="max-h-64 rounded border border-gray-300 object-contain mx-auto" alt="Preview">
+        </div>
+
+        <!-- Tombol Proses -->
+        <button id="processBtn" onclick="processImage()" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 px-4 rounded-lg transition duration-200 disabled:bg-gray-400 cursor-pointer">
+            Ekstrak Data
+        </button>
+
+        <!-- Status Proses / Loading -->
+        <div id="statusMessage" class="mt-4 text-center text-sm font-medium text-blue-600 hidden"></div>
+
+        <!-- Hasil Ekstraksi -->
+        <div id="resultContainer" class="mt-8 hidden">
+            <div class="flex justify-between items-center mb-3">
+                <h2 class="text-lg font-semibold text-gray-800">Hasil Ekstraksi</h2>
+                <button onclick="copyAllResults()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 text-xs px-3 py-1.5 rounded transition cursor-pointer">Salin Semua</button>
+            </div>
+            <div class="overflow-x-auto border border-gray-200 rounded-lg">
+                <table class="min-w-full divide-y divide-gray-200 text-left text-sm">
+                    <thead class="bg-gray-50">
+                        <tr>
+                            <th class="px-4 py-3 font-semibold text-gray-700">No</th>
+                            <th class="px-4 py-3 font-semibold text-gray-700">Suffix</th>
+                            <th class="px-4 py-3 font-semibold text-gray-700">6 Digit Terakhir VIN</th>
+                        </tr>
+                    </thead>
+                    <tbody id="resultTableBody" class="divide-y divide-gray-200 bg-white">
+                        <!-- Baris hasil akan dimasukkan lewat JavaScript -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById('imageInput');
+        const imagePreview = document.getElementById('imagePreview');
+        const previewContainer = document.getElementById('previewContainer');
+        const processBtn = document.getElementById('processBtn');
+        const statusMessage = document.getElementById('statusMessage');
+        const resultContainer = document.getElementById('resultContainer');
+        const resultTableBody = document.getElementById('resultTableBody');
+
+        let selectedFile = null;
+
+        imageInput.addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                selectedFile = file;
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    imagePreview.src = e.target.result;
+                    previewContainer.classList.remove('hidden');
+                }
+                reader.readAsDataURL(file);
+            }
+        });
+
+        async function processImage() {
+            if (!selectedFile) {
+                alert('Silakan pilih gambar terlebih dahulu!');
+                return;
+            }
+
+            processBtn.disabled = true;
+            statusMessage.classList.remove('hidden');
+            statusMessage.innerText = 'Memproses gambar (OCR sedang membaca teks)...';
+            resultContainer.classList.add('hidden');
+
+            try {
+                // Menjalankan Tesseract OCR
+                const worker = await Tesseract.createWorker('eng');
+                const ret = await worker.recognize(selectedFile);
+                await worker.terminate();
+
+                const rawText = ret.data.text;
+                parseAndDisplayData(rawText);
+
+                statusMessage.innerText = 'Ekstraksi selesai!';
+                setTimeout(() => statusMessage.classList.add('hidden'), 3000);
+            } catch (error) {
+                console.error(error);
+                statusMessage.innerText = 'Terjadi kesalahan saat memproses gambar.';
+            } finally {
+                processBtn.disabled = false;
+            }
+        }
+
+        function parseAndDisplayData(text) {
+            const lines = text.split('\n');
+            let extractedData = [];
+
+            // Pola regex sederhana untuk mendeteksi baris yang memuat VIN (panjang string VIN biasanya sekitar 17 karakter)
+            // Atau mencari baris yang mengandung kombinasi Suffix (2 huruf di awal) dan kode VIN.
+            lines.forEach(line => {
+                let cleanLine = line.trim();
+                if (cleanLine.length < 5) return;
+
+                // Contoh baris: "HA 1G3 INDONESIA MHKP3BA1JTK201910"
+                // Kita cari kata yang memiliki panjang VIN standar (17 karakter) atau mendekati
+                const words = cleanLine.split(/\s+/);
+                
+                let potentialSuffix = "";
+                let potentialVin = "";
+
+                for (let i = 0; i < words.length; i++) {
+                    let w = words[i];
+                    // Suffix biasanya berupa 2 huruf kapital di awal baris/kolom
+                    if (!potentialSuffix && /^[A-Z]{2}$/.test(w)) {
+                        potentialSuffix = w;
+                    }
+                    // VIN biasanya panjang (mencapai 17 karakter alfanumerik)
+                    if (w.length >= 15 && /^[A-Z0-9]+$/i.test(w)) {
+                        potentialVin = w;
+                    }
+                }
+
+                // Jika tidak ketemu lewat pemisahan kata ketat, coba cari pola global dalam baris
+                if (!potentialVin) {
+                    const vinMatch = cleanLine.match(/[A-HJ-NPR-Z0-9]{15,17}/i);
+                    if (vinMatch) {
+                        potentialVin = vinMatch[0];
+                    }
+                }
+
+                if (!potentialSuffix) {
+                    const suffixMatch = cleanLine.match(/\b([A-Z]{2})\b/);
+                    if (suffixMatch && suffixMatch[1] !== "ID" && suffixMatch[1] !== "VIN") {
+                        potentialSuffix = suffixMatch[1];
+                    }
+                }
+
+                // Jika VIN ditemukan, ambil 6 digit terakhirnya
+                if (potentialVin) {
+                    const last6Vin = potentialVin.slice(-6);
+                    // Pastikan tidak duplikat data masuk
+                    if (!extractedData.some(item => item.vin === potentialVin)) {
+                        extractedData.push({
+                            suffix: potentialSuffix || "-",
+                            last6: last6Vin
+                        });
+                    }
+                }
+            });
+
+            // Fallback khusus untuk data dari contoh gambar yang Anda berikan jika struktur OCR membacanya acak
+            if (extractedData.length === 0) {
+                // Jika OCR gagal mendeteksi otomatis karena kualitas gambar, kita berikan regex global untuk seluruh teks VIN
+                const allVinMatches = text.match(/[A-Z0-9]{15,17}/g) || [];
+                const allSuffixMatches = text.match(/\b(HA|HZ|HF|JT)\b/g) || [];
+                
+                allVinMatches.forEach((vin, index) => {
+                    extractedData.push({
+                        suffix: allSuffixMatches[index] || "-",
+                        last6: vin.slice(-6)
+                    });
+                });
+            }
+
+            renderTable(extractedData);
+        }
+
+        function renderTable(data) {
+            resultTableBody.innerHTML = '';
+            if (data.length === 0) {
+                resultTableBody.innerHTML = `<tr><td colspan="3" class="px-4 py-4 text-center text-gray-500">Tidak ada data Suffix/VIN yang valid ditemukan.</td></tr>`;
+            } else {
+                data.forEach((item, index) => {
+                    const row = `
+                        <tr class="hover:bg-gray-50">
+                            <td class="px-4 py-3 text-gray-600">${index + 1}</td>
+                            <td class="px-4 py-3 font-medium text-gray-900">${item.suffix}</td>
+                            <td class="px-4 py-3 font-mono text-blue-600 font-semibold">${item.last6}</td>
+                        </tr>
+                    `;
+                    resultTableBody.innerHTML += row;
+                });
+            }
+            resultContainer.classList.remove('hidden');
+        }
+
+        function copyAllResults() {
+            let textToCopy = "Suffix\t6 Digit VIN\n";
+            const rows = resultTableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const cols = row.querySelectorAll('td');
+                if(cols.length >= 3) {
+                    textToCopy += `${cols[1].innerText}\t${cols[2].innerText}\n`;
+                }
+            });
+            navigator.clipboard.writeText(textToCopy).then(() => {
+                alert('Hasil berhasil disalin ke clipboard!');
+            });
+        }
+    </script>
+</body>
+</html>
