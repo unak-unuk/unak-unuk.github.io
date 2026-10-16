@@ -322,7 +322,7 @@
         <h1>🛠️ Mobile Control</h1>
         <div class="nav-links">
             <a href="view.html" target="_blank">View</a>
-            <a href="data.html" target="_blank">DB</a>
+            <a href="SQL.html" target="_blank">DB</a>
         </div>
     </div>
 
@@ -351,22 +351,21 @@
         <form id="unitForm" onsubmit="handleFormSubmit(event)">
             <input type="hidden" id="dataId">
             <div class="form-group">
-                <label>Suffix (Karakter ke-6 & 5 dari belakang):</label>
+                <label>Suffix:</label>
                 <input type="text" id="suffix" required placeholder="Otomatis / Manual">
             </div>
             <div class="form-group">
-                <label>Nomer Unit (Karakter ke-12 s/d 17):</label>
+                <label>Nomer Unit:</label>
                 <input type="text" id="unitNo" required placeholder="Otomatis / Manual">
             </div>
             <div class="form-group">
-                <label>Problem / Kendala:</label>
+                <label>Problem:</label>
                 <textarea id="problem" rows="3" required placeholder="Masukkan keterangan problem..."></textarea>
             </div>
             <div class="form-group">
-                <label>WIP Area:</label>
+                <label>WIP:</label>
                 <div class="radio-group">
-                    <label><input type="radio" name="wip" value="WIP 1" checked> WIP 1</label>
-                    <label><input type="radio" name="wip" value="WIP 2"> WIP 2</label>
+                    <label><input type="radio" name="wip" value="WIP " checked> WIP</label>
                 </div>
             </div>
             <div class="form-group">
@@ -438,8 +437,8 @@
             card.innerHTML = `
                 <div class="card-header">
                     <div class="unit-number">
-                        <span>#${index + 1} - ${item.unitNo || 'No Unit'}</span>
-                        <span class="badge-suffix">${item.suffix || 'SF'}</span>
+                        <span>${index + 1} ${item.suffix || 'SF'}-${item.unitNo || 'No Unit'}</span>
+                        
                     </div>
                     <span class="badge-status ${badgeClass}">${item.status || 'N/A'}</span>
                 </div>
@@ -477,10 +476,10 @@
         const body = document.getElementById("detailContent");
         
         body.innerHTML = `
-            <div class="modal-detail-row"><span>No Urut</span><span>#${noUrut}</span></div>
+            <div class="modal-detail-row"><span>No Urut</span><span>${noUrut}</span></div>
             <div class="modal-detail-row"><span>Suffix</span><span style="color:#818cf8">${item.suffix}</span></div>
             <div class="modal-detail-row"><span>Nomor Unit</span><span style="font-family: monospace;">${item.unitNo}</span></div>
-            <div class="modal-detail-row"><span>WIP Area</span><span>${item.wip}</span></div>
+            <div class="modal-detail-row"><span>WIP</span><span>${item.wip}</span></div>
             <div class="modal-detail-row"><span>Status</span><span class="badge-status ${badgeClass}">${item.status}</span></div>
             <div class="modal-detail-row" style="flex-direction: column; align-items: flex-start; gap: 4px; margin-top: 8px;">
                 <span style="color:var(--text-muted)">Problem / Kendala:</span>
