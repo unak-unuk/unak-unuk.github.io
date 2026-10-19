@@ -1,0 +1,730 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Vehicle Inspection & Intelligent Repair Tracker</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Html5-Qrcode Scanner -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass-card {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .select-none-custom {
+            user-select: none;
+            -webkit-user-select: none;
+        }
+    </style>
+</head>
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col select-none-custom">
+
+    <!-- HALAMAN 1: LOGIN -->
+    <div id="loginPage" class="flex-grow flex items-center justify-center p-4">
+        <div class="glass-card p-8 rounded-3xl w-full max-w-md shadow-2xl relative overflow-hidden">
+            <div class="absolute -top-24 -right-24 w-48 h-48 bg-cyan-500/20 rounded-full blur-3xl"></div>
+            <div class="absolute -bottom-24 -left-24 w-48 h-48 bg-blue-600/20 rounded-full blur-3xl"></div>
+            
+            <div class="text-center mb-8 relative z-10">
+                <div class="inline-flex p-4 bg-gradient-to-tr from-cyan-500 to-blue-600 rounded-2xl shadow-lg shadow-cyan-500/30 mb-4">
+                    <i class="fa-solid fa-car-tunnel text-2xl text-white"></i>
+                </div>
+                <h1 class="text-2xl font-bold tracking-tight">Vehicle Control System</h1>
+                <p class="text-slate-400 text-sm mt-1">Silakan masuk untuk melanjutkan</p>
+            </div>
+
+            <form id="loginForm" onsubmit="handleLogin(event)" class="space-y-5 relative z-10">
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Username</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500"><i class="fa-solid fa-user"></i></span>
+                        <input type="text" id="usernameInput" required placeholder="Masukkan username" 
+                            class="w-full pl-11 pr-4 py-3 bg-slate-900/60 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-sm transition">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-2">Password</label>
+                    <div class="relative">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-4 text-slate-500"><i class="fa-solid fa-lock"></i></span>
+                        <input type="password" id="passwordInput" required placeholder="••••••••" 
+                            class="w-full pl-11 pr-4 py-3 bg-slate-900/60 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-sm transition">
+                    </div>
+                </div>
+                <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition">
+                    Masuk <i class="fa-solid fa-arrow-right ml-2"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- HALAMAN 2: HALAMAN UTAMA & DASHBOARD -->
+    <div id="mainPage" class="hidden flex-grow flex flex-col p-4 md:p-8 max-w-7xl mx-auto w-full space-y-6">
+        
+        <!-- Header Info, Welcome & Tombol Logout Sejajar -->
+        <header class="flex flex-col md:flex-row justify-between items-start md:items-center bg-slate-900/60 border border-slate-800/80 p-6 rounded-3xl backdrop-blur-md gap-4">
+            <div>
+                <span class="px-3 py-1 bg-cyan-500/10 text-cyan-400 text-xs font-semibold rounded-full border border-cyan-500/20">Active Session</span>
+                <h1 id="welcomeUser" class="text-2xl font-bold mt-2">Selamat Datang, User!</h1>
+                <p class="text-slate-400 text-sm mt-0.5">Tekan dan tahan pada baris data untuk opsi Edit, Hapus, atau Konfirmasi.</p>
+            </div>
+            <!-- Tombol Logout Sejajar dengan Selamat Datang -->
+            <button onclick="handleLogout()" class="px-4 py-2.5 bg-slate-800 hover:bg-red-500/20 hover:text-red-400 border border-slate-700/60 text-slate-300 rounded-xl transition text-xs font-semibold flex items-center gap-2 shadow-md shrink-0">
+                <i class="fa-solid fa-right-from-bracket"></i> Keluar (Logout)
+            </button>
+        </header>
+
+        <!-- KONTROL TOMBOL: Tombol Tambah Sendirian & Tombol Tab Sebaris -->
+        <div class="flex flex-col sm:flex-row justify-between items-stretch sm:items-center gap-4 bg-slate-900/30 p-2 rounded-2xl">
+            <!-- Tombol Tambah Sendirian -->
+            <button onclick="openAddModal()" class="px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 font-semibold rounded-xl shadow-lg shadow-cyan-500/25 transition flex items-center justify-center gap-2 text-sm">
+                <i class="fa-solid fa-plus"></i> Tambah Data
+            </button>
+
+            <!-- Tombol Data Input dan Data Unit OK Sebaris -->
+            <div class="flex items-center gap-2">
+                <button onclick="switchTab('input')" id="tabBtnInput" class="flex-1 sm:flex-none px-4 py-3 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-table-list"></i> Data Input
+                </button>
+                <button onclick="switchTab('okcheck')" id="tabBtnOkCheck" class="flex-1 sm:flex-none px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-circle-check"></i> Data Unit OK
+                </button>
+            </div>
+        </div>
+
+        <!-- VIEW TAB 1: DATA INPUT -->
+        <div id="viewInputData" class="space-y-4">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-clipboard-list text-cyan-400"></i> Data Hasil Input
+                </h2>
+                <span id="totalDataCount" class="text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">Total: 0 Data</span>
+            </div>
+
+            <div class="glass-card rounded-3xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-semibold">No</th>
+                                <th class="p-4 font-semibold">Suffix</th>
+                                <th class="p-4 font-semibold">Nomor</th>
+                                <th class="p-4 font-semibold">Problem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataTableBody" class="divide-y divide-slate-800/60"></tbody>
+                    </table>
+                </div>
+                <div id="emptyState" class="text-center py-16 hidden">
+                    <div class="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-600 text-xl border border-slate-800">
+                        <i class="fa-solid fa-folder-open"></i>
+                    </div>
+                    <p class="text-slate-400 text-sm">Belum ada data pemeriksaan.</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- VIEW TAB 2: OK CHECK -->
+        <div id="viewOkCheck" class="space-y-4 hidden">
+            <div class="flex items-center justify-between">
+                <h2 class="text-lg font-bold flex items-center gap-2">
+                    <i class="fa-solid fa-circle-check text-emerald-400"></i> Data Unit OK (Selesai Konfirmasi)
+                </h2>
+                <span id="totalOkCount" class="text-xs text-slate-400 bg-slate-900 px-3 py-1.5 rounded-lg border border-slate-800">Total: 0 Unit</span>
+            </div>
+
+            <div class="glass-card rounded-3xl overflow-hidden shadow-xl">
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse text-sm">
+                        <thead>
+                            <tr class="border-b border-slate-800 bg-slate-900/40 text-slate-400 text-xs uppercase tracking-wider">
+                                <th class="p-4 font-semibold">No</th>
+                                <th class="p-4 font-semibold">Suffix</th>
+                                <th class="p-4 font-semibold">Nomor</th>
+                                <th class="p-4 font-semibold">Problem</th>
+                            </tr>
+                        </thead>
+                        <tbody id="okCheckTableBody" class="divide-y divide-slate-800/60"></tbody>
+                    </table>
+                </div>
+                <div id="emptyOkState" class="text-center py-16 hidden">
+                    <div class="w-16 h-16 bg-slate-900 rounded-full flex items-center justify-center mx-auto mb-4 text-slate-600 text-xl border border-slate-800">
+                        <i class="fa-solid fa-square-check"></i>
+                    </div>
+                    <p class="text-slate-400 text-sm">Belum ada unit dengan status OK Check.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL UTAMA TAMBAH / EDIT -->
+    <div id="actionModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-800 relative">
+            <div class="flex items-center justify-between p-6 border-b border-slate-800/80 bg-slate-900/40">
+                <h3 id="modalTitle" class="font-bold text-lg flex items-center gap-2"><i class="fa-solid fa-circle-plus text-cyan-400"></i> Pilih Metode Input</h3>
+                <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <!-- Choice View -->
+            <div id="modalChoiceView" class="p-8 text-center space-y-6">
+                <p class="text-slate-300 text-sm">Pilih cara untuk memasukkan data unit:</p>
+                <div class="grid grid-cols-2 gap-4">
+                    <button onclick="switchToManualForm()" class="p-6 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-cyan-500/50 rounded-2xl transition group flex flex-col items-center gap-3">
+                        <div class="w-14 h-14 rounded-2xl bg-cyan-500/10 text-cyan-400 flex items-center justify-center text-xl group-hover:scale-110 transition"><i class="fa-solid fa-keyboard"></i></div>
+                        <span class="font-semibold text-sm">Manual</span>
+                    </button>
+                    <button onclick="switchToScanForm()" class="p-6 bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-blue-500/50 rounded-2xl transition group flex flex-col items-center gap-3">
+                        <div class="w-14 h-14 rounded-2xl bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl group-hover:scale-110 transition"><i class="fa-solid fa-camera"></i></div>
+                        <span class="font-semibold text-sm">Scan Barcode</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Scan View -->
+            <div id="modalScanView" class="p-6 hidden">
+                <div id="reader" class="w-full rounded-2xl overflow-hidden border border-slate-800 mb-4 bg-slate-900"></div>
+                <p class="text-xs text-slate-400 text-center mb-4"><i class="fa-solid fa-info-circle mr-1 text-cyan-400"></i> Arahkan kamera ke barcode unit.</p>
+                <button onclick="backToChoice()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-sm transition">Kembali</button>
+            </div>
+
+            <!-- Form Input / Edit -->
+            <form id="inputForm" onsubmit="handleFormSubmit(event)" class="p-6 space-y-4 hidden">
+                <input type="hidden" id="editIndexId" value="">
+                <div id="scanResultBadge" class="hidden p-3 bg-cyan-500/10 border border-cyan-500/20 rounded-xl text-xs text-cyan-300 flex items-center gap-2">
+                    <i class="fa-solid fa-bolt"></i> Barcode berhasil dipindai!
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Suffix</label>
+                    <input type="text" id="inputSuffix" required placeholder="Masukkan suffix" class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Nomor Unit</label>
+                    <input type="text" id="inputUnitNo" required placeholder="Masukkan nomor unit" class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Part</label>
+                    <input type="text" id="inputPart" placeholder="Contoh: indikator / rem / pedal / kopling" class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-sm">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-slate-400 mb-1.5">Problem</label>
+                    <input type="text" id="inputProblem" placeholder="Contoh: mati / blong / noise / dll" class="w-full px-4 py-3 bg-slate-900 border border-slate-800 rounded-xl focus:outline-none focus:border-cyan-500 text-sm">
+                </div>
+                <div class="flex items-center gap-3 pt-2">
+                    <button type="button" onclick="backToChoice()" class="flex-1 py-3 bg-slate-800 hover:bg-slate-700 font-semibold rounded-xl text-sm transition">Kembali</button>
+                    <button type="submit" class="flex-1 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 font-semibold rounded-xl shadow-lg shadow-cyan-500/25 text-sm transition">Simpan Data</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL KONTEKS DATA (KLIK & TAHAN / LONG PRESS) -->
+    <div id="contextModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card w-full max-w-sm rounded-3xl shadow-2xl overflow-hidden border border-slate-800 p-6 text-center space-y-4">
+            <div class="flex items-center justify-between border-b border-slate-800 pb-3">
+                <h3 class="font-bold text-base text-cyan-400"><i class="fa-solid fa-list-check mr-2"></i> Opsi Data Unit</h3>
+                <button onclick="closeContextModal()" class="w-7 h-7 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark text-xs"></i></button>
+            </div>
+            <div id="selectedUnitInfo" class="text-xs text-slate-300 bg-slate-900/60 p-3 rounded-xl border border-slate-800"></div>
+            
+            <div class="space-y-2 pt-2">
+                <button onclick="ctxActionEdit()" class="w-full py-3 bg-slate-800 hover:bg-slate-700 text-cyan-400 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Data
+                </button>
+                <button onclick="ctxActionDelete()" class="w-full py-3 bg-slate-800 hover:bg-red-500/20 text-red-400 font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-trash"></i> Hapus Data
+                </button>
+                <button onclick="ctxActionConfirm()" class="w-full py-3 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 text-white font-semibold rounded-xl text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/20">
+                    <i class="fa-solid fa-clipboard-check"></i> Konfirmasi (Intelligent Check)
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL INTELLIGENT CHECK (ITEM PEMERIKSAAN DINAMIS) -->
+    <div id="intelligentModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="glass-card w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden border border-slate-800 relative max-h-[90vh] flex flex-col">
+            <div class="flex items-center justify-between p-6 border-b border-slate-800/80 bg-slate-900/40">
+                <div>
+                    <h3 class="font-bold text-lg text-cyan-400 flex items-center gap-2"><i class="fa-solid fa-brain"></i> Intelligent Check</h3>
+                    <p id="intelUnitTitle" class="text-xs text-slate-400 mt-0.5">Unit: -</p>
+                </div>
+                <button onclick="closeIntelModal()" class="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 flex items-center justify-center text-slate-400 hover:text-white transition"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <div class="p-6 overflow-y-auto space-y-3 flex-grow">
+                <p id="intelDesc" class="text-xs text-slate-400 mb-2">Analisis cerdas mendeteksi kendala. Silakan periksa item berikut dan pilih status OK / NG:</p>
+                <div id="checkListContainer" class="space-y-2.5"></div>
+            </div>
+
+            <div class="p-6 border-t border-slate-800 bg-slate-900/40 flex items-center justify-between flex-wrap gap-3">
+                <span id="intelProgress" class="text-xs text-slate-400 font-medium">Progress: 0 / 0 Selesai</span>
+                <button onclick="finishIntelCheck()" id="btnFinishIntel" data-index="" disabled class="px-6 py-2.5 bg-slate-800 text-slate-500 font-semibold rounded-xl text-sm transition">
+                    Selesai & Kirim ke OK Check
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script Aplikasi -->
+    <script>
+        let inspectionData = JSON.parse(localStorage.getItem('inspection_data')) || [];
+        let okCheckData = JSON.parse(localStorage.getItem('ok_check_data')) || [];
+        let currentUser = localStorage.getItem('current_user') || null;
+        let html5QrCode = null;
+        let activeContextIndex = null;
+        let intelChecksState = {};
+        let activeIntelItemsList = [];
+
+        // URL Web App Google Apps Script
+        const WEB_APP_URL = 'https://script.google.com/macros/s/AKfycby15tbnsW0TAJ1-7OgRDuoHHCp6WYdYHxncDbrZfJhTVnsYdnMUoIEyEz5bKSbwyeDj/exec';
+
+        const intelRules = [
+            {
+                condition: (part, prob) => part.includes("indikator") && (prob.includes("mati") || prob.includes("abn") || prob.includes("ng")),
+                items: [
+                    "1. Check CFB",
+                    "2. Check Jump Pro",
+                    "3. Check indikator EFI",
+                    "4. Check indikator ABS",
+                    "5. Check indikator AIR BAG",
+                    "6. Check indikator EPS",
+                    "7. Check indikator IMMOBILIZER",
+                    "8. DS 4"
+                ],
+                desc: "Analisis cerdas mendeteksi kendala pada Indikator:"
+            },
+            {
+                condition: (part, prob) => part.includes("rem") && (prob.includes("blong") || prob.includes("dalam") || prob.includes("abn")),
+                items: [
+                    "1. Check reservasi minyak rem",
+                    "2. Cek Nepel rem",
+                    "3. Running tes rem",
+                    "4. Indikator ABS",
+                    "5. Indikator EPS",
+                    "6. Indikator EFI"
+                ],
+                desc: "Analisis cerdas mendeteksi kendala pada Sistem Rem:"
+            },
+            {
+                condition: (part, prob) => part.includes("pedal") && (prob.includes("noise") || prob.includes("oblak") || prob.includes("abn")),
+                items: [
+                    "1. Check bolt",
+                    "2. Check Bushing",
+                    "3. Check bracket"
+                ],
+                desc: "Analisis cerdas mendeteksi kendala pada Pedal:"
+            },
+            {
+                condition: (part, prob) => part.includes("kopling") && (prob.includes("blong") || prob.includes("dalam")),
+                items: [
+                    "1. Check reservasi minyak rem",
+                    "2. Check fungsi kopling",
+                    "3. Running tes kopling",
+                    "4. Check lampu mundur",
+                    "5. Check Back sonar"
+                ],
+                desc: "Analisis cerdas mendeteksi kendala pada Kopling:"
+            }
+        ];
+
+        window.addEventListener('DOMContentLoaded', () => {
+            if (currentUser) {
+                document.getElementById('welcomeUser').innerText = `Selamat Datang, ${currentUser}!`;
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainPage').classList.remove('hidden');
+                renderTables();
+            }
+        });
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const username = document.getElementById('usernameInput').value.trim();
+            if (username) {
+                currentUser = username;
+                localStorage.setItem('current_user', currentUser);
+                document.getElementById('welcomeUser').innerText = `Selamat Datang, ${currentUser}!`;
+                document.getElementById('loginPage').classList.add('hidden');
+                document.getElementById('mainPage').classList.remove('hidden');
+                renderTables();
+            }
+        }
+
+        function handleLogout() {
+            localStorage.removeItem('current_user');
+            currentUser = null;
+            document.getElementById('usernameInput').value = '';
+            document.getElementById('passwordInput').value = '';
+            document.getElementById('mainPage').classList.add('hidden');
+            document.getElementById('loginPage').classList.remove('hidden');
+        }
+
+        function switchTab(tab) {
+            const btnInput = document.getElementById('tabBtnInput');
+            const btnOk = document.getElementById('tabBtnOkCheck');
+            const viewInput = document.getElementById('viewInputData');
+            const viewOk = document.getElementById('viewOkCheck');
+
+            if (tab === 'input') {
+                btnInput.className = "flex-1 sm:flex-none px-4 py-3 bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2";
+                btnOk.className = "flex-1 sm:flex-none px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2";
+                viewInput.classList.remove('hidden');
+                viewOk.classList.add('hidden');
+            } else {
+                btnOk.className = "flex-1 sm:flex-none px-4 py-3 bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2";
+                btnInput.className = "flex-1 sm:flex-none px-4 py-3 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-xl font-semibold text-xs transition flex items-center justify-center gap-2";
+                viewOk.classList.remove('hidden');
+                viewInput.classList.add('hidden');
+            }
+        }
+
+        function openAddModal() {
+            document.getElementById('actionModal').classList.remove('hidden');
+            backToChoice();
+        }
+
+        function closeModal() {
+            document.getElementById('actionModal').classList.add('hidden');
+            stopScanner();
+        }
+
+        function backToChoice() {
+            stopScanner();
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-circle-plus text-cyan-400"></i> Pilih Metode Input`;
+            document.getElementById('modalChoiceView').classList.remove('hidden');
+            document.getElementById('modalScanView').classList.add('hidden');
+            document.getElementById('inputForm').classList.add('hidden');
+            document.getElementById('inputForm').reset();
+            document.getElementById('editIndexId').value = '';
+            document.getElementById('scanResultBadge').classList.add('hidden');
+        }
+
+        function switchToManualForm() {
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-keyboard text-cyan-400"></i> Input Manual`;
+            document.getElementById('modalChoiceView').classList.add('hidden');
+            document.getElementById('inputForm').classList.remove('hidden');
+            document.getElementById('scanResultBadge').classList.add('hidden');
+        }
+
+        function switchToScanForm() {
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-camera text-cyan-400"></i> Scan Barcode`;
+            document.getElementById('modalChoiceView').classList.add('hidden');
+            document.getElementById('modalScanView').classList.remove('hidden');
+            startScanner();
+        }
+
+        function startScanner() {
+            if (!html5QrCode) {
+                html5QrCode = new Html5Qrcode("reader");
+            }
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+            html5QrCode.start(
+                { facingMode: "environment" }, config, 
+                (decodedText) => {
+                    processScannedCode(decodedText);
+                    stopScanner();
+                }, () => {}
+            ).catch(err => {
+                alert("Gagal mengakses kamera: " + err);
+                backToChoice();
+            });
+        }
+
+        function stopScanner() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(err => console.error(err));
+            }
+        }
+
+        function processScannedCode(code) {
+            let suffix = code.length >= 6 ? code.slice(-6, -4) : "";
+            let unitNo = code.length >= 17 ? code.substring(11, 17) : (code.length >= 12 ? code.substring(11) : code);
+
+            document.getElementById('modalScanView').classList.add('hidden');
+            document.getElementById('inputForm').classList.remove('hidden');
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-barcode text-cyan-400"></i> Hasil Scan Barcode`;
+            document.getElementById('scanResultBadge').classList.remove('hidden');
+
+            document.getElementById('inputSuffix').value = suffix;
+            document.getElementById('inputUnitNo').value = unitNo;
+        }
+
+        function handleFormSubmit(e) {
+            e.preventDefault();
+            const editIndex = document.getElementById('editIndexId').value;
+            const suffix = document.getElementById('inputSuffix').value.trim();
+            const unitNo = document.getElementById('inputUnitNo').value.trim();
+            const part = document.getElementById('inputPart').value.trim();
+            const problem = document.getElementById('inputProblem').value.trim();
+
+            if (editIndex !== "") {
+                inspectionData[editIndex] = { ...inspectionData[editIndex], suffix, unitNo, part, problem };
+            } else {
+                const newItem = { id: Date.now(), suffix, unitNo, part, problem };
+                inspectionData.push(newItem);
+            }
+
+            localStorage.setItem('inspection_data', JSON.stringify(inspectionData));
+            renderTables();
+            closeModal();
+        }
+
+        let pressTimer = null;
+        function handleTouchStart(index) {
+            pressTimer = setTimeout(() => {
+                openContextModal(index);
+            }, 600);
+        }
+
+        function handleTouchEnd() {
+            clearTimeout(pressTimer);
+        }
+
+        function openContextModal(index) {
+            activeContextIndex = index;
+            const item = inspectionData[index];
+            document.getElementById('selectedUnitInfo').innerHTML = `
+                <strong>Unit:</strong> ${item.unitNo} | <strong>Suffix:</strong> ${item.suffix}<br>
+                <strong>Part:</strong> ${item.part || '-'} | <strong>Problem:</strong> ${item.problem || '-'}
+            `;
+            document.getElementById('contextModal').classList.remove('hidden');
+        }
+
+        function closeContextModal() {
+            document.getElementById('contextModal').classList.add('hidden');
+        }
+
+        function ctxActionEdit() {
+            const index = activeContextIndex;
+            closeContextModal();
+            const item = inspectionData[index];
+
+            document.getElementById('actionModal').classList.remove('hidden');
+            document.getElementById('modalChoiceView').classList.add('hidden');
+            document.getElementById('modalScanView').classList.add('hidden');
+            document.getElementById('inputForm').classList.remove('hidden');
+            document.getElementById('modalTitle').innerHTML = `<i class="fa-solid fa-pen-to-square text-cyan-400"></i> Edit Data Unit`;
+
+            document.getElementById('editIndexId').value = index;
+            document.getElementById('inputSuffix').value = item.suffix;
+            document.getElementById('inputUnitNo').value = item.unitNo;
+            document.getElementById('inputPart').value = item.part;
+            document.getElementById('inputProblem').value = item.problem;
+        }
+
+        function ctxActionDelete() {
+            if (confirm("Apakah Anda yakin ingin menghapus data ini?")) {
+                inspectionData.splice(activeContextIndex, 1);
+                localStorage.setItem('inspection_data', JSON.stringify(inspectionData));
+                renderTables();
+            }
+            closeContextModal();
+        }
+
+        function ctxActionConfirm() {
+            const index = activeContextIndex;
+            const item = inspectionData[index];
+            closeContextModal();
+
+            const partLower = (item.part || "").toLowerCase();
+            const probLower = (item.problem || "").toLowerCase();
+
+            let matchedRule = intelRules.find(rule => rule.condition(partLower, probLower));
+
+            if (matchedRule) {
+                openIntelModal(item, index, matchedRule);
+            } else {
+                moveToOkCheck(item, index);
+            }
+        }
+
+        function openIntelModal(item, index, rule) {
+            document.getElementById('btnFinishIntel').setAttribute('data-index', index);
+            document.getElementById('intelligentModal').classList.remove('hidden');
+            document.getElementById('intelUnitTitle').innerText = `Unit: ${item.unitNo} (Suffix: ${item.suffix})`;
+            document.getElementById('intelDesc').innerText = rule.desc;
+            
+            activeIntelItemsList = rule.items;
+            intelChecksState = {};
+            const container = document.getElementById('checkListContainer');
+            container.innerHTML = '';
+
+            activeIntelItemsList.forEach((text, idx) => {
+                intelChecksState[idx] = null;
+                const div = document.createElement('div');
+                div.className = "flex items-center justify-between p-3.5 bg-slate-900/80 border border-slate-800 rounded-xl";
+                div.innerHTML = `
+                    <span class="text-sm font-medium text-slate-200">${text}</span>
+                    <div class="flex items-center gap-2">
+                        <button type="button" onclick="setIntelChoice(${idx}, 'OK', this)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-emerald-600/30 text-slate-400 font-bold text-xs transition btn-intel-${idx}-ok">OK</button>
+                        <button type="button" onclick="setIntelChoice(${idx}, 'NG', this)" class="px-3 py-1.5 rounded-lg bg-slate-800 hover:bg-red-600/30 text-slate-400 font-bold text-xs transition btn-intel-${idx}-ng">NG</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+            updateIntelProgress();
+        }
+
+        function setIntelChoice(idx, choice, btnElement) {
+            intelChecksState[idx] = choice;
+            const parent = btnElement.parentElement;
+            const okBtn = parent.querySelector(`.btn-intel-${idx}-ok`);
+            const ngBtn = parent.querySelector(`.btn-intel-${idx}-ng`);
+
+            if (choice === 'OK') {
+                okBtn.className = "px-3 py-1.5 rounded-lg bg-emerald-500 text-slate-950 font-bold text-xs transition";
+                ngBtn.className = "px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 font-bold text-xs transition";
+            } else {
+                ngBtn.className = "px-3 py-1.5 rounded-lg bg-red-500 text-white font-bold text-xs transition";
+                okBtn.className = "px-3 py-1.5 rounded-lg bg-slate-800 text-slate-400 font-bold text-xs transition";
+            }
+            updateIntelProgress();
+        }
+
+        function updateIntelProgress() {
+            const totalItems = activeIntelItemsList.length;
+            const answeredCount = Object.values(intelChecksState).filter(val => val !== null).length;
+            document.getElementById('intelProgress').innerText = `Progress: ${answeredCount} / ${totalItems} Selesai`;
+
+            const finishBtn = document.getElementById('btnFinishIntel');
+            if (answeredCount === totalItems) {
+                const allOk = Object.values(intelChecksState).every(val => val === 'OK');
+                if (allOk) {
+                    finishBtn.disabled = false;
+                    finishBtn.className = "px-6 py-2.5 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-400 text-white font-semibold rounded-xl text-sm shadow-lg shadow-emerald-500/20 transition cursor-pointer";
+                    finishBtn.innerText = "Selesai & Kirim ke OK Check";
+                } else {
+                    finishBtn.disabled = true;
+                    finishBtn.className = "px-6 py-2.5 bg-red-500/20 text-red-400 border border-red-500/30 font-semibold rounded-xl text-sm cursor-not-allowed";
+                    finishBtn.innerText = "Ada Item NG (Belum Bisa ke OK Check)";
+                }
+            } else {
+                finishBtn.disabled = true;
+                finishBtn.className = "px-6 py-2.5 bg-slate-800 text-slate-500 font-semibold rounded-xl text-sm cursor-not-allowed";
+                finishBtn.innerText = "Selesai & Kirim ke OK Check";
+            }
+        }
+
+        function finishIntelCheck() {
+            const finishBtn = document.getElementById('btnFinishIntel');
+            const index = parseInt(finishBtn.getAttribute('data-index'));
+            closeIntelModal();
+            if (!isNaN(index) && inspectionData[index]) {
+                moveToOkCheck(inspectionData[index], index);
+            }
+        }
+
+        function closeIntelModal() {
+            document.getElementById('intelligentModal').classList.add('hidden');
+        }
+
+        function syncToGoogleSheet(itemData, statusFinal) {
+            if (WEB_APP_URL === 'URL_GOOGLE_APPS_SCRIPT_ANDA_DISINI') {
+                console.warn("URL Google Apps Script belum disetel.");
+                return;
+            }
+
+            const payload = {
+                username: currentUser,
+                suffix: itemData.suffix,
+                unitNo: itemData.unitNo,
+                part: itemData.part,
+                problem: itemData.problem,
+                statusAkhir: statusFinal
+            };
+
+            fetch(WEB_APP_URL, {
+                method: 'POST',
+                mode: 'no-cors',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            }).then(() => {
+                console.log("Data berhasil dikirim ke Google Spreadsheet!");
+            }).catch(error => {
+                console.error("Gagal sinkronisasi Google Sheet:", error);
+            });
+        }
+
+        function moveToOkCheck(item, index) {
+            if (index === undefined || index === null || !inspectionData[index]) return;
+
+            const completedItem = { ...item, statusAkhir: "OK" };
+            
+            // Kirim otomatis ke Google Spreadsheet
+            syncToGoogleSheet(completedItem, "OK");
+
+            okCheckData.push(completedItem);
+            inspectionData.splice(index, 1);
+
+            localStorage.setItem('inspection_data', JSON.stringify(inspectionData));
+            localStorage.setItem('ok_check_data', JSON.stringify(okCheckData));
+
+            renderTables();
+            switchTab('okcheck');
+        }
+
+        function renderTables() {
+            const tbody = document.getElementById('dataTableBody');
+            const emptyState = document.getElementById('emptyState');
+            const totalCount = document.getElementById('totalDataCount');
+            
+            tbody.innerHTML = '';
+            totalCount.innerText = `Total: ${inspectionData.length} Data`;
+
+            if (inspectionData.length === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+                inspectionData.forEach((item, index) => {
+                    const isNG = item.part !== "" && item.problem !== "";
+                    const rowClass = isNG ? "text-red-400 bg-red-950/10 font-medium" : "text-slate-300";
+
+                    const tr = document.createElement('tr');
+                    tr.className = `border-b border-slate-800/60 hover:bg-slate-900/60 transition cursor-pointer ${rowClass}`;
+                    tr.addEventListener('mousedown', () => handleTouchStart(index));
+                    tr.addEventListener('mouseup', handleTouchEnd);
+                    tr.addEventListener('touchstart', () => handleTouchStart(index));
+                    tr.addEventListener('touchend', handleTouchEnd);
+
+                    tr.innerHTML = `
+                        <td class="p-4">${index + 1}</td>
+                        <td class="p-4 font-semibold">${item.suffix}</td>
+                        <td class="p-4 font-mono">${item.unitNo}</td>
+                        <td class="p-4">${item.part || '-'} ${item.problem || '-'}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            const okTbody = document.getElementById('okCheckTableBody');
+            const emptyOkState = document.getElementById('emptyOkState');
+            const totalOkCount = document.getElementById('totalOkCount');
+
+            okTbody.innerHTML = '';
+            totalOkCount.innerText = `Total: ${okCheckData.length} Unit OK`;
+
+            if (okCheckData.length === 0) {
+                emptyOkState.classList.remove('hidden');
+            } else {
+                emptyOkState.classList.add('hidden');
+                okCheckData.forEach((item, index) => {
+                    const tr = document.createElement('tr');
+                    tr.className = "border-b border-slate-800/60 text-slate-300 hover:bg-slate-900/40 transition";
+                    tr.innerHTML = `
+                        <td class="p-4">${index + 1}</td>
+                        <td class="p-4 font-semibold">${item.suffix}</td>
+                        <td class="p-4 font-mono">${item.unitNo}</td>
+                        <td class="p-4">${item.part || '-'} ${item.problem || '-'}</td>
+                    `;
+                    okTbody.appendChild(tr);
+                });
+            }
+        }
+    </script>
+</body>
+</html>
