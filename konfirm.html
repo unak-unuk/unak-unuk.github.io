@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Aplikasi Pengelola Unit Repair</title>
+    <!-- Tailwind CSS untuk Desain Keren & Modern -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Html5-Qrcode untuk Scan Barcode dengan Kamera -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap');
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    </style>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Konfigurasi URL Web App Google Apps Script Anda -->
+    <script>
+        const WEB_APP_URL = "PASTE_DEPLOYMENT_URL_ANDA_DI_SINI";
+    </script>
+
+    <!-- HALAMAN 1: LOGIN -->
+    <div id="page-login" class="flex flex-1 items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 p-8 rounded-2xl shadow-2xl w-full max-w-md">
+            <div class="text-center mb-8">
+                <div class="inline-block p-3 bg-blue-600/20 text-blue-400 rounded-xl mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+                </div>
+                <h1 class="text-2xl font-bold text-white">Unit Repair Portal</h1>
+                <p class="text-slate-400 text-sm mt-1">Silakan masuk untuk melanjutkan</p>
+            </div>
+            <form id="form-login" onsubmit="handleLogin(event)" class="space-y-4">
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Username</label>
+                    <input type="text" id="username" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-slate-300 mb-1">Password</label>
+                    <input type="password" id="password" required class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-blue-500">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-500 text-white font-semibold py-3 rounded-xl transition shadow-lg shadow-blue-600/30">Masuk</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- HALAMAN 2: UTAMA & DASHBOARD -->
+    <div id="page-main" class="hidden flex-1 flex flex-col relative pb-24">
+        <!-- Sticky Card di Atas -->
+        <div class="sticky top-0 z-20 bg-slate-800/90 backdrop-blur border-b border-slate-700 px-4 py-4 shadow-md flex justify-between items-center select-none cursor-pointer">
+            <div id="welcome-user" class="font-semibold text-lg text-white">Selamat datang, User</div>
+            <button onclick="handleLogout()" class="bg-rose-600/20 text-rose-400 hover:bg-rose-600 hover:text-white px-3 py-1.5 rounded-lg text-sm font-medium transition">Log Out</button>
+        </div>
+
+        <!-- Area Konten Utama -->
+        <div class="p-4 max-w-4xl mx-auto w-full flex-1 space-y-6">
+            <!-- Navigasi ke Halaman Riwayat -->
+            <div class="flex justify-end">
+                <button onclick="switchPage('history')" class="bg-slate-800 border border-slate-700 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-xl text-sm font-medium transition flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    Lihat Riwayat Unit
+                </button>
+            </div>
+
+            <!-- Display Data Unit -->
+            <div>
+                <h2 class="text-xl font-bold mb-3 text-white">Daftar Unit Aktif</h2>
+                <div id="unit-display-area" class="grid grid-auto-fit gap-4">
+                    <div class="text-slate-500 text-center py-8">Memuat data unit...</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tombol Tambah di Bawah Card -->
+        <div class="fixed bottom-6 left-0 right-0 z-30 flex justify-center px-4 pointer-events-none">
+            <button onclick="openAddModal()" class="pointer-events-auto bg-blue-600 hover:bg-blue-500 text-white font-bold px-8 py-4 rounded-full shadow-2xl flex items-center gap-2 transform hover:scale-105 transition">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+                Tambah Unit Repair
+            </button>
+        </div>
+    </div>
+
+    <!-- HALAMAN KONFIRMASI ITEM -->
+    <div id="page-confirmation" class="hidden flex-1 p-4 max-w-2xl mx-auto w-full">
+        <button onclick="switchPage('main')" class="text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">&larr; Kembali ke Dashboard</button>
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 shadow-xl">
+            <h2 id="conf-title" class="text-2xl font-bold text-white mb-2">Unit: -</h2>
+            <p class="text-slate-400 text-sm mb-6">Status Unit: <span id="conf-status-label" class="text-amber-400 font-semibold">Dalam Konferensi</span></p>
+            
+            <div id="conf-items-container" class="space-y-4 mb-6"></div>
+
+            <button onclick="saveConfirmation()" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-semibold py-3 rounded-xl transition">Simpan ke OK Unit</button>
+        </div>
+    </div>
+
+    <!-- HALAMAN RIWAYAT -->
+    <div id="page-history" class="hidden flex-1 p-4 max-w-3xl mx-auto w-full">
+        <button onclick="switchPage('main')" class="text-blue-400 hover:underline mb-4 inline-flex items-center gap-1">&larr; Kembali ke Dashboard</button>
+        <h2 class="text-2xl font-bold mb-4 text-white">Riwayat Unit Berdasarkan Tanggal (Cut-off 07:30 WIB)</h2>
+        <div id="history-dates-container" class="space-y-3"></div>
+    </div>
+
+    <!-- MODAL TAMBAH (PILIH SCAN / MANUAL) -->
+    <div id="modal-add-choice" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm space-y-4">
+            <h3 class="text-lg font-bold text-white text-center">Metode Input Unit</h3>
+            <button onclick="openScanModal()" class="w-full bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-medium transition">Scan Kamera</button>
+            <button onclick="openManualModal()" class="w-full bg-slate-700 hover:bg-slate-600 py-3 rounded-xl font-medium transition">Input Manual</button>
+            <button onclick="closeModals()" class="w-full text-slate-400 hover:text-white py-2 text-sm">Batal</button>
+        </div>
+    </div>
+
+    <!-- MODAL SCAN KAMERA -->
+    <div id="modal-scan" class="hidden fixed inset-0 z-50 bg-black/90 flex flex-col p-4">
+        <div class="flex justify-between items-center mb-4 max-w-md mx-auto w-full">
+            <h3 class="font-bold text-lg text-white">Scan Barcode Unit</h3>
+            <button onclick="closeModals()" class="text-slate-400 hover:text-white text-sm">Tutup</button>
+        </div>
+        <div id="reader" class="max-w-md mx-auto w-full rounded-xl overflow-hidden mb-4"></div>
+        <div id="scan-result-form" class="hidden max-w-md mx-auto w-full bg-slate-800 p-4 rounded-xl space-y-3">
+            <h4 class="font-semibold text-emerald-400">Scan Berhasil! Lengkapi Data:</h4>
+            <input type="text" id="scan-suffix" placeholder="Suffix (Karakter ke-6 & 5 dari belakang)" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-lg text-white text-sm">
+            <input type="text" id="scan-unit" placeholder="Nomor Unit (Karakter 12-17)" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-lg text-white text-sm">
+            <input type="text" id="scan-part" placeholder="Part" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-lg text-white text-sm">
+            <input type="text" id="scan-problem" placeholder="Problem" class="w-full bg-slate-900 border border-slate-700 p-2.5 rounded-lg text-white text-sm">
+            <button onclick="submitScanData()" class="w-full bg-emerald-600 hover:bg-emerald-500 py-2.5 rounded-lg font-semibold">Simpan Data</button>
+        </div>
+    </div>
+
+    <!-- MODAL INPUT MANUAL -->
+    <div id="modal-manual" class="hidden fixed inset-0 z-50 bg-black/70 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-md space-y-4">
+            <h3 class="text-lg font-bold text-white">Input Manual Unit</h3>
+            <input type="text" id="man-suffix" placeholder="Suffix" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white">
+            <input type="text" id="man-unit" placeholder="Nomor Unit" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white">
+            <input type="text" id="man-part" placeholder="Part (misal: rem / indikator)" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white">
+            <input type="text" id="man-problem" placeholder="Problem (misal: blong / mati)" class="w-full bg-slate-900 border border-slate-700 p-3 rounded-xl text-white">
+            <div class="flex gap-3 pt-2">
+                <button onclick="closeModals()" class="flex-1 bg-slate-700 hover:bg-slate-600 py-3 rounded-xl font-medium">Batal</button>
+                <button onclick="submitManualData()" class="flex-1 bg-blue-600 hover:bg-blue-500 py-3 rounded-xl font-semibold">Simpan</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MODAL ADMIN (DAFTAR DATA UNIT & EDIT/HAPUS) -->
+    <div id="modal-admin" class="hidden fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-2xl max-h-[80vh] flex flex-col">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-white">Admin Panel - Daftar Data Unit</h3>
+                <button onclick="closeModals()" class="text-slate-400 hover:text-white">Tutup</button>
+            </div>
+            <div id="admin-unit-list" class="flex-1 overflow-y-auto space-y-2 pr-2"></div>
+        </div>
+    </div>
+
+    <!-- MODAL EDIT/HAPUS UNIT -->
+    <div id="modal-edit-delete" class="hidden fixed inset-0 z-60 bg-black/70 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm space-y-4">
+            <h3 class="font-bold text-lg text-white">Aksi Unit</h3>
+            <button onclick="executeEdit()" class="w-full bg-blue-600 hover:bg-blue-500 py-2.5 rounded-xl font-medium">Edit Data</button>
+            <button onclick="executeDelete()" class="w-full bg-rose-600 hover:bg-rose-500 py-2.5 rounded-xl font-medium">Hapus Data</button>
+            <button onclick="closeModals()" class="w-full text-slate-400 hover:text-white py-2">Batal</button>
+        </div>
+    </div>
+
+    <!-- MODAL KONFIRMASI AKSI DISPLAY UNIT (KLIK TAHAN) -->
+    <div id="modal-display-action" class="hidden fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 w-full max-w-sm space-y-4 text-center">
+            <h3 class="font-bold text-lg text-white">Konfirmasi Proses Unit</h3>
+            <p class="text-slate-300 text-sm">Apakah Anda ingin memproses unit ini ke halaman konfirmasi?</p>
+            <button onclick="goToConfirmationPage()" class="w-full bg-amber-600 hover:bg-amber-500 py-3 rounded-xl font-semibold">Ya, Masuk Konferensi</button>
+            <button onclick="closeModals()" class="w-full text-slate-400 hover:text-white py-2">Batal</button>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT UTAMA -->
+    <script>
+        let unitsData = [];
+        let activeUnitId = null;
+        let html5QrCode = null;
+
+        // Logika Shift Cut-off 07:30 WIB
+        function getShiftDate() {
+            const now = new Date();
+            const utc = now.getTime() + (now.getTimezoneOffset() * 60000);
+            const jktDate = new Date(utc + (3600000 * 7));
+            
+            const hours = jktDate.getHours();
+            const minutes = jktDate.getMinutes();
+            
+            if (hours < 7 || (hours === 7 && minutes < 30)) {
+                jktDate.setDate(jktDate.getDate() - 1);
+            }
+            return jktDate.toISOString().split('T')[0];
+        }
+
+        function handleLogin(e) {
+            e.preventDefault();
+            const user = document.getElementById('username').value;
+            document.getElementById('welcome-user').innerText = `Selamat datang, ${user}`;
+            switchPage('main');
+            loadUnits();
+        }
+
+        function handleLogout() {
+            switchPage('login');
+        }
+
+        function switchPage(page) {
+            document.getElementById('page-login').classList.add('hidden');
+            document.getElementById('page-main').classList.add('hidden');
+            document.getElementById('page-confirmation').classList.add('hidden');
+            document.getElementById('page-history').classList.add('hidden');
+
+            if (page === 'login') document.getElementById('page-login').classList.remove('hidden');
+            if (page === 'main') {
+                document.getElementById('page-main').classList.remove('hidden');
+                loadUnits();
+            }
+            if (page === 'confirmation') document.getElementById('page-confirmation').classList.remove('hidden');
+            if (page === 'history') {
+                document.getElementById('page-history').classList.remove('hidden');
+                loadHistory();
+            }
+            closeModals();
+        }
+
+        function closeModals() {
+            document.getElementById('modal-add-choice').classList.add('hidden');
+            document.getElementById('modal-scan').classList.add('hidden');
+            document.getElementById('modal-manual').classList.add('hidden');
+            document.getElementById('modal-admin').classList.add('hidden');
+            document.getElementById('modal-edit-delete').classList.add('hidden');
+            document.getElementById('modal-display-action').classList.add('hidden');
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().catch(() => {});
+            }
+        }
+
+        // Long Press untuk Card Header Atas (Buka Admin Panel)
+        let headerPressTimer = null;
+        const cardHeader = document.querySelector('#page-main .sticky');
+        
+        const startHeaderPress = (e) => {
+            if (e.target.tagName === 'BUTTON' || e.target.closest('button')) return;
+            if (headerPressTimer !== null) clearTimeout(headerPressTimer);
+            headerPressTimer = setTimeout(() => { 
+                openAdminPanel(); 
+                headerPressTimer = null;
+            }, 800);
+        };
+        const cancelHeaderPress = () => {
+            if (headerPressTimer !== null) {
+                clearTimeout(headerPressTimer);
+                headerPressTimer = null;
+            }
+        };
+
+        cardHeader.addEventListener('mousedown', startHeaderPress);
+        cardHeader.addEventListener('mouseup', cancelHeaderPress);
+        cardHeader.addEventListener('mouseleave', cancelHeaderPress);
+        cardHeader.addEventListener('touchstart', startHeaderPress, { passive: true });
+        cardHeader.addEventListener('touchend', cancelHeaderPress);
+
+        function openAddModal() {
+            document.getElementById('modal-add-choice').classList.remove('hidden');
+        }
+
+        function openManualModal() {
+            closeModals();
+            document.getElementById('modal-manual').classList.remove('hidden');
+        }
+
+        function openScanModal() {
+            closeModals();
+            document.getElementById('modal-scan').classList.remove('hidden');
+            document.getElementById('scan-result-form').classList.add('hidden');
+            
+            html5QrCode = new Html5Qrcode("reader");
+            html5QrCode.start(
+                { facingMode: "environment" },
+                { fps: 10, qrbox: { width: 250, height: 250 } },
+                (decodedText) => {
+                    html5QrCode.stop();
+                    let suffix = decodedText.length >= 6 ? decodedText.slice(-6, -4) : decodedText;
+                    let unitNo = decodedText.length >= 17 ? decodedText.slice(11, 17) : decodedText;
+
+                    document.getElementById('scan-suffix').value = suffix;
+                    document.getElementById('scan-unit').value = unitNo;
+                    document.getElementById('scan-result-form').classList.remove('hidden');
+                },
+                (error) => {}
+            ).catch(err => {
+                alert("Tidak dapat mengakses kamera perangkat.");
+            });
+        }
+
+        function submitScanData() {
+            const data = {
+                id: 'UNIT-' + Date.now(),
+                timestamp: new Date().toISOString(),
+                shiftDate: getShiftDate(),
+                suffix: document.getElementById('scan-suffix').value,
+                unitNumber: document.getElementById('scan-unit').value,
+                part: document.getElementById('scan-part').value,
+                problem: document.getElementById('scan-problem').value,
+                status: document.getElementById('scan-problem').value ? 'NG' : 'Normal',
+                confirmItems: []
+            };
+            saveToDatabase(data);
+        }
+
+        function submitManualData() {
+            const data = {
+                id: 'UNIT-' + Date.now(),
+                timestamp: new Date().toISOString(),
+                shiftDate: getShiftDate(),
+                suffix: document.getElementById('man-suffix').value,
+                unitNumber: document.getElementById('man-unit').value,
+                part: document.getElementById('man-part').value,
+                problem: document.getElementById('man-problem').value,
+                status: document.getElementById('man-problem').value ? 'NG' : 'Normal',
+                confirmItems: []
+            };
+            saveToDatabase(data);
+        }
+
+        function saveToDatabase(unitObj) {
+            unitsData.push(unitObj);
+            localStorage.setItem('repair_units', JSON.stringify(unitsData));
+
+            if(WEB_APP_URL !== "https://script.google.com/macros/s/AKfycbwZdIEp5UXh0UIpqVZg3yXBXeY6MP4OUWBl0TyiGQdlzCg_7nLd6Tcum30XpekQMUnV/exec") {
+                fetch(WEB_APP_URL, {
+                    method: 'POST',
+                    mode: 'no-cors',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ action: 'insert', sheet: 'Units', row: [unitObj.id, unitObj.timestamp, unitObj.suffix, unitObj.unitNumber, unitObj.part, unitObj.problem, unitObj.status, JSON.stringify(unitObj.confirmItems), unitObj.shiftDate] })
+                });
+            }
+
+            closeModals();
+            renderUnits();
+        }
+
+        function loadUnits() {
+            const saved = localStorage.getItem('repair_units');
+            if(saved) unitsData = JSON.parse(saved);
+            renderUnits();
+        }
+
+        function renderUnits() {
+            const container = document.getElementById('unit-display-area');
+            container.innerHTML = '';
+            if(unitsData.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 text-center py-8 col-span-full">Belum ada data unit yang diinput.</div>`;
+                return;
+            }
+
+            unitsData.forEach(u => {
+                let isNG = u.problem && u.problem.trim() !== "";
+                let problemColorClass = "text-slate-300";
+                if (u.problemColor === 'yellow') problemColorClass = "text-amber-400 font-bold";
+                else if (u.problemColor === 'green') problemColorClass = "text-emerald-400 font-bold";
+                else if (isNG) problemColorClass = "text-rose-500 font-bold";
+
+                let statusBadge = u.status === 'OK' ? "bg-emerald-500/20 text-emerald-400" : (u.status === 'Dalam Konferensi' ? "bg-amber-500/20 text-amber-400" : (isNG ? "bg-rose-500/20 text-rose-400" : "bg-slate-700 text-slate-300"));
+
+                let card = document.createElement('div');
+                card.className = `bg-slate-800 border border-slate-700 rounded-2xl p-4 shadow-lg relative cursor-pointer hover:border-slate-600 transition select-none`;
+                card.innerHTML = `
+                    <div class="flex justify-between items-start mb-2">
+                        <span class="text-xs px-2.5 py-1 rounded-full ${statusBadge}">${u.status || (isNG ? 'NG' : 'Normal')}</span>
+                        <span class="text-xs text-slate-400">${u.shiftDate}</span>
+                    </div>
+                    <h3 class="text-lg font-bold text-white mb-1">Unit: ${u.unitNumber} <span class="text-sm font-normal text-slate-400">(${u.suffix})</span></h3>
+                    <p class="text-sm text-slate-300">Part: <span class="font-medium text-white">${u.part}</span></p>
+                    <p class="text-sm text-slate-300">Problem: <span class="${problemColorClass}">${u.problem || '-'}</span></p>
+                `;
+
+                // Long Press untuk Unit Display Card (Buka Modal Aksi Konfirmasi)
+                let displayTimer = null;
+                const startDisplayPress = (e) => {
+                    if (displayTimer !== null) clearTimeout(displayTimer);
+                    displayTimer = setTimeout(() => { 
+                        activeUnitId = u.id; 
+                        document.getElementById('modal-display-action').classList.remove('hidden'); 
+                        displayTimer = null;
+                    }, 800);
+                };
+                const cancelDisplayPress = () => {
+                    if (displayTimer !== null) {
+                        clearTimeout(displayTimer);
+                        displayTimer = null;
+                    }
+                };
+
+                card.addEventListener('mousedown', startDisplayPress);
+                card.addEventListener('mouseup', cancelDisplayPress);
+                card.addEventListener('mouseleave', cancelDisplayPress);
+                card.addEventListener('touchstart', startDisplayPress, { passive: true });
+                card.addEventListener('touchend', cancelDisplayPress);
+
+                container.appendChild(card);
+            });
+        }
+
+        function goToConfirmationPage() {
+            closeModals();
+            const unit = unitsData.find(x => x.id === activeUnitId);
+            if(!unit) return;
+
+            unit.status = 'Dalam Konferensi';
+            unit.problemColor = 'yellow'; // Ubah warna tulisan problem menjadi kuning
+            renderUnits();
+
+            document.getElementById('conf-title').innerText = `Unit: ${unit.unitNumber} (${unit.suffix})`;
+            
+            let items = getConfirmationItems(unit.part, unit.problem);
+            const container = document.getElementById('conf-items-container');
+            container.innerHTML = '';
+
+            items.forEach((itemText, idx) => {
+                let div = document.createElement('div');
+                div.className = `flex justify-between items-center bg-slate-900 p-3 rounded-xl border border-slate-700`;
+                div.innerHTML = `
+                    <span class="text-sm text-slate-200">${itemText}</span>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="setConfItem(${idx}, 'OK', this)" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 hover:bg-emerald-600 text-white transition">OK</button>
+                        <button type="button" onclick="setConfItem(${idx}, 'NG', this)" class="px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 hover:bg-rose-600 text-white transition">NG</button>
+                    </div>
+                `;
+                container.appendChild(div);
+            });
+
+            unit.itemsList = items.map(i => ({ text: i, result: null }));
+            switchPage('confirmation');
+        }
+
+        function getConfirmationItems(part, problem) {
+            let pPart = (part || '').toLowerCase();
+            let pProb = (problem || '').toLowerCase();
+
+            if (pPart.includes('rem')) {
+                if (['dalam', 'blong', 'abn'].some(x => pProb.includes(x))) {
+                    return [
+                        "Cek reservoir tank minyak rem",
+                        "Cek Nepel rem",
+                        "Cek running tes fungsi rem dan kopling",
+                        "Cek indikator ABS",
+                        "Cek indikator VSC",
+                        "Cek indikator EFI",
+                        "Cek EPS"
+                    ];
+                }
+            } else if (pPart.includes('indikator')) {
+                if (['abn', 'mati', 'nyala terus'].some(x => pProb.includes(x))) {
+                    return [
+                        "Cover fuse box",
+                        "Jump Pro",
+                        "Indikator EFI",
+                        "Indikator ABS",
+                        "Indikator Air Bag",
+                        "Indikator EPS",
+                        "Indikator VSC",
+                        "Indikator immobilizer"
+                    ];
+                }
+            }
+            return ["Cek General Unit", "Cek Kelistrikan", "Cek Fungsi Mekanikal"];
+        }
+
+        function setConfItem(index, value, btnElement) {
+            const unit = unitsData.find(x => x.id === activeUnitId);
+            unit.itemsList[index].result = value;
+            
+            let parent = btnElement.parentElement;
+            parent.querySelectorAll('button').forEach(b => {
+                b.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-slate-700 text-white transition";
+            });
+            if(value === 'OK') {
+                btnElement.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-emerald-600 text-white transition";
+            } else {
+                btnElement.className = "px-4 py-1.5 rounded-lg text-xs font-semibold bg-rose-600 text-white transition";
+            }
+        }
+
+        function saveConfirmation() {
+            const unit = unitsData.find(x => x.id === activeUnitId);
+            let allOk = unit.itemsList.every(i => i.result === 'OK');
+
+            if (!allOk) {
+                alert("Masih ada item yang bernilai NG atau belum dipilih! Data tidak bisa disimpan ke Halaman OK unit.");
+                return;
+            }
+
+            unit.status = 'OK';
+            unit.problemColor = 'green'; // Ubah warna tulisan problem menjadi hijau
+            localStorage.setItem('repair_units', JSON.stringify(unitsData));
+            alert("Konfirmasi berhasil! Unit disimpan ke status OK.");
+            switchPage('main');
+        }
+
+        function openAdminPanel() {
+            const listContainer = document.getElementById('admin-unit-list');
+            listContainer.innerHTML = '';
+            
+            if(unitsData.length === 0) {
+                listContainer.innerHTML = `<div class="text-slate-500 text-center py-4">Tidak ada data unit.</div>`;
+            } else {
+                unitsData.forEach(u => {
+                    let item = document.createElement('div');
+                    item.className = "bg-slate-900 border border-slate-700 p-3 rounded-xl flex justify-between items-center cursor-pointer hover:bg-slate-850 select-none";
+                    item.innerHTML = `
+                        <div>
+                            <h4 class="font-bold text-white text-sm">${u.unitNumber} (${u.suffix})</h4>
+                            <p class="text-xs text-slate-400">Part: ${u.part} | Status: ${u.status || 'Normal'}</p>
+                        </div>
+                        <span class="text-xs text-blue-400">Tahan untuk Edit/Hapus</span>
+                    `;
+
+                    // Long Press yang Stabil untuk Admin Panel List
+                    let pressTimer = null;
+                    const startPress = (e) => {
+                        if (pressTimer !== null) clearTimeout(pressTimer);
+                        pressTimer = setTimeout(() => {
+                            activeUnitId = u.id;
+                            document.getElementById('modal-edit-delete').classList.remove('hidden');
+                            pressTimer = null;
+                        }, 800);
+                    };
+                    const cancelPress = () => {
+                        if (pressTimer !== null) {
+                            clearTimeout(pressTimer);
+                            pressTimer = null;
+                        }
+                    };
+
+                    item.addEventListener('mousedown', startPress);
+                    item.addEventListener('mouseup', cancelPress);
+                    item.addEventListener('mouseleave', cancelPress);
+                    item.addEventListener('touchstart', startPress, { passive: true });
+                    item.addEventListener('touchend', cancelPress);
+
+                    listContainer.appendChild(item);
+                });
+            }
+            document.getElementById('modal-admin').classList.remove('hidden');
+        }
+
+        function executeDelete() {
+            if(confirm("Yakin ingin menghapus unit ini?")) {
+                unitsData = unitsData.filter(x => x.id !== activeUnitId);
+                localStorage.setItem('repair_units', JSON.stringify(unitsData));
+                closeModals();
+                loadUnits();
+            }
+        }
+
+        function executeEdit() {
+            let unit = unitsData.find(x => x.id === activeUnitId);
+            let newProb = prompt("Ubah Problem:", unit.problem);
+            if(newProb !== null) {
+                unit.problem = newProb;
+                unit.status = newProb ? 'NG' : 'Normal';
+                if(!newProb) unit.problemColor = null;
+                localStorage.setItem('repair_units', JSON.stringify(unitsData));
+                closeModals();
+                loadUnits();
+            }
+        }
+
+        function loadHistory() {
+            const container = document.getElementById('history-dates-container');
+            container.innerHTML = '';
+
+            let grouped = {};
+            unitsData.forEach(u => {
+                let dateKey = u.shiftDate || 'Unspecified';
+                if(!grouped[dateKey]) grouped[dateKey] = [];
+                grouped[dateKey].push(u);
+            });
+
+            let dates = Object.keys(grouped).sort().reverse();
+            if(dates.length === 0) {
+                container.innerHTML = `<div class="text-slate-500 text-center py-8">Belum ada riwayat unit.</div>`;
+                return;
+            }
+
+            dates.forEach(date => {
+                let btn = document.createElement('div');
+                btn.className = "bg-slate-800 border border-slate-700 p-4 rounded-xl cursor-pointer hover:border-slate-600 transition flex justify-between items-center";
+                btn.innerHTML = `
+                    <span class="font-bold text-white">Tanggal Shift: ${date}</span>
+                    <span class="text-xs bg-blue-600/20 text-blue-400 px-3 py-1 rounded-full">${grouped[date].length} Unit</span>
+                `;
+                btn.onclick = () => showDateUnitsPopup(date, grouped[date]);
+                container.appendChild(btn);
+            });
+        }
+
+        function showDateUnitsPopup(date, units) {
+            let details = units.map(u => `- [${u.status || 'Normal'}] Unit: ${u.unitNumber} (${u.suffix}) | Part: ${u.part} | Problem: ${u.problem || '-'}`).join('\n');
+            alert(`Daftar Unit pada Tanggal ${date}:\n\n${details}`);
+        }
+    </script>
+</body>
+</html>
