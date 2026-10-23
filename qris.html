@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DompetKu - E-Wallet QRIS</title>
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- QR Code Scanner Library via CDN -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', sans-serif;
+        }
+
+        body {
+            background-color: #f4f6f9;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+
+        .app-container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 420px;
+            height: 100vh;
+            max-height: 850px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        @media (min-width: 480px) {
+            .app-container {
+                border: 1px solid #ddd;
+            }
+        }
+
+        /* Screen Management */
+        .screen {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow-y: auto;
+            padding: 20px;
+        }
+
+        .screen.active {
+            display: flex;
+        }
+
+        /* Header / Navbar */
+        .wallet-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .user-greeting h3 {
+            font-size: 14px;
+            color: #666;
+        }
+
+        .user-greeting h2 {
+            font-size: 18px;
+            color: #1a1a1a;
+        }
+
+        /* Saldo Card */
+        .balance-card {
+            background: linear-gradient(135deg, #0052D4, #4364F7, #6FB1FC);
+            color: white;
+            padding: 20px;
+            border-radius: 16px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 15px rgba(0, 82, 212, 0.3);
+        }
+
+        .balance-card p {
+            font-size: 13px;
+            opacity: 0.9;
+        }
+
+        .balance-card h1 {
+            font-size: 26px;
+            font-weight: 700;
+            margin: 6px 0 15px 0;
+        }
+
+        .balance-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn-action {
+            flex: 1;
+            padding: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-action:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+
+        /* Menu Utama / Shortcut */
+        .menu-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 12px;
+            margin-bottom: 24px;
+            text-align: center;
+        }
+
+        .menu-item {
+            background: #f8f9fa;
+            padding: 12px 8px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .menu-item:active {
+            transform: scale(0.95);
+        }
+
+        .menu-icon {
+            font-size: 20px;
+            margin-bottom: 6px;
+        }
+
+        .menu-item span {
+            font-size: 11px;
+            color: #444;
+            font-weight: 500;
+        }
+
+        /* Riwayat Transaksi */
+        .section-title {
+            font-size: 15px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #1a1a1a;
+        }
+
+        .transaction-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .tx-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: #fafafa;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+
+        .tx-info h4 {
+            font-size: 13px;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .tx-info p {
+            font-size: 11px;
+            color: #888;
+        }
+
+        .tx-amount {
+            font-size: 13px;
+            font-weight: 600;
+            color: #d32f2f; /* merah untuk pengeluaran */
+        }
+
+        .tx-amount.plus {
+            color: #2e7d32; /* hijau untuk pemasukan */
+        }
+
+        /* Tombol Utama */
+        .btn-primary {
+            width: 100%;
+            padding: 14px;
+            background-color: #0052D4;
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background-color: #003db3;
+        }
+
+        .btn-secondary {
+            background-color: #e0e0e0;
+            color: #333;
+            margin-top: 10px;
+        }
+        .btn-secondary:hover {
+            background-color: #d0d0d0;
+        }
+
+        /* Scanner Screen */
+        #reader {
+            width: 100%;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .scanner-instruction {
+            text-align: center;
+            font-size: 13px;
+            color: #666;
+            margin-bottom: 15px;
+        }
+
+        /* Form Konfirmasi Pembayaran QRIS */
+        .payment-box {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            padding: 16px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+        }
+
+        .payment-box label {
+            font-size: 12px;
+            color: #666;
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        .payment-box input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            outline: none;
+            margin-bottom: 12px;
+        }
+
+        .payment-box .info-text {
+            font-size: 14px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        
+        <!-- ================= SCREEN 1: HOME ================= -->
+        <div id="screen-home" class="screen active">
+            <div class="wallet-header">
+                <div class="user-greeting">
+                    <h3>Selamat Datang,</h3>
+                    <h2>Budi Santoso</h2>
+                </div>
+                <div style="font-size: 24px;">🔔</div>
+            </div>
+
+            <!-- Saldo Card -->
+            <div class="balance-card">
+                <p>Saldo DompetKu</p>
+                <h1 id="saldo-text">Rp 750.000</h1>
+                <div class="balance-actions">
+                    <button class="btn-action" onclick="topUpSaldo()">+ Top Up</button>
+                    <button class="btn-action" onclick="alert('Fitur transfer belum aktif')">↗ Kirim</button>
+                </div>
+            </div>
+
+            <!-- Menu Grid -->
+            <div class="menu-grid">
+                <div class="menu-item" onclick="openScanner()">
+                    <div class="menu-icon">📷</div>
+                    <span>Scan QR</span>
+                </div>
+                <div class="menu-item" onclick="alert('Menu Pulsa')">
+                    <div class="menu-icon">📱</div>
+                    <span>Pulsa</span>
+                </div>
+                <div class="menu-item" onclick="alert('Menu Listrik')">
+                    <div class="menu-icon">⚡</div>
+                    <span>Listrik</span>
+                </div>
+                <div class="menu-item" onclick="alert('Menu Lainnya')">
+                    <div class="menu-icon">🍱</div>
+                    <span>Lainnya</span>
+                </div>
+            </div>
+
+            <!-- Riwayat Transaksi -->
+            <div class="section-title">Riwayat Transaksi</div>
+            <div class="transaction-list" id="transaction-list">
+                <!-- Data awal riwayat -->
+                <div class="tx-item">
+                    <div class="tx-info">
+                        <h4>Top Up Saldo</h4>
+                        <p>23 Okt 2026, 10:00</p>
+                    </div>
+                    <div class="tx-amount plus">+ Rp 500.000</div>
+                </div>
+                <div class="tx-item">
+                    <div class="tx-info">
+                        <h4>Kopi Kenangan (QRIS)</h4>
+                        <p>22 Okt 2026, 15:30</p>
+                    </div>
+                    <div class="tx-amount">- Rp 28.000</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= SCREEN 2: SCANNER QRIS ================= -->
+        <div id="screen-scanner" class="screen">
+            <div class="wallet-header">
+                <h2 style="font-size: 18px;">Scan QRIS Merchant</h2>
+                <button onclick="closeScanner()" style="border:none; background:none; font-size:16px; cursor:pointer;">✕ Tutup</button>
+            </div>
+            
+            <p class="scanner-instruction">Arahkan kamera ke kode QRIS pembayaran merchant.</p>
+            
+            <!-- Elemen Kamera Scanner -->
+            <div id="reader"></div>
+
+            <div style="text-align: center; margin-top: 10px;">
+                <p style="font-size: 12px; color: #888; margin-bottom: 8px;">Atau uji simulasi QR:</p>
+                <button class="btn-primary btn-secondary" onclick="simulateQrisScan('Toko Berkah Jaya', 25000)">Simulasi Scan QR Toko (Rp 25.000)</button>
+            </div>
+        </div>
+
+        <!-- ================= SCREEN 3: KONFIRMASI BAYAR ================= -->
+        <div id="screen-payment" class="screen">
+            <div class="wallet-header">
+                <h2 style="font-size: 18px;">Konfirmasi Pembayaran</h2>
+                <button onclick="goToScreen('screen-home')" style="border:none; background:none; font-size:16px; cursor:pointer;">✕</button>
+            </div>
+
+            <div class="payment-box">
+                <label>Merchant / Penerima</label>
+                <div class="info-text" id="pay-merchant">-</div>
+                
+                <label>Nominal Pembayaran</label>
+                <div id="amount-container">
+                    <input type="number" id="pay-amount" placeholder="Masukkan Nominal (Rp)" oninput="checkAmountInput()">
+                </div>
+            </div>
+
+            <div style="background: #e8f5e9; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 13px; color: #2e7d32;">
+                Sisa Saldo Anda: <b id="current-saldo-info">Rp 750.000</b>
+            </div>
+
+            <button class="btn-primary" id="btn-pay-confirm" onclick="executePayment()" disabled style="opacity: 0.5;">Bayar Sekarang</button>
+        </div>
+
+        <!-- ================= SCREEN 4: SUKSES ================= -->
+        <div id="screen-success" class="screen" style="justify-content: center; align-items: center; text-align: center;">
+            <div style="font-size: 60px; margin-bottom: 15px;">✅</div>
+            <h2 style="font-size: 20px; color: #2e7d32; margin-bottom: 8px;">Pembayaran Berhasil!</h2>
+            <p style="font-size: 13px; color: #666; margin-bottom: 20px;" id="success-desc">Transaksi Anda telah diproses.</p>
+            <button class="btn-primary" onclick="goToScreen('screen-home')">Kembali ke Beranda</button>
+        </div>
+
+    </div>
+
+    <script>
+        // Data Aplikasi Global
+        let userSaldo = 750000;
+        let activeMerchant = "";
+        let activeAmount = 0;
+        let html5QrCode = null;
+
+        function formatRupiah(angka) {
+            return new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(angka);
+        }
+
+        function updateUI() {
+            document.getElementById('saldo-text').innerText = formatRupiah(userSaldo);
+            document.getElementById('current-saldo-info').innerText = formatRupiah(userSaldo);
+        }
+
+        function goToScreen(screenId) {
+            // Hentikan scanner kamera jika berpindah dari layar scanner
+            if (html5QrCode && screenId !== 'screen-scanner') {
+                html5QrCode.stop().catch(err => console.log(err));
+            }
+
+            document.querySelectorAll('.screen').forEach(screen => {
+                screen.classList.remove('active');
+            });
+            document.getElementById(screenId).classList.add('active');
+        }
+
+        // --- Fitur Top Up ---
+        function topUpSaldo() {
+            let tambahan = prompt("Masukkan jumlah Top Up (Rp):", "100000");
+            if (tambahan && !isNaN(tambahan) && Number(tambahan) > 0) {
+                userSaldo += Number(tambahan);
+                updateUI();
+                addTransaction("Top Up Saldo", Number(tambahan), true);
+                alert("Top Up berhasil!");
+            }
+        }
+
+        // --- Fitur QRIS Scanner ---
+        function openScanner() {
+            goToScreen('screen-scanner');
+            
+            // Inisialisasi library scanner kamera
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+
+            html5QrCode.start(
+                { facingMode: "environment" }, 
+                config, 
+                (decodedText, decodedResult) => {
+                    // Sukses scan QR Code
+                    console.log(`Scan result: ${decodedText}`, decodedResult);
+                    // Parsing sederhana atau asumsi data QRIS
+                    simulateQrisScan("Merchant QRIS (Scan)", 15000); 
+                },
+                (errorMessage) => {
+                    // Scanning error / masih mencari, biarkan saja
+                }
+            ).catch(err => {
+                console.warn(`Gagal memulai kamera: ${err}`);
+                // Fallback jika kamera tidak aktif/izin ditolak
+            });
+        }
+
+        function closeScanner() {
+            goToScreen('screen-home');
+        }
+
+        // Fungsi simulasi saat QR terpindai (baik via kamera maupun tombol uji)
+        function simulateQrisScan(merchantName, defaultAmount) {
+            if (html5QrCode) {
+                html5QrCode.stop().catch(err => console.log(err));
+            }
+
+            activeMerchant = merchantName;
+            document.getElementById('pay-merchant').innerText = activeMerchant;
+            
+            const amountInput = document.getElementById('pay-amount');
+            if (defaultAmount > 0) {
+                amountInput.value = defaultAmount;
+                activeAmount = defaultAmount;
+                amountInput.disabled = true; // Jika nominal statis dari QRIS
+            } else {
+                amountInput.value = "";
+                amountInput.disabled = false; // Jika QRIS dinamis (diisi manual)
+            }
+
+            checkAmountInput();
+            goToScreen('screen-payment');
+        }
+
+        // Cek input nominal dan validasi saldo
+        function checkAmountInput() {
+            const inputVal = document.getElementById('pay-amount').value;
+            activeAmount = Number(inputVal);
+            const btnPay = document.getElementById('btn-pay-confirm');
+
+            if (activeAmount > 0 && activeAmount <= userSaldo) {
+                btnPay.disabled = false;
+                btnPay.style.opacity = "1";
+            } else {
+                btnPay.disabled = true;
+                btnPay.style.opacity = "0.5";
+            }
+        }
+
+        // Eksekusi Pembayaran
+        function executePayment() {
+            if (activeAmount > userSaldo) {
+                alert("Saldo tidak mencukupi!");
+                return;
+            }
+
+            userSaldo -= activeAmount;
+            updateUI();
+
+            // Catat ke riwayat
+            addTransaction(activeMerchant, activeAmount, false);
+
+            document.getElementById('success-desc').innerHTML = `Berhasil membayar <b>${formatRupiah(activeAmount)}</b> ke <b>${activeMerchant}</b>`;
+            goToScreen('screen-success');
+        }
+
+        // Tambah Riwayat Transaksi ke List HTML
+        function addTransaction(title, amount, isPlus) {
+            const list = document.getElementById('transaction-list');
+            const now = new Date();
+            const dateStr = `${now.getDate()} Okt ${now.getFullYear()}, ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+
+            const item = document.createElement('div');
+            item.className = 'tx-item';
+            item.innerHTML = `
+                <div class="tx-info">
+                    <h4>${title}</h4>
+                    <p>${dateStr}</p>
+                </div>
+                <div class="tx-amount ${isPlus ? 'plus' : ''}">${isPlus ? '+' : '-'} ${formatRupiah(amount)}</div>
+            `;
+            list.prepend(item);
+        }
+
+        // Jalankan inisialisasi awal
+        updateUI();
+    </script>
+</body>
+</html>
