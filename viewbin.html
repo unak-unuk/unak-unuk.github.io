@@ -123,14 +123,27 @@
                 </div>
                 <div>
                     <h2 class="font-bold text-slate-800 leading-tight">Spreadsheet Viewer</h2>
-                    <p id="binIdDisplay" class="text-xs text-slate-500 font-mono">Bin: -</p>
+                    <div class="flex items-center gap-2">
+                        <p id="binIdDisplay" class="text-xs text-slate-500 font-mono">Bin: -</p>
+                        <span class="text-slate-300">•</span>
+                        <p id="lastUpdateDisplay" class="text-xs text-emerald-600 font-medium flex items-center gap-1">
+                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                            Auto-sync aktif
+                        </p>
+                    </div>
                 </div>
             </div>
             
-            <button onclick="handleLogout()" class="text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-medium px-4 py-2 rounded-lg border border-red-200 transition-colors flex items-center gap-2">
-                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
-                Logout
-            </button>
+            <div class="flex items-center gap-3">
+                <button onclick="manualRefresh()" id="refreshBtn" title="Segarkan Data Sekarang" class="text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium px-3 py-2 rounded-lg border border-slate-300 transition-colors flex items-center gap-1.5">
+                    <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Refresh
+                </button>
+                <button onclick="handleLogout()" class="text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-medium px-4 py-2 rounded-lg border border-red-200 transition-colors flex items-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Logout
+                </button>
+            </div>
         </div>
 
         <!-- Excel Table Container -->
@@ -154,6 +167,10 @@
         const STORAGE_ID = 'jsonbin_id';
         const STORAGE_KEY = 'jsonbin_api_key';
 
+        // Variabel untuk interval auto-refresh
+        let autoRefreshInterval = null;
+        const REFRESH_INTERVAL_TIME = 60000; // 60.000 ms = 1 Menit
+
         // Pemetaan Header Sesuai Permintaan
         const headerMapping = {
             "id": "ID",
@@ -176,6 +193,8 @@
         const tableHeader = document.getElementById('tableHeader');
         const tableBody = document.getElementById('tableBody');
         const binIdDisplay = document.getElementById('binIdDisplay');
+        const lastUpdateDisplay = document.getElementById('lastUpdateDisplay');
+        const refreshIcon = document.getElementById('refreshIcon');
 
         // Init App (Cek LocalStorage saat halaman dimuat)
         document.addEventListener('DOMContentLoaded', () => {
@@ -186,7 +205,7 @@
                 // Jika sudah ada data login, langsung coba hubungkan
                 document.getElementById('binId').value = savedId;
                 document.getElementById('apiKey').value = savedKey;
-                fetchDataAndRender(savedId, savedKey, true);
+                fetchDataAndRender(savedId, savedKey, true, false);
             }
         });
 
@@ -195,18 +214,19 @@
             e.preventDefault();
             const binId = document.getElementById('binId').value.trim();
             const apiKey = document.getElementById('apiKey').value.trim();
-            fetchDataAndRender(binId, apiKey, false);
+            fetchDataAndRender(binId, apiKey, false, false);
         });
 
         // Main Fetch Logic
-        async function fetchDataAndRender(binId, apiKey, isAutoLogin) {
-            setLoading(true);
+        async function fetchDataAndRender(binId, apiKey, isAutoLogin, isBackgroundRefresh = false) {
+            if (!isBackgroundRefresh) {
+                setLoading(true);
+            }
             hideError();
 
             try {
                 const headers = {};
                 if (apiKey) {
-                    // Mendukung master key maupun access key dari jsonbin.io
                     headers['X-Master-Key'] = apiKey;
                     headers['X-Access-Key'] = apiKey;
                 }
@@ -227,7 +247,6 @@
 
                 const json = await response.json();
                 
-                // Menarik data dari "record" untuk API V3 jsonbin
                 let dataToRender = [];
                 if (json.record) {
                     dataToRender = Array.isArray(json.record) ? json.record : [json.record];
@@ -242,31 +261,79 @@
                 // Update UI
                 binIdDisplay.textContent = `Bin: ${binId}`;
                 renderExcelTable(dataToRender);
+                
+                // Update waktu sinkronisasi terakhir
+                const now = new Date();
+                const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+                lastUpdateDisplay.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Terakhir diperbarui: ${timeString}`;
+
                 switchView('data');
 
+                // Mulai timer auto-refresh 1 menit jika belum aktif
+                startAutoRefreshTimer(binId, apiKey);
+
             } catch (error) {
-                // Jika auto-login gagal, bersihkan storage karena mungkin key dicabut/berubah
-                if (isAutoLogin) {
+                if (isAutoLogin && !isBackgroundRefresh) {
                     localStorage.removeItem(STORAGE_ID);
                     localStorage.removeItem(STORAGE_KEY);
                 }
-                showError(error.message);
+                
+                if (!isBackgroundRefresh) {
+                    showError(error.message);
+                } else {
+                    // Jika gagal saat background refresh, tampilkan status error kecil
+                    lastUpdateDisplay.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Gagal sync (${timeString})`;
+                }
             } finally {
-                setLoading(false);
+                if (!isBackgroundRefresh) {
+                    setLoading(false);
+                }
+            }
+        }
+
+        // Fungsi Memulai Timer 1 Menit
+        function startAutoRefreshTimer(binId, apiKey) {
+            // Hentikan interval lama jika sudah ada agar tidak menumpuk
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+            }
+
+            // Set interval baru setiap 1 menit (60000 ms)
+            autoRefreshInterval = setInterval(() => {
+                fetchDataAndRender(binId, apiKey, false, true);
+            }, REFRESH_INTERVAL_TIME);
+        }
+
+        // Tombol Refresh Manual
+        function manualRefresh() {
+            const savedId = localStorage.getItem(STORAGE_ID);
+            const savedKey = localStorage.getItem(STORAGE_KEY) || '';
+            if (savedId) {
+                // Beri efek animasi putar pada icon refresh
+                refreshIcon.classList.add('animate-spin');
+                fetchDataAndRender(savedId, savedKey, false, false).finally(() => {
+                    setTimeout(() => refreshIcon.classList.remove('animate-spin'), 500);
+                });
             }
         }
 
         // Logic Logout
         function handleLogout() {
+            // Hentikan timer auto-refresh saat logout
+            if (autoRefreshInterval) {
+                clearInterval(autoRefreshInterval);
+                autoRefreshInterval = null;
+            }
+
             // Bersihkan local storage
             localStorage.removeItem(STORAGE_ID);
             localStorage.removeItem(STORAGE_KEY);
             
-            // Kosongkan form (opsional, untuk keamanan API key)
+            // Kosongkan form
             document.getElementById('binId').value = '';
             document.getElementById('apiKey').value = '';
             
-            // Kosongkan tabel (agar ringan di memori)
+            // Kosongkan tabel
             tableHeader.innerHTML = '<th class="corner"></th>';
             tableBody.innerHTML = '';
             
@@ -284,7 +351,6 @@
                 return;
             }
 
-            // Kumpulkan semua keys yang unik untuk header
             let keys = [];
             dataArray.forEach(row => {
                 Object.keys(row).forEach(key => {
@@ -292,25 +358,20 @@
                 });
             });
 
-            // Bangun kolom header <thead>
             keys.forEach(key => {
                 const th = document.createElement('th');
-                // Menggunakan dictionary pemetaan jika ada
                 th.textContent = headerMapping[key] || (key.charAt(0).toUpperCase() + key.slice(1));
                 tableHeader.appendChild(th);
             });
 
-            // Bangun baris data <tbody>
             dataArray.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 
-                // Header untuk nomor baris di kiri
                 const rowNumTd = document.createElement('td');
                 rowNumTd.className = 'row-number';
                 rowNumTd.textContent = index + 1;
                 tr.appendChild(rowNumTd);
 
-                // Isi sel
                 keys.forEach(key => {
                     const td = document.createElement('td');
                     const value = item[key];
