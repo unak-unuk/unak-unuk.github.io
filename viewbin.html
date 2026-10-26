@@ -135,6 +135,16 @@
             </div>
             
             <div class="flex items-center gap-3">
+                <!-- Navigasi Switch View Mode -->
+                <div class="bg-slate-100 p-1 rounded-lg border border-slate-200 flex items-center gap-1">
+                    <button onclick="switchTableMode('full')" id="btnModeFull" class="text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all">
+                        Tabel Lengkap
+                    </button>
+                    <button onclick="switchTableMode('summary')" id="btnModeSummary" class="text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all">
+                        Ringkasan Problem
+                    </button>
+                </div>
+
                 <button onclick="manualRefresh()" id="refreshBtn" title="Segarkan Data Sekarang" class="text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium px-3 py-2 rounded-lg border border-slate-300 transition-colors flex items-center gap-1.5">
                     <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
                     Refresh
@@ -167,9 +177,11 @@
         const STORAGE_ID = 'jsonbin_id';
         const STORAGE_KEY = 'jsonbin_api_key';
 
-        // Variabel untuk interval auto-refresh
+        // Variabel untuk interval auto-refresh & Cache Data & Mode Tampilan
         let autoRefreshInterval = null;
         const REFRESH_INTERVAL_TIME = 60000; // 60.000 ms = 1 Menit
+        let cachedData = [];
+        let currentMode = 'full'; // 'full' atau 'summary'
 
         // Pemetaan Header Sesuai Permintaan
         const headerMapping = {
@@ -195,6 +207,8 @@
         const binIdDisplay = document.getElementById('binIdDisplay');
         const lastUpdateDisplay = document.getElementById('lastUpdateDisplay');
         const refreshIcon = document.getElementById('refreshIcon');
+        const btnModeFull = document.getElementById('btnModeFull');
+        const btnModeSummary = document.getElementById('btnModeSummary');
 
         // Init App (Cek LocalStorage saat halaman dimuat)
         document.addEventListener('DOMContentLoaded', () => {
@@ -202,7 +216,6 @@
             const savedKey = localStorage.getItem(STORAGE_KEY) || '';
 
             if (savedId) {
-                // Jika sudah ada data login, langsung coba hubungkan
                 document.getElementById('binId').value = savedId;
                 document.getElementById('apiKey').value = savedKey;
                 fetchDataAndRender(savedId, savedKey, true, false);
@@ -254,13 +267,16 @@
                     dataToRender = Array.isArray(json) ? json : [json];
                 }
 
+                // Simpan ke cache agar saat mengganti mode tampilan tidak perlu fetch ulang
+                cachedData = dataToRender;
+
                 // Sukses terhubung: Simpan di local storage
                 localStorage.setItem(STORAGE_ID, binId);
                 localStorage.setItem(STORAGE_KEY, apiKey);
 
                 // Update UI
                 binIdDisplay.textContent = `Bin: ${binId}`;
-                renderExcelTable(dataToRender);
+                renderActiveTable();
                 
                 // Update waktu sinkronisasi terakhir
                 const now = new Date();
@@ -268,8 +284,6 @@
                 lastUpdateDisplay.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Terakhir diperbarui: ${timeString}`;
 
                 switchView('data');
-
-                // Mulai timer auto-refresh 1 menit jika belum aktif
                 startAutoRefreshTimer(binId, apiKey);
 
             } catch (error) {
@@ -281,7 +295,8 @@
                 if (!isBackgroundRefresh) {
                     showError(error.message);
                 } else {
-                    // Jika gagal saat background refresh, tampilkan status error kecil
+                    const now = new Date();
+                    const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
                     lastUpdateDisplay.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Gagal sync (${timeString})`;
                 }
             } finally {
@@ -291,14 +306,33 @@
             }
         }
 
+        // Fungsi Switch Mode Tampilan Tabel
+        function switchTableMode(mode) {
+            currentMode = mode;
+            if (mode === 'full') {
+                btnModeFull.className = "text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
+                btnModeSummary.className = "text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all";
+            } else {
+                btnModeSummary.className = "text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
+                btnModeFull.className = "text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all";
+            }
+            renderActiveTable();
+        }
+
+        // Render Tabel Sesuai Mode Aktif
+        function renderActiveTable() {
+            if (currentMode === 'full') {
+                renderExcelTable(cachedData);
+            } else {
+                renderSummaryTable(cachedData);
+            }
+        }
+
         // Fungsi Memulai Timer 1 Menit
         function startAutoRefreshTimer(binId, apiKey) {
-            // Hentikan interval lama jika sudah ada agar tidak menumpuk
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
             }
-
-            // Set interval baru setiap 1 menit (60000 ms)
             autoRefreshInterval = setInterval(() => {
                 fetchDataAndRender(binId, apiKey, false, true);
             }, REFRESH_INTERVAL_TIME);
@@ -309,7 +343,6 @@
             const savedId = localStorage.getItem(STORAGE_ID);
             const savedKey = localStorage.getItem(STORAGE_KEY) || '';
             if (savedId) {
-                // Beri efek animasi putar pada icon refresh
                 refreshIcon.classList.add('animate-spin');
                 fetchDataAndRender(savedId, savedKey, false, false).finally(() => {
                     setTimeout(() => refreshIcon.classList.remove('animate-spin'), 500);
@@ -319,29 +352,24 @@
 
         // Logic Logout
         function handleLogout() {
-            // Hentikan timer auto-refresh saat logout
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
                 autoRefreshInterval = null;
             }
-
-            // Bersihkan local storage
             localStorage.removeItem(STORAGE_ID);
             localStorage.removeItem(STORAGE_KEY);
             
-            // Kosongkan form
             document.getElementById('binId').value = '';
             document.getElementById('apiKey').value = '';
             
-            // Kosongkan tabel
             tableHeader.innerHTML = '<th class="corner"></th>';
             tableBody.innerHTML = '';
+            cachedData = [];
             
-            // Kembali ke halaman login
             switchView('login');
         }
 
-        // Render Data ke Table (Format Excel)
+        // Render Tabel Lengkap (Mode Full)
         function renderExcelTable(dataArray) {
             tableHeader.innerHTML = '<th class="corner"></th>';
             tableBody.innerHTML = '';
@@ -378,6 +406,60 @@
                     td.textContent = (value !== null && value !== undefined) ? value : '';
                     tr.appendChild(td);
                 });
+
+                tableBody.appendChild(tr);
+            });
+        }
+
+        // Render Tabel Ringkasan (Mode Summary: No, Unit [suffix-unitNo], Problem)
+        function renderSummaryTable(dataArray) {
+            tableHeader.innerHTML = '<th class="corner"></th>';
+            tableBody.innerHTML = '';
+
+            if (!dataArray || dataArray.length === 0) {
+                tableBody.innerHTML = '<tr><td class="row-number">1</td><td colspan="3" class="text-slate-400 italic">Data kosong / record tidak ditemukan...</td></tr>';
+                return;
+            }
+
+            // Tentukan Header khusus untuk mode ringkas
+            const summaryHeaders = ["Unit", "Problem"];
+            summaryHeaders.forEach(text => {
+                const th = document.createElement('th');
+                th.textContent = text;
+                tableHeader.appendChild(th);
+            });
+
+            // Bangun baris data
+            dataArray.forEach((item, index) => {
+                const tr = document.createElement('tr');
+                
+                // Nomor baris
+                const rowNumTd = document.createElement('td');
+                rowNumTd.className = 'row-number';
+                rowNumTd.textContent = index + 1;
+                tr.appendChild(rowNumTd);
+
+                // Kolom Unit (Gabungan suffix dan unitNo, cth: "A-101" atau "101" jika salah satu kosong)
+                const suffix = item['suffix'] !== undefined && item['suffix'] !== null ? String(item['suffix']).trim() : '';
+                const unitNo = item['unitNo'] !== undefined && item['unitNo'] !== null ? String(item['unitNo']).trim() : '';
+                
+                let combinedUnit = '';
+                if (suffix && unitNo) {
+                    combinedUnit = `${suffix}-${unitNo}`;
+                } else {
+                    combinedUnit = suffix || unitNo || '';
+                }
+
+                const unitTd = document.createElement('td');
+                unitTd.textContent = combinedUnit;
+                unitTd.className = 'font-semibold text-slate-700';
+                tr.appendChild(unitTd);
+
+                // Kolom Problem
+                const problemTd = document.createElement('td');
+                const problemVal = item['problem'];
+                problemTd.textContent = (problemVal !== null && problemVal !== undefined) ? problemVal : '';
+                tr.appendChild(problemTd);
 
                 tableBody.appendChild(tr);
             });
