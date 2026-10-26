@@ -12,6 +12,7 @@
             overflow: auto;
             background-color: #e6e6e6;
             height: calc(100vh - 64px); /* Dikurangi tinggi navbar/header */
+            -webkit-overflow-scrolling: touch; /* Scroll lancar di HP */
         }
         
         .excel-table {
@@ -25,7 +26,7 @@
         .excel-table th, 
         .excel-table td {
             border: 1px solid #d4d4d4;
-            padding: 4px 8px;
+            padding: 8px 12px; /* Dibuat sedikit lebih besar agar nyaman disentuh jari di HP */
             white-space: nowrap;
             empty-cells: show;
         }
@@ -46,7 +47,7 @@
             background-color: #f3f2f1 !important;
             color: #666;
             text-align: center !important;
-            width: 40px;
+            width: 50px;
             border-right: 1px solid #b4b4b4 !important;
             position: sticky;
             left: 0;
@@ -64,7 +65,7 @@
         }
 
         .excel-table tr:hover td:not(.row-number) {
-            background-color: #e6f2f8; /* Light blue (Excel selection) */
+            background-color: #e6f2f8;
         }
 
         /* Spinner Animasi */
@@ -82,8 +83,8 @@
 <body class="bg-slate-100 text-slate-800 h-screen overflow-hidden flex flex-col font-sans">
 
     <!-- VIEW 1: LOGIN FORM -->
-    <div id="loginView" class="flex-1 flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-md rounded-xl shadow-lg border border-slate-200 overflow-hidden">
+    <div id="loginView" class="flex-1 flex items-center justify-center p-4 overflow-y-auto">
+        <div class="bg-white w-full max-w-md rounded-xl shadow-lg border border-slate-200 overflow-hidden my-auto">
             <div class="bg-blue-600 p-6 text-white text-center">
                 <h1 class="text-2xl font-bold">Data Login</h1>
                 <p class="text-blue-100 text-sm mt-1">Hubungkan ke penyimpanan JSONBin.io</p>
@@ -106,7 +107,7 @@
                     <p class="text-xs text-slate-500 mt-1">Kosongkan jika Bin bersifat publik.</p>
                 </div>
                 
-                <button type="submit" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-lg transition-colors flex items-center justify-center gap-2 mt-4">
+                <button type="submit" id="loginBtn" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-lg transition-colors flex items-center justify-center gap-2 mt-4">
                     <span id="loginBtnText">Hubungkan</span>
                 </button>
             </form>
@@ -115,41 +116,39 @@
 
     <!-- VIEW 2: DATA SPREADSHEET -->
     <div id="dataView" class="hidden flex-col h-screen w-full">
-        <!-- Header / Navbar -->
-        <div class="h-16 bg-white border-b border-slate-200 px-4 md:px-6 flex items-center justify-between shadow-sm shrink-0">
-            <div class="flex items-center gap-3">
-                <div class="bg-green-600 p-1.5 rounded text-white">
-                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
-                </div>
-                <div>
-                    <h2 class="font-bold text-slate-800 leading-tight">Spreadsheet Viewer</h2>
-                    <div class="flex items-center gap-2">
-                        <p id="binIdDisplay" class="text-xs text-slate-500 font-mono">Bin: -</p>
-                        <span class="text-slate-300">•</span>
-                        <p id="lastUpdateDisplay" class="text-xs text-emerald-600 font-medium flex items-center gap-1">
-                            <span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-                            Auto-sync aktif
-                        </p>
+        <!-- Header / Navbar (Posisi Tetap / Sticky) -->
+        <div class="sticky top-0 z-30 h-auto md:h-16 bg-white border-b border-slate-200 px-3 md:px-6 py-2.5 md:py-0 flex flex-col md:flex-row items-center justify-between gap-2.5 shadow-sm shrink-0">
+            <div class="flex items-center justify-between w-full md:w-auto gap-3">
+                <div class="flex items-center gap-2.5">
+                    <div class="bg-green-600 p-1.5 rounded text-white shrink-0">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M3 14h18m-9-4v8m-7 0h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
+                    </div>
+                    <div>
+                        <h2 class="font-bold text-slate-800 text-sm md:text-base leading-tight">Spreadsheet Viewer</h2>
+                        <p id="binIdDisplay" class="text-[11px] md:text-xs text-slate-500 font-mono">Bin: -</p>
                     </div>
                 </div>
+
+                <!-- Tombol Logout khusus tampilan mobile di pojok kanan atas navbar -->
+                <button onclick="handleLogout()" class="md:hidden text-xs bg-red-50 text-red-600 hover:bg-red-100 font-medium px-3 py-1.5 rounded-lg border border-red-200 transition-colors flex items-center gap-1">
+                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                    Logout
+                </button>
             </div>
             
-            <div class="flex items-center gap-3">
+            <div class="flex items-center justify-between w-full md:w-auto gap-2">
                 <!-- Navigasi Switch View Mode -->
-                <div class="bg-slate-100 p-1 rounded-lg border border-slate-200 flex items-center gap-1">
-                    <button onclick="switchTableMode('full')" id="btnModeFull" class="text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all">
-                        Tabel Lengkap
+                <div class="bg-slate-100 p-1 rounded-lg border border-slate-200 flex items-center gap-1 flex-1 md:flex-initial">
+                    <button onclick="switchTableMode('full')" id="btnModeFull" class="flex-1 md:flex-initial text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all text-center">
+                        Lengkap
                     </button>
-                    <button onclick="switchTableMode('summary')" id="btnModeSummary" class="text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all">
-                        Ringkasan Problem
+                    <button onclick="switchTableMode('summary')" id="btnModeSummary" class="flex-1 md:flex-initial text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all text-center">
+                        Ringkasan
                     </button>
                 </div>
 
-                <button onclick="manualRefresh()" id="refreshBtn" title="Segarkan Data Sekarang" class="text-sm bg-slate-100 text-slate-700 hover:bg-slate-200 font-medium px-3 py-2 rounded-lg border border-slate-300 transition-colors flex items-center gap-1.5">
-                    <svg id="refreshIcon" class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
-                    Refresh
-                </button>
-                <button onclick="handleLogout()" class="text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-medium px-4 py-2 rounded-lg border border-red-200 transition-colors flex items-center gap-2">
+                <!-- Tombol Logout Desktop -->
+                <button onclick="handleLogout()" class="hidden md:flex text-sm bg-red-50 text-red-600 hover:bg-red-100 hover:text-red-700 font-medium px-4 py-2 rounded-lg border border-red-200 transition-colors items-center gap-2">
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                     Logout
                 </button>
@@ -157,7 +156,7 @@
         </div>
 
         <!-- Excel Table Container -->
-        <div class="excel-container w-full">
+        <div class="excel-container w-full flex-1">
             <table class="excel-table" id="excelTable">
                 <thead>
                     <tr id="tableHeader">
@@ -179,7 +178,7 @@
 
         // Variabel untuk interval auto-refresh & Cache Data & Mode Tampilan
         let autoRefreshInterval = null;
-        const REFRESH_INTERVAL_TIME = 60000; // 60.000 ms = 1 Menit
+        const REFRESH_INTERVAL_TIME = 60000; // 60.000 ms = 1 Menit (Auto-reload tetap berjalan di latar belakang)
         let cachedData = [];
         let currentMode = 'full'; // 'full' atau 'summary'
 
@@ -205,8 +204,6 @@
         const tableHeader = document.getElementById('tableHeader');
         const tableBody = document.getElementById('tableBody');
         const binIdDisplay = document.getElementById('binIdDisplay');
-        const lastUpdateDisplay = document.getElementById('lastUpdateDisplay');
-        const refreshIcon = document.getElementById('refreshIcon');
         const btnModeFull = document.getElementById('btnModeFull');
         const btnModeSummary = document.getElementById('btnModeSummary');
 
@@ -267,22 +264,14 @@
                     dataToRender = Array.isArray(json) ? json : [json];
                 }
 
-                // Simpan ke cache agar saat mengganti mode tampilan tidak perlu fetch ulang
                 cachedData = dataToRender;
 
-                // Sukses terhubung: Simpan di local storage
                 localStorage.setItem(STORAGE_ID, binId);
                 localStorage.setItem(STORAGE_KEY, apiKey);
 
-                // Update UI
                 binIdDisplay.textContent = `Bin: ${binId}`;
                 renderActiveTable();
                 
-                // Update waktu sinkronisasi terakhir
-                const now = new Date();
-                const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                lastUpdateDisplay.innerHTML = `<span class="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span> Terakhir diperbarui: ${timeString}`;
-
                 switchView('data');
                 startAutoRefreshTimer(binId, apiKey);
 
@@ -294,10 +283,6 @@
                 
                 if (!isBackgroundRefresh) {
                     showError(error.message);
-                } else {
-                    const now = new Date();
-                    const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-                    lastUpdateDisplay.innerHTML = `<span class="w-2 h-2 rounded-full bg-red-500"></span> Gagal sync (${timeString})`;
                 }
             } finally {
                 if (!isBackgroundRefresh) {
@@ -310,11 +295,11 @@
         function switchTableMode(mode) {
             currentMode = mode;
             if (mode === 'full') {
-                btnModeFull.className = "text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
-                btnModeSummary.className = "text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all";
+                btnModeFull.className = "flex-1 md:flex-initial text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all text-center";
+                btnModeSummary.className = "flex-1 md:flex-initial text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all text-center";
             } else {
-                btnModeSummary.className = "text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all";
-                btnModeFull.className = "text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all";
+                btnModeSummary.className = "flex-1 md:flex-initial text-xs font-medium px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-sm transition-all text-center";
+                btnModeFull.className = "flex-1 md:flex-initial text-xs font-medium px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-800 transition-all text-center";
             }
             renderActiveTable();
         }
@@ -328,7 +313,7 @@
             }
         }
 
-        // Fungsi Memulai Timer 1 Menit
+        // Fungsi Memulai Timer 1 Menit (Background Refresh)
         function startAutoRefreshTimer(binId, apiKey) {
             if (autoRefreshInterval) {
                 clearInterval(autoRefreshInterval);
@@ -336,18 +321,6 @@
             autoRefreshInterval = setInterval(() => {
                 fetchDataAndRender(binId, apiKey, false, true);
             }, REFRESH_INTERVAL_TIME);
-        }
-
-        // Tombol Refresh Manual
-        function manualRefresh() {
-            const savedId = localStorage.getItem(STORAGE_ID);
-            const savedKey = localStorage.getItem(STORAGE_KEY) || '';
-            if (savedId) {
-                refreshIcon.classList.add('animate-spin');
-                fetchDataAndRender(savedId, savedKey, false, false).finally(() => {
-                    setTimeout(() => refreshIcon.classList.remove('animate-spin'), 500);
-                });
-            }
         }
 
         // Logic Logout
@@ -417,29 +390,26 @@
             tableBody.innerHTML = '';
 
             if (!dataArray || dataArray.length === 0) {
-                tableBody.innerHTML = '<tr><td class="row-number">1</td><td colspan="3" class="text-slate-400 italic">Data kosong / record tidak ditemukan...</td></tr>';
+                tableBody.innerHTML = '<tr><td class="row-number">1</td><td colspan="2" class="text-slate-400 italic">Data kosong / record tidak ditemukan...</td></tr>';
                 return;
             }
 
-            // Tentukan Header khusus untuk mode ringkas
             const summaryHeaders = ["Unit", "Problem"];
+            summaryHeaders.exceptions = true;
             summaryHeaders.forEach(text => {
                 const th = document.createElement('th');
                 th.textContent = text;
                 tableHeader.appendChild(th);
             });
 
-            // Bangun baris data
             dataArray.forEach((item, index) => {
                 const tr = document.createElement('tr');
                 
-                // Nomor baris
                 const rowNumTd = document.createElement('td');
                 rowNumTd.className = 'row-number';
                 rowNumTd.textContent = index + 1;
                 tr.appendChild(rowNumTd);
 
-                // Kolom Unit (Gabungan suffix dan unitNo, cth: "A-101" atau "101" jika salah satu kosong)
                 const suffix = item['suffix'] !== undefined && item['suffix'] !== null ? String(item['suffix']).trim() : '';
                 const unitNo = item['unitNo'] !== undefined && item['unitNo'] !== null ? String(item['unitNo']).trim() : '';
                 
@@ -455,7 +425,6 @@
                 unitTd.className = 'font-semibold text-slate-700';
                 tr.appendChild(unitTd);
 
-                // Kolom Problem
                 const problemTd = document.createElement('td');
                 const problemVal = item['problem'];
                 problemTd.textContent = (problemVal !== null && problemVal !== undefined) ? problemVal : '';
