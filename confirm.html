@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Aplikasi Quality Control & Admin Panel</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts: Inter -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Html5-Qrcode Library -->
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #4c1d95 100%);
+            min-height: 100vh;
+        }
+        ::-webkit-scrollbar {
+            width: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.05);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+        }
+        .car-switcher-btn {
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .car-switcher-btn.active {
+            transform: scale(1.1);
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
+        }
+    </style>
+</head>
+<body class="text-white pb-24">
+
+    <!-- STICKY HEADER CARD DI ATAS -->
+    <header class="sticky top-0 z-40 px-4 pt-3 pb-2 bg-slate-950/85 backdrop-blur-md border-b border-white/10 shadow-lg">
+        <div class="max-w-md mx-auto bg-gradient-to-r from-indigo-950 via-slate-900 to-purple-950 border border-white/15 rounded-2xl p-3.5 shadow-xl">
+            
+            <div class="flex items-center justify-between mb-2.5">
+                <div>
+                    <h1 class="text-base font-bold tracking-wide bg-gradient-to-r from-amber-300 via-pink-300 to-indigo-300 bg-clip-text text-transparent">
+                        Quality Inspection Hub
+                    </h1>
+                    <p class="text-[11px] text-indigo-200" id="live-time">Memuat waktu...</p>
+                </div>
+                <div class="px-2.5 py-1 rounded-full bg-white/5 border border-white/10 text-[11px] font-semibold text-amber-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-industry text-xs"></i>
+                    <span id="shift-display">--</span>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-2 bg-white/5 px-3 py-1.5 rounded-xl border border-white/5 mb-2.5 text-xs">
+                <i class="fa-regular fa-calendar-days text-amber-400"></i>
+                <div>
+                    <span class="text-[10px] text-gray-400">Tanggal Kerja: </span>
+                    <span id="date-display" class="font-semibold text-gray-100">--</span>
+                </div>
+            </div>
+
+            <!-- SWITCHER ICON MOBIL -->
+            <div class="flex items-center justify-between bg-black/40 px-3 py-2 rounded-xl border border-white/10">
+                <span class="text-xs font-medium text-gray-300 flex items-center gap-1.5">
+                    <i class="fa-solid fa-car-side text-indigo-400"></i> Filter Status:
+                </span>
+                <div class="flex items-center gap-4">
+                    <button onclick="switchCarStatus('red')" id="btn-red" class="car-switcher-btn active relative w-9 h-9 rounded-full bg-rose-600 flex items-center justify-center shadow-md text-white text-xs" title="Status NG">
+                        <i class="fa-solid fa-car"></i>
+                        <span id="badge-red" class="absolute -top-1.5 -right-1.5 bg-black border border-rose-500 text-rose-300 text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                    </button>
+                    <button onclick="switchCarStatus('yellow')" id="btn-yellow" class="car-switcher-btn relative w-9 h-9 rounded-full bg-amber-500 flex items-center justify-center shadow-md text-white text-xs opacity-50" title="Status Konfirmasi">
+                        <i class="fa-solid fa-car"></i>
+                        <span id="badge-yellow" class="absolute -top-1.5 -right-1.5 bg-black border border-amber-500 text-amber-300 text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                    </button>
+                    <button onclick="switchCarStatus('green')" id="btn-green" class="car-switcher-btn relative w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center shadow-md text-white text-xs opacity-50" title="Status OK">
+                        <i class="fa-solid fa-car"></i>
+                        <span id="badge-green" class="absolute -top-1.5 -right-1.5 bg-black border border-emerald-500 text-emerald-300 text-[10px] font-bold w-5 h-5 rounded-full flex items-center justify-center">0</span>
+                    </button>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- KONTEN UTAMA -->
+    <main class="max-w-md mx-auto px-4 mt-4 space-y-4">
+        
+        <!-- HOME VIEW -->
+        <div id="view-home" class="space-y-4">
+            <div id="status-banner" class="p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/30 flex items-center justify-between shadow-inner transition-all duration-300">
+                <div class="flex items-center gap-3">
+                    <div id="status-icon-box" class="w-10 h-10 rounded-xl bg-rose-600/30 border border-rose-500 flex items-center justify-center text-rose-400 text-lg">
+                        <i class="fa-solid fa-car"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-xs font-bold text-rose-200" id="status-title">Mode Tampilan: Unit NG (Merah)</h2>
+                        <p class="text-[11px] text-rose-300/80" id="status-desc">Ketuk ikon menu (⋮) pada card untuk membuka Panel Admin.</p>
+                    </div>
+                </div>
+                <span class="px-2 py-0.5 rounded-full text-[9px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 uppercase tracking-wider">Active</span>
+            </div>
+
+            <section class="bg-slate-900/60 border border-white/10 rounded-2xl p-4 shadow-xl backdrop-blur-md">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 id="display-section-title" class="text-xs font-bold text-gray-200 flex items-center gap-2 uppercase tracking-wide">
+                        <i class="fa-solid fa-list-check text-rose-400"></i> Daftar Unit NG (Repair)
+                    </h3>
+                    <span id="unit-count-badge" class="text-[10px] bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded-md font-semibold">0 Unit</span>
+                </div>
+
+                <div id="unit-display-list" class="space-y-2.5 max-h-[350px] overflow-y-auto pr-1">
+                    <div class="text-center py-8 text-gray-400 text-xs border border-dashed border-white/10 rounded-xl">
+                        <i class="fa-solid fa-barcode text-2xl mb-2 text-gray-500 block"></i>
+                        Belum ada unit dengan status ini.
+                    </div>
+                </div>
+            </section>
+        </div>
+
+        <!-- CHART VIEW -->
+        <div id="view-chart" class="space-y-4 hidden">
+            <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-4 shadow-xl backdrop-blur-md">
+                <div class="flex items-center justify-between mb-3">
+                    <h3 class="text-xs font-bold text-gray-200 flex items-center gap-2 uppercase tracking-wide">
+                        <i class="fa-solid fa-chart-bar text-amber-400"></i> Diagram Pareto (&ge; 3)
+                    </h3>
+                    <button onclick="sendWhatsAppPareto()" class="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-md flex items-center gap-1.5 transition-all">
+                        <i class="fa-brands fa-whatsapp text-sm"></i> Kirim WA
+                    </button>
+                </div>
+                <div id="pareto-chart-container" class="space-y-3 bg-black/30 p-3 rounded-xl border border-white/5 mb-4">
+                    <div class="text-center py-6 text-gray-400 text-xs">Belum ada problem &ge; 3 kali.</div>
+                </div>
+                <div class="border-t border-white/10 pt-3">
+                    <h4 class="text-xs font-semibold text-indigo-300 mb-2">Detail Unit Problem</h4>
+                    <div id="pareto-table-container" class="space-y-3">
+                        <div class="text-center py-4 text-gray-400 text-xs">Tidak ada data.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- HISTORY VIEW -->
+        <div id="view-history" class="space-y-4 hidden">
+            <div class="bg-slate-900/80 border border-white/10 rounded-2xl p-4 shadow-xl backdrop-blur-md">
+                <h3 class="text-xs font-bold text-gray-200 flex items-center gap-2 uppercase tracking-wide mb-3">
+                    <i class="fa-solid fa-clock-rotate-left text-purple-400"></i> Riwayat Shift
+                </h3>
+                <div id="history-list-container" class="space-y-3">
+                    <div class="text-center py-8 text-gray-400 text-xs border border-dashed border-white/10 rounded-xl">
+                        <i class="fa-solid fa-folder-open text-2xl mb-2 text-gray-500 block"></i>
+                        Belum ada riwayat shift.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- NAVBAR BAWAH -->
+    <nav class="fixed bottom-0 left-0 right-0 z-40 bg-slate-950/90 backdrop-blur-lg border-t border-white/10 px-6 py-2 shadow-2xl">
+        <div class="max-w-md mx-auto flex items-center justify-around">
+            <button onclick="switchTab('chart')" id="nav-chart" class="flex flex-col items-center justify-center py-1 px-3 text-indigo-300 hover:text-white transition-all group">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-white/10 transition-all">
+                    <i class="fa-solid fa-chart-pie text-lg"></i>
+                </div>
+                <span class="text-[10px] font-medium mt-0.5">Chart</span>
+            </button>
+
+            <button onclick="openBarcodeScanner()" id="nav-barcode" class="flex flex-col items-center justify-center -mt-6 group">
+                <div class="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-lg shadow-rose-500/40 flex items-center justify-center text-white border-4 border-slate-950 group-hover:scale-105 transition-all">
+                    <i class="fa-solid fa-barcode text-xl"></i>
+                </div>
+                <span class="text-[10px] font-bold text-amber-300 mt-1">Scan Barcode</span>
+            </button>
+
+            <button onclick="switchTab('history')" id="nav-history" class="flex flex-col items-center justify-center py-1 px-3 text-indigo-300 hover:text-white transition-all group">
+                <div class="w-10 h-10 rounded-xl flex items-center justify-center group-hover:bg-white/10 transition-all">
+                    <i class="fa-solid fa-clock-rotate-left text-lg"></i>
+                </div>
+                <span class="text-[10px] font-medium mt-0.5">History</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- SCANNER MODAL -->
+    <div id="scanner-modal" class="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-white/20 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl relative">
+            <div class="flex items-center justify-between px-4 py-3 bg-slate-800/80 border-b border-white/10">
+                <h3 id="modal-title" class="text-xs font-bold text-gray-200 flex items-center gap-2">
+                    <i class="fa-solid fa-camera text-amber-400"></i> Scan Barcode Kamera
+                </h3>
+                <button onclick="closeScannerModal()" class="w-7 h-7 rounded-full bg-rose-500/20 border border-rose-500/40 text-rose-300 flex items-center justify-center hover:bg-rose-500 hover:text-white">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div id="camera-view-container" class="p-4">
+                <div id="reader" class="w-full rounded-xl overflow-hidden border border-white/10 bg-black"></div>
+                <p class="text-[11px] text-center text-gray-400 mt-3">Arahkan kamera ke barcode kendaraan.</p>
+            </div>
+
+            <div id="form-input-container" class="p-4 space-y-3 hidden">
+                <div class="p-3 rounded-xl bg-rose-500/10 border border-rose-500/30 text-rose-300 text-xs flex items-center gap-2">
+                    <i class="fa-solid fa-circle-exclamation text-base"></i>
+                    <span>Unit otomatis berstatus <b>NG (Merah)</b>.</span>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-gray-400 mb-1 font-medium">Data Suffix</label>
+                    <input type="text" id="input-suffix" class="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-2 text-sm text-white font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-gray-400 mb-1 font-medium">Nomor Unit</label>
+                    <input type="text" id="input-unit-no" class="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-2 text-sm text-white font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-gray-400 mb-1 font-medium">Keterangan Problem</label>
+                    <select id="input-problem" class="w-full bg-slate-800 border border-white/20 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="Indicator / Electrical Check">Indicator / Electrical Check</option>
+                        <option value="Brake / Pedal Adjustment">Brake / Pedal Adjustment</option>
+                        <option value="Body Part / Panel Gap">Body Part / Panel Gap</option>
+                        <option value="Engine Noise / Vibration">Engine Noise / Vibration</option>
+                        <option value="Steering / EPS System">Steering / EPS System</option>
+                    </select>
+                </div>
+
+                <div class="flex gap-2 pt-2">
+                    <button onclick="closeScannerModal()" class="flex-1 py-2.5 rounded-xl bg-white/10 text-gray-300 text-xs font-semibold">Batal</button>
+                    <button onclick="saveScannedUnit()" class="flex-1 py-2.5 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 text-white text-xs font-bold shadow-lg">Simpan NG</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- PANEL ADMIN MODAL -->
+    <div id="admin-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-indigo-500/40 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-4 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <h3 class="text-xs font-bold text-indigo-300 flex items-center gap-1.5 uppercase">
+                    <i class="fa-solid fa-user-gear text-amber-400"></i> Panel Admin Unit
+                </h3>
+                <button onclick="closeAdminModal()" class="w-7 h-7 rounded-full bg-white/10 text-gray-300 flex items-center justify-center hover:bg-rose-500 hover:text-white">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-[11px] text-gray-400 mb-1 font-medium">Edit Suffix</label>
+                    <input type="text" id="admin-edit-suffix" class="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-2 text-xs text-white font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-gray-400 mb-1 font-medium">Edit Nomor Unit</label>
+                    <input type="text" id="admin-edit-unitno" class="w-full bg-black/40 border border-white/20 rounded-xl px-3 py-2 text-xs text-white font-mono">
+                </div>
+
+                <div>
+                    <label class="block text-[11px] text-gray-400 mb-1 font-medium">Edit Problem</label>
+                    <select id="admin-edit-problem" class="w-full bg-slate-800 border border-white/20 rounded-xl px-3 py-2 text-xs text-white">
+                        <option value="Indicator / Electrical Check">Indicator / Electrical Check</option>
+                        <option value="Brake / Pedal Adjustment">Brake / Pedal Adjustment</option>
+                        <option value="Body Part / Panel Gap">Body Part / Panel Gap</option>
+                        <option value="Engine Noise / Vibration">Engine Noise / Vibration</option>
+                        <option value="Steering / EPS System">Steering / EPS System</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="space-y-2 pt-2 border-t border-white/10">
+                <button onclick="saveAdminEdit()" class="w-full py-2.5 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white text-xs font-bold shadow-lg">
+                    <i class="fa-solid fa-floppy-disk mr-1"></i> Simpan Perubahan
+                </button>
+                <div class="flex gap-2">
+                    <button onclick="confirmToRepair()" id="admin-btn-confirm" class="flex-1 py-2 rounded-xl bg-amber-600/20 border border-amber-500/40 hover:bg-amber-600 text-amber-300 hover:text-white text-xs font-semibold">
+                        Konfirmasi Repair
+                    </button>
+                    <button onclick="deleteAdminUnit()" class="flex-1 py-2 rounded-xl bg-rose-600/20 border border-rose-500/40 hover:bg-rose-600 text-rose-300 hover:text-white text-xs font-semibold">
+                        <i class="fa-solid fa-trash-can mr-1"></i> Hapus
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- KONFIRMASI REPAIR MODAL -->
+    <div id="confirmation-modal" class="fixed inset-0 z-50 bg-black/85 backdrop-blur-sm hidden flex items-center justify-center p-4">
+        <div class="bg-slate-900 border border-amber-500/30 rounded-2xl w-full max-w-sm overflow-hidden shadow-2xl p-4 space-y-4">
+            <div class="flex items-center justify-between border-b border-white/10 pb-3">
+                <div>
+                    <h3 class="text-xs font-bold text-amber-300 flex items-center gap-1.5 uppercase">
+                        <i class="fa-solid fa-screwdriver-wrench"></i> Konfirmasi Repair
+                    </h3>
+                    <p id="conf-unit-label" class="text-[11px] text-gray-400 font-mono mt-0.5">Unit: --</p>
+                </div>
+                <button onclick="closeConfirmationModal()" class="w-7 h-7 rounded-full bg-white/10 text-gray-300 flex items-center justify-center">
+                    <i class="fa-solid fa-xmark text-sm"></i>
+                </button>
+            </div>
+
+            <div id="checklist-container" class="space-y-2"></div>
+
+            <button id="btn-ok-confirm" onclick="submitConfirmation()" class="w-full py-3 rounded-xl bg-slate-700 text-gray-300 text-xs font-bold shadow-lg" disabled>
+                Pilih Status Selesai Cek
+            </button>
+        </div>
+    </div>
+
+    <!-- SCRIPT -->
+    <script>
+        let currentFilter = 'red';
+        let html5QrCode = null;
+        let shiftDatabase = {};
+        let activeShiftKey = "";
+        let activeDateString = "";
+        let activeShiftName = "";
+        let selectedUnitForAdmin = null;
+
+        function updateDateTimeInfo() {
+            const now = new Date();
+            const hours = now.getHours();
+            const minutes = now.getMinutes();
+            const totalMinutesToday = hours * 60 + minutes;
+            const cutoffMinutes = 7 * 60 + 25;
+
+            let targetDate = new Date(now);
+            let shiftText = '';
+
+            if (totalMinutesToday < cutoffMinutes) {
+                targetDate.setDate(targetDate.getDate() - 1);
+                shiftText = 'Shift Night (Malam)';
+            } else {
+                shiftText = 'Shift Day (Pagi)';
+            }
+
+            const optionsDate = { weekday: 'long', day: 'numeric', month: 'short', year: 'numeric' };
+            activeDateString = targetDate.toLocaleDateString('id-ID', optionsDate);
+            activeShiftName = shiftText;
+            activeShiftKey = `${activeDateString} | ${activeShiftName}`;
+
+            if (!shiftDatabase[activeShiftKey]) shiftDatabase[activeShiftKey] = [];
+
+            const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+            document.getElementById('date-display').innerText = activeDateString;
+            document.getElementById('live-time').innerText = timeString;
+            document.getElementById('shift-display').innerText = activeShiftName;
+
+            updateBadgesAndDisplay();
+        }
+
+        setInterval(updateDateTimeInfo, 1000);
+        updateDateTimeInfo();
+
+        function switchCarStatus(color) {
+            currentFilter = color;
+            ['red', 'yellow', 'green'].forEach(c => {
+                const btn = document.getElementById(`btn-${c}`);
+                btn.classList.remove('active');
+                btn.classList.add('opacity-50');
+            });
+            const activeBtn = document.getElementById(`btn-${color}`);
+            activeBtn.classList.add('active');
+            activeBtn.classList.remove('opacity-50');
+
+            const banner = document.getElementById('status-banner');
+            const iconBox = document.getElementById('status-icon-box');
+            const title = document.getElementById('status-title');
+            const desc = document.getElementById('status-desc');
+            const displayTitle = document.getElementById('display-section-title');
+
+            if (color === 'red') {
+                banner.className = "p-3.5 rounded-2xl bg-rose-950/40 border border-rose-500/30 flex items-center justify-between shadow-inner transition-all duration-300";
+                iconBox.className = "w-10 h-10 rounded-xl bg-rose-600/30 border border-rose-500 flex items-center justify-center text-rose-400 text-lg";
+                title.innerText = "Mode Tampilan: Unit NG (Merah)";
+                desc.innerText = "Ketuk tombol menu (⋮) pada card untuk membuka Panel Admin.";
+                displayTitle.innerHTML = `<i class="fa-solid fa-list-check text-rose-400"></i> Daftar Unit NG (Repair)`;
+            } else if (color === 'yellow') {
+                banner.className = "p-3.5 rounded-2xl bg-amber-950/40 border border-amber-500/30 flex items-center justify-between shadow-inner transition-all duration-300";
+                iconBox.className = "w-10 h-10 rounded-xl bg-amber-600/30 border border-amber-500 flex items-center justify-center text-amber-400 text-lg";
+                title.innerText = "Mode Tampilan: Sedang Dikonfirmasi (Kuning)";
+                desc.innerText = "Ketuk tombol menu (⋮) pada card untuk admin.";
+                displayTitle.innerHTML = `<i class="fa-solid fa-list-check text-amber-400"></i> Daftar Unit Konfirmasi`;
+            } else if (color === 'green') {
+                banner.className = "p-3.5 rounded-2xl bg-emerald-950/40 border border-emerald-500/30 flex items-center justify-between shadow-inner transition-all duration-300";
+                iconBox.className = "w-10 h-10 rounded-xl bg-emerald-600/30 border border-emerald-500 flex items-center justify-center text-emerald-400 text-lg";
+                title.innerText = "Mode Tampilan: Unit OK (Hijau)";
+                desc.innerText = "Ketuk tombol menu (⋮) pada card untuk admin.";
+                displayTitle.innerHTML = `<i class="fa-solid fa-list-check text-emerald-400"></i> Daftar Unit OK (Pass)`;
+            }
+
+            updateBadgesAndDisplay();
+        }
+
+        function openBarcodeScanner() {
+            const modal = document.getElementById('scanner-modal');
+            document.getElementById('camera-view-container').classList.remove('hidden');
+            document.getElementById('form-input-container').classList.add('hidden');
+            modal.classList.remove('hidden');
+
+            setTimeout(() => {
+                if (!html5QrCode) html5QrCode = new Html5Qrcode("reader");
+                html5QrCode.start(
+                    { facingMode: "environment" },
+                    { fps: 10, qrbox: { width: 250, height: 150 } },
+                    (text) => {
+                        if (html5QrCode && html5QrCode.isScanning) {
+                            html5QrCode.stop().then(() => processScan(text)).catch(() => processScan(text));
+                        } else { processScan(text); }
+                    },
+                    (err) => {}
+                ).catch(err => { alert("Gagal buka kamera: " + err); closeScannerModal(); });
+            }, 300);
+        }
+
+        function processScan(code) {
+            let clean = code.trim();
+            let suffix = clean.length >= 6 ? clean.substring(clean.length - 6, clean.length - 4) : "N/A";
+            let unitNo = clean.length >= 17 ? clean.substring(11, 17) : clean;
+
+            document.getElementById('input-suffix').value = suffix;
+            document.getElementById('input-unit-no').value = unitNo;
+            document.getElementById('camera-view-container').classList.add('hidden');
+            document.getElementById('form-input-container').classList.remove('hidden');
+        }
+
+        function closeScannerModal() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => document.getElementById('scanner-modal').classList.add('hidden')).catch(() => document.getElementById('scanner-modal').classList.add('hidden'));
+            } else { document.getElementById('scanner-modal').classList.add('hidden'); }
+        }
+
+        function saveScannedUnit() {
+            const suffix = document.getElementById('input-suffix').value;
+            const unitNo = document.getElementById('input-unit-no').value;
+            const problem = document.getElementById('input-problem').value;
+            const time = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+
+            const newUnit = { id: Date.now(), suffix, unitNo, problem, status: 'red', time };
+            if (!shiftDatabase[activeShiftKey]) shiftDatabase[activeShiftKey] = [];
+            shiftDatabase[activeShiftKey].unshift(newUnit);
+
+            switchCarStatus('red');
+            closeScannerModal();
+        }
+
+        function updateBadgesAndDisplay() {
+            const units = shiftDatabase[activeShiftKey] || [];
+            document.getElementById('badge-red').innerText = units.filter(u => u.status === 'red').length;
+            document.getElementById('badge-yellow').innerText = units.filter(u => u.status === 'yellow').length;
+            document.getElementById('badge-green').innerText = units.filter(u => u.status === 'green').length;
+
+            let filtered = units.filter(u => u.status === currentFilter);
+            const listContainer = document.getElementById('unit-display-list');
+            document.getElementById('unit-count-badge').innerText = `${filtered.length} Unit`;
+
+            if (filtered.length === 0) {
+                listContainer.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs border border-dashed border-white/10 rounded-xl">Tidak ada unit dengan status ini.</div>`;
+                return;
+            }
+
+            let html = '';
+            filtered.forEach(item => {
+                let badgeColor = item.status === 'red' ? 'bg-rose-500/10 text-rose-400 border-rose-500/30' : (item.status === 'yellow' ? 'bg-amber-500/10 text-amber-400 border-amber-500/30' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30');
+                let iconColor = item.status === 'red' ? 'text-rose-400' : (item.status === 'yellow' ? 'text-amber-400' : 'text-emerald-400');
+                let statusText = item.status === 'red' ? 'NG (Merah)' : (item.status === 'yellow' ? 'Konfirmasi' : 'OK (Pass)');
+
+                html += `
+                    <div class="p-3 rounded-xl bg-white/5 border border-white/10 flex items-center justify-between gap-2 hover:bg-white/10 transition-all">
+                        <div class="flex items-center gap-3">
+                            <div class="w-9 h-9 rounded-lg bg-black/40 border border-white/10 flex items-center justify-center ${iconColor}">
+                                <i class="fa-solid fa-car text-sm"></i>
+                            </div>
+                            <div>
+                                <div class="flex items-center gap-2">
+                                    <span class="text-xs font-bold text-white font-mono">Unit: ${item.unitNo}</span>
+                                    <span class="text-[10px] px-1.5 py-0.2 rounded font-mono bg-white/10 text-gray-300">Suffix: ${item.suffix}</span>
+                                </div>
+                                <p class="text-[11px] text-gray-300 mt-0.5">${item.problem}</p>
+                                <span class="text-[9px] text-gray-400 mt-0.5 block">${item.time} WIB</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="px-2 py-1 rounded-full text-[9px] font-bold uppercase border ${badgeColor}">${statusText}</span>
+                            <button onclick="openAdminModal(${item.id})" class="w-8 h-8 rounded-lg bg-indigo-600/30 border border-indigo-500/50 text-indigo-300 flex items-center justify-center hover:bg-indigo-600 hover:text-white transition-all" title="Buka Panel Admin">
+                                <i class="fa-solid fa-ellipsis-vertical text-xs"></i>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+        }
+
+        // BUKA ADMIN PANEL LANGSUNG DARI TOMBOL TITIK TIGA (LEBIH MUDAH & RESPONSIF)
+        function openAdminModal(unitId) {
+            let units = shiftDatabase[activeShiftKey] || [];
+            selectedUnitForAdmin = units.find(u => u.id === unitId);
+            if (selectedUnitForAdmin) {
+                document.getElementById('admin-edit-suffix').value = selectedUnitForAdmin.suffix;
+                document.getElementById('admin-edit-unitno').value = selectedUnitForAdmin.unitNo;
+                document.getElementById('admin-edit-problem').value = selectedUnitForAdmin.problem;
+
+                const btnConfirm = document.getElementById('admin-btn-confirm');
+                btnConfirm.style.display = selectedUnitForAdmin.status === 'red' ? 'block' : 'none';
+
+                document.getElementById('admin-modal').classList.remove('hidden');
+            }
+        }
+
+        function closeAdminModal() {
+            document.getElementById('admin-modal').classList.add('hidden');
+            selectedUnitForAdmin = null;
+        }
+
+        function saveAdminEdit() {
+            if (!selectedUnitForAdmin) return;
+            selectedUnitForAdmin.suffix = document.getElementById('admin-edit-suffix').value;
+            selectedUnitForAdmin.unitNo = document.getElementById('admin-edit-unitno').value;
+            selectedUnitForAdmin.problem = document.getElementById('admin-edit-problem').value;
+            closeAdminModal();
+            updateBadgesAndDisplay();
+            alert("Data unit berhasil diperbarui!");
+        }
+
+        function deleteAdminUnit() {
+            if (!selectedUnitForAdmin) return;
+            if (confirm(`Yakin ingin menghapus data Unit ${selectedUnitForAdmin.unitNo}?`)) {
+                shiftDatabase[activeShiftKey] = (shiftDatabase[activeShiftKey] || []).filter(u => u.id !== selectedUnitForAdmin.id);
+                closeAdminModal();
+                updateBadgesAndDisplay();
+                alert("Data unit berhasil dihapus.");
+            }
+        }
+
+        function confirmToRepair() {
+            if (!selectedUnitForAdmin) return;
+            selectedUnitForAdmin.status = 'yellow';
+            closeAdminModal();
+            updateBadgesAndDisplay();
+            openConfirmationModal(selectedUnitForAdmin);
+        }
+
+        function openConfirmationModal(unit) {
+            document.getElementById('conf-unit-label').innerText = `Unit: ${unit.unitNo} (Sfx: ${unit.suffix}) - ${unit.problem}`;
+            document.getElementById('checklist-container').innerHTML = `
+                <div class="flex items-center justify-between p-2.5 rounded-xl bg-black/30 border border-white/5">
+                    <span class="text-xs text-gray-200">1. Pengecekan Komponen</span>
+                    <select onchange="checkChecklistStatus()" class="check-select bg-slate-800 border border-white/20 rounded-lg px-2 py-1 text-xs text-white">
+                        <option value="NG">NG</option><option value="OK">OK</option>
+                    </select>
+                </div>
+            `;
+            checkChecklistStatus();
+            document.getElementById('confirmation-modal').classList.remove('hidden');
+        }
+
+        function closeConfirmationModal() {
+            document.getElementById('confirmation-modal').classList.add('hidden');
+        }
+
+        function checkChecklistStatus() {
+            const selects = document.querySelectorAll('.check-select');
+            const btnOkConfirm = document.getElementById('btn-ok-confirm');
+            let allOk = true;
+            selects.forEach(s => { if (s.value === 'NG') allOk = false; });
+            
+            btnOkConfirm.disabled = false;
+            if (allOk) {
+                btnOkConfirm.className = "w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-xs font-bold shadow-lg";
+                btnOkConfirm.innerText = "Konfirmasi Selesai (Semua OK)";
+            } else {
+                btnOkConfirm.className = "w-full py-3 rounded-xl bg-gradient-to-r from-rose-600 to-red-600 text-white text-xs font-bold shadow-lg";
+                btnOkConfirm.innerText = "Konfirmasi Repair (Masih ada NG)";
+            }
+        }
+
+        function submitConfirmation() {
+            const selects = document.querySelectorAll('.check-select');
+            let allOk = true;
+            selects.forEach(s => { if (s.value === 'NG') allOk = false; });
+
+            if (allOk && selectedUnitForAdmin) {
+                selectedUnitForAdmin.status = 'green';
+                closeConfirmationModal();
+                switchCarStatus('green');
+                selectedUnitForAdmin = null;
+            } else {
+                alert("Masih ada item cek bernilai NG.");
+            }
+        }
+
+        function switchTab(tabName) {
+            ['view-home', 'view-chart', 'view-history'].forEach(v => document.getElementById(v).classList.add('hidden'));
+            ['nav-chart', 'nav-history'].forEach(n => { document.getElementById(n).classList.remove('text-white'); document.getElementById(n).classList.add('text-indigo-300'); });
+
+            if (tabName === 'chart') {
+                document.getElementById('view-chart').classList.remove('hidden');
+                document.getElementById('nav-chart').classList.replace('text-indigo-300', 'text-white');
+                renderChartAndPareto();
+            } else if (tabName === 'history') {
+                document.getElementById('view-history').classList.remove('hidden');
+                document.getElementById('nav-history').classList.replace('text-indigo-300', 'text-white');
+                renderHistoryList();
+            } else {
+                document.getElementById('view-home').classList.remove('hidden');
+            }
+        }
+
+        function renderChartAndPareto() {
+            const units = shiftDatabase[activeShiftKey] || [];
+            let counts = {};
+            units.forEach(u => counts[u.problem] = (counts[u.problem] || 0) + 1);
+
+            let pareto = {};
+            for (let p in counts) if (counts[p] >= 3) pareto[p] = units.filter(u => u.problem === p);
+
+            let keys = Object.keys(pareto);
+            const chartC = document.getElementById('pareto-chart-container');
+            const tableC = document.getElementById('pareto-table-container');
+
+            if (keys.length === 0) {
+                chartC.innerHTML = `<div class="text-center py-6 text-gray-400 text-xs">Belum ada problem &ge; 3 kali.</div>`;
+                tableC.innerHTML = `<div class="text-center py-4 text-gray-400 text-xs">Tidak ada data.</div>`;
+                return;
+            }
+
+            let htmlC = '', htmlT = '', max = Math.max(...keys.map(k => pareto[k].length));
+            keys.forEach(p => {
+                let cnt = pareto[p].length;
+                htmlC += `<div><div class="flex justify-between text-[11px] mb-1"><span class="text-gray-200">${p}</span><span class="text-amber-400 font-bold">${cnt}x</span></div><div class="w-full bg-black/50 h-3 rounded-full overflow-hidden"><div class="bg-gradient-to-r from-amber-500 to-rose-500 h-full" style="width: ${(cnt/max)*100}%"></div></div></div>`;
+                
+                let listStr = '';
+                pareto[p].forEach(u => listStr += `<div class="text-[11px] text-gray-300 font-mono pl-4">(Suffix: ${u.suffix} - Unit: ${u.unitNo})</div>`);
+                htmlT += `<div class="p-3 rounded-xl bg-white/5 border border-white/10 space-y-1"><div class="text-xs font-bold text-amber-300">Problem : ${p} (${cnt})</div>${listStr}</div>`;
+            });
+            chartC.innerHTML = htmlC;
+            tableC.innerHTML = htmlT;
+        }
+
+        function sendWhatsAppPareto() {
+            const units = shiftDatabase[activeShiftKey] || [];
+            let counts = {};
+            units.forEach(u => counts[u.problem] = (counts[u.problem] || 0) + 1);
+            let keys = Object.keys(counts).filter(p => counts[p] >= 3);
+
+            if (keys.length === 0) { alert("Tidak ada data pareto >= 3."); return; }
+
+            let text = `*Data paretto RM0* pada ${activeDateString}, ${activeShiftName}\n`;
+            keys.forEach((p, i) => {
+                text += `${i+1}. Problem : ${p}\n`;
+                units.filter(u => u.problem === p).forEach(u => text += `    (${u.suffix}-${u.unitNo})\n`);
+            });
+            text += `Terimakasih`;
+            window.open(`https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`, '_blank');
+        }
+
+        function renderHistoryList() {
+            const histC = document.getElementById('history-list-container');
+            let keys = Object.keys(shiftDatabase);
+            if (keys.length === 0) { histC.innerHTML = `<div class="text-center py-8 text-gray-400 text-xs">Belum ada riwayat.</div>`; return; }
+
+            let html = '';
+            keys.reverse().forEach(k => {
+                let list = shiftDatabase[k];
+                html += `<div class="p-3.5 rounded-xl bg-white/5 border border-white/10 space-y-2"><div class="flex justify-between border-b border-white/10 pb-2"><span class="text-xs font-bold text-amber-300">${k}</span><span class="text-[10px] bg-indigo-500/20 text-indigo-300 px-2 py-0.5 rounded">${list.length} Unit</span></div><div class="space-y-1 max-h-[150px] overflow-y-auto">`;
+                list.forEach(u => html += `<div class="flex justify-between text-[11px] bg-black/20 p-2 rounded"><span>Unit: ${u.unitNo} (Sfx: ${u.suffix})</span><span class="text-gray-400">${u.status.toUpperCase()} - ${u.problem}</span></div>`);
+                html += `</div></div>`;
+            });
+            histC.innerHTML = html;
+        }
+    </script>
+</body>
+</html>
