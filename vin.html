@@ -1,0 +1,291 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Input Data Nomor Unit - Q-Gate RM</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Html5-Qrcode CDN untuk Scanner Kamera -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5-qrcode/2.3.8/html5-qrcode.min.js"></script>
+    <!-- SweetAlert2 untuk Notifikasi Elegan -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body class="bg-slate-100 text-slate-800 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-indigo-600 text-white shadow-md p-4 sticky top-0 z-10">
+        <div class="max-w-md mx-auto flex justify-between items-center">
+            <h1 class="font-bold text-lg">Kelola Unit RM</h1>
+            <span id="syncStatus" class="text-xs bg-indigo-500 px-2 py-1 rounded-full">Siap</span>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-md w-full mx-auto p-4 flex flex-col gap-4">
+
+        <!-- Card Input Data Unit -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col gap-4">
+            <div>
+                <h2 class="text-base font-semibold text-slate-700">Input Data Unit Baru</h2>
+                <p class="text-xs text-slate-500">Scan barcode atau ketik nomor unit secara manual.</p>
+            </div>
+
+            <div class="flex flex-col gap-3">
+                <div>
+                    <label class="block text-xs font-medium text-slate-600 mb-1">Nomor Unit / VIN (17 Karakter)</label>
+                    <input type="text" id="unitInput" maxlength="17" placeholder="Contoh: MHFM2BA1JKXXXXXXX" 
+                        class="w-full uppercase px-3 py-2 text-sm border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono">
+                </div>
+
+                <div class="flex gap-2">
+                    <button onclick="openScannerModal()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg shadow transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                        Scan Barcode
+                    </button>
+                    <button onclick="saveData()" class="flex-1 bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-medium py-2.5 px-4 rounded-lg shadow transition flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                        Simpan
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Area Display Riwayat (Scrollable) -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 flex flex-col flex-1">
+            <div class="flex justify-between items-center mb-3">
+                <h3 class="text-sm font-semibold text-slate-700">Riwayat Unit Tersimpan</h3>
+                <span id="totalUnit" class="text-xs bg-slate-100 text-slate-600 px-2 py-0.5 rounded-full font-medium">0 Unit</span>
+            </div>
+
+            <!-- Scroll Area -->
+            <div id="unitListContainer" class="overflow-y-auto max-h-[320px] flex flex-col gap-2.5 pr-1">
+                <!-- Data item akan dirender di sini secara dinamis -->
+                <div class="text-center py-8 text-slate-400 text-xs">Belum ada data unit tercatat.</div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Modal Pop-up Scanner & Konfirmasi -->
+    <div id="scannerModal" class="fixed inset-0 bg-black/60 z-50 hidden flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl w-full max-w-sm overflow-hidden shadow-xl flex flex-col">
+            <div class="bg-slate-800 text-white px-4 py-3 flex justify-between items-center">
+                <h3 class="text-sm font-semibold">Kamera Scanner Barcode</h3>
+                <button onclick="closeScannerModal()" class="text-slate-300 hover:text-white font-bold">&times;</button>
+            </div>
+            
+            <div class="p-4 flex flex-col gap-3">
+                <!-- Viewfinder Kamera -->
+                <div id="reader" class="w-full rounded-lg overflow-hidden bg-black min-h-[220px]"></div>
+                <p id="scanInstruction" class="text-xs text-center text-slate-500">Aarahkan kamera ke barcode nomor unit / VIN.</p>
+                
+                <!-- Area Preview Hasil Scan / Konfirmasi -->
+                <div id="confirmBox" class="hidden flex flex-col gap-2 bg-emerald-50 border border-emerald-200 p-3 rounded-xl">
+                    <span class="text-xs font-semibold text-emerald-800">Hasil Scan (17 Karakter Terdeteksi):</span>
+                    <input type="text" id="scannedResultPreview" readonly class="w-full font-mono text-sm bg-white border border-emerald-300 rounded px-2 py-1 text-center font-bold text-emerald-900">
+                    <div class="flex gap-2 mt-1">
+                        <button onclick="rejectScan()" class="flex-1 bg-rose-100 hover:bg-rose-200 text-rose-700 text-xs font-medium py-2 rounded-lg transition">Salah (Scan Ulang)</button>
+                        <button onclick="acceptScan()" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-medium py-2 rounded-lg transition">Benar (Gunakan)</button>
+                    </div>
+                </div>
+
+                <button onclick="closeScannerModal()" class="w-full bg-slate-200 hover:bg-slate-300 text-slate-700 text-xs font-medium py-2 rounded-lg transition">Tutup</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript Aplikasi -->
+    <script>
+        // Konfigurasi JSONBin.io (Silakan ganti dengan Bin ID dan Master Key milik Anda)
+        const JSONBIN_BIN_ID = '6af16158ac6210605a78d360';
+        const JSONBIN_API_KEY = '$2a$10$Ii1ep5GX66sB9lery6p2suxzNGrSMg2iwncn5Z2y/HT5WjaHRrf1q';
+        
+        let html5QrCode = null;
+        let localUnits = JSON.parse(localStorage.getItem('saved_units') || '[]');
+
+        // Inisialisasi saat halaman dimuat
+        document.addEventListener('DOMContentLoaded', () => {
+            renderUnitList();
+            fetchFromJSONBin();
+        });
+
+        // Fungsi Simpan Data (Lokal & JSONBin)
+        async function saveData() {
+            const input = document.getElementById('unitInput');
+            const val = input.value.trim().toUpperCase();
+
+            if (val.length !== 17) {
+                Swal.fire({
+                    icon: 'warning',
+                    title: 'Peringatan',
+                    text: 'Nomor unit / VIN harus tepat 17 karakter!',
+                    confirmButtonColor: '#4f46e5'
+                });
+                return;
+            }
+
+            const newEntry = {
+                unitNo: val,
+                timestamp: new Date().toISOString()
+            };
+
+            // Masukkan ke array lokal
+            localUnits.unshift(newEntry);
+            localStorage.setItem('saved_units', JSON.stringify(localUnits));
+            
+            input.value = '';
+            renderUnitList();
+
+            // Kirim ke JSONBin
+            await syncToJSONBin(localUnits);
+
+            Swal.fire({
+                icon: 'success',
+                title: 'Berhasil',
+                text: 'Data unit berhasil disimpan!',
+                timer: 1500,
+                showConfirmButton: false
+            });
+        }
+
+        // Render List Riwayat dengan Scroll Area
+        function renderUnitList() {
+            const container = document.getElementById('unitListContainer');
+            document.getElementById('totalUnit').innerText = `${localUnits.length} Unit`;
+
+            if (localUnits.length === 0) {
+                container.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">Belum ada data unit tercatat.</div>`;
+                return;
+            }
+
+            container.innerHTML = localUnits.map((item, idx) => `
+                <div class="flex justify-between items-center p-3 bg-slate-50 border border-slate-200 rounded-xl hover:bg-slate-100 transition">
+                    <div class="flex flex-col">
+                        <span class="font-mono font-bold text-xs text-slate-800">${item.unitNo}</span>
+                        <span class="text-[10px] text-slate-400">${new Date(item.timestamp).toLocaleString('id-ID')}</span>
+                    </div>
+                    <button onclick="deleteUnit(${idx})" class="text-rose-500 hover:text-rose-700 p-1 text-xs font-medium">Hapus</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteUnit(index) {
+            localUnits.splice(index, 1);
+            localStorage.setItem('saved_units', JSON.stringify(localUnits));
+            renderUnitList();
+            syncToJSONBin(localUnits);
+        }
+
+        // --- SCANNER LOGIC ---
+        function openScannerModal() {
+            document.getElementById('scannerModal').classList.remove('hidden');
+            document.getElementById('confirmBox').classList.add('hidden');
+            
+            html5QrCode = new Html5Qrcode("reader");
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+            
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess)
+                .catch(err => {
+                    console.error("Gagal membuka kamera:", err);
+                    Swal.fire('Error', 'Tidak dapat mengakses kamera perangkat.', 'error');
+                    closeScannerModal();
+                });
+        }
+
+        function closeScannerModal() {
+            if (html5QrCode && html5QrCode.isScanning) {
+                html5QrCode.stop().then(() => {
+                    html5QrCode.clear();
+                    document.getElementById('scannerModal').classList.add('hidden');
+                }).catch(err => console.error("Gagal menghentikan scanner:", err));
+            } else {
+                document.getElementById('scannerModal').classList.add('hidden');
+            }
+        }
+
+        let tempScannedCode = '';
+
+        function onScanSuccess(decodedText) {
+            // Ambil tepat 17 karakter pertama dari hasil scan barcode
+            tempScannedCode = decodedText.trim().substring(0, 17).toUpperCase();
+
+            // Hentikan scanner sementara untuk konfirmasi
+            html5QrCode.stop().then(() => {
+                html5QrCode.clear();
+                document.getElementById('reader').style.display = 'none';
+                document.getElementById('scanInstruction').style.display = 'none';
+                
+                // Tampilkan box konfirmasi
+                document.getElementById('scannedResultPreview').value = tempScannedCode;
+                document.getElementById('confirmBox').classList.remove('hidden');
+            });
+        }
+
+        function rejectScan() {
+            document.getElementById('confirmBox').classList.add('hidden');
+            document.getElementById('reader').style.display = 'block';
+            document.getElementById('scanInstruction').style.display = 'block';
+            
+            // Restart Scanner
+            const config = { fps: 10, qrbox: { width: 250, height: 150 } };
+            html5QrCode.start({ facingMode: "environment" }, config, onScanSuccess);
+        }
+
+        function acceptScan() {
+            // Masukkan ke input utama halaman
+            document.getElementById('unitInput').value = tempScannedCode;
+            closeScannerModal();
+            // Reset tampilan reader untuk penggunaan berikutnya
+            document.getElementById('reader').style.display = 'block';
+            document.getElementById('scanInstruction').style.display = 'block';
+        }
+
+        // --- JSONBIN SYNC ---
+        async function syncToJSONBin(data) {
+            if (JSONBIN_BIN_ID === 'MASUKKAN_BIN_ID_ANDA_DISINI') return;
+            
+            const statusEl = document.getElementById('syncStatus');
+            statusEl.innerText = 'Menyimpan...';
+
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-Master-Key': JSONBIN_API_KEY
+                    },
+                    body: JSON.stringify({ units: data })
+                });
+
+                if (response.ok) {
+                    statusEl.innerText = 'Tersinkron';
+                    setTimeout(() => statusEl.innerText = 'Siap', 2000);
+                } else {
+                    statusEl.innerText = 'Gagal Sync';
+                }
+            } catch (e) {
+                console.error('JSONBin error:', e);
+                statusEl.innerText = 'Offline Mode';
+            }
+        }
+
+        async function fetchFromJSONBin() {
+            if (JSONBIN_BIN_ID === 'MASUKKAN_BIN_ID_ANDA_DISINI') return;
+            try {
+                const response = await fetch(`https://api.jsonbin.io/v3/b/${JSONBIN_BIN_ID}/latest`, {
+                    headers: { 'X-Master-Key': JSONBIN_API_KEY }
+                });
+                const res = await response.json();
+                if (res && res.record && res.record.units) {
+                    localUnits = res.record.units;
+                    localStorage.setItem('saved_units', JSON.stringify(localUnits));
+                    renderUnitList();
+                }
+            } catch (e) {
+                console.error('Gagal mengambil data dari JSONBin:', e);
+            }
+        }
+    </script>
+</body>
+</html>
