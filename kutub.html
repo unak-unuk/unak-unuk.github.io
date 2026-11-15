@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Katalog Musik & Video Multi-Genre - YouTube API</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-900 text-slate-100 min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 px-4 py-3 shadow-md">
+        <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
+            <h1 class="text-xl font-bold tracking-wider text-rose-500 flex items-center gap-2">
+                🎵 MusicStream API
+            </h1>
+            <!-- Search & Genre Form -->
+            <form id="searchForm" class="flex w-full sm:w-auto gap-2">
+                <input 
+                    type="text" 
+                    id="searchInput" 
+                    placeholder="Cari genre atau artis (cth: Pop, Rock, Jazz)..." 
+                    class="bg-slate-900 border border-slate-700 px-3 py-2 rounded-lg text-sm focus:outline-none focus:border-rose-500 flex-grow sm:w-72"
+                    required
+                >
+                <button 
+                    type="submit" 
+                    class="bg-rose-600 hover:bg-rose-700 text-white px-4 py-2 rounded-lg text-sm font-medium transition">
+                    Cari
+                </button>
+            </form>
+        </div>
+    </header>
+
+    <!-- Genre Quick Tags -->
+    <div class="max-w-4xl mx-auto w-full px-4 py-4">
+        <p class="text-xs text-slate-400 mb-2 uppercase tracking-wide font-semibold">Pilih Genre Cepat:</p>
+        <div class="flex flex-wrap gap-2" id="genreTags">
+            <button onclick="searchGenre('Top Music')" class="genre-btn bg-slate-800 hover:bg-rose-600 border border-slate-700 text-xs px-3 py-1.5 rounded-full transition">🔥 Top Music</button>
+            <button onclick="searchGenre('Pop Musik Indonesia')" class="genre-btn bg-slate-800 hover:bg-rose-600 border border-slate-700 text-xs px-3 py-1.5 rounded-full transition">🎤 Pop Indo</button>
+            <button onclick="searchGenre('Rock Music')" class="genre-btn bg-slate-800 hover:bg-rose-600 border border-slate-700 text-xs px-3 py-1.5 rounded-full transition">🎸 Rock</button>
+            <button onclick="searchGenre('Dangdut Koplo')" class="genre-btn bg-slate-800 hover:bg-rose-600 border border-slate-700 text-xs px-3 py-1.5 rounded-full transition">🪘 Dangdut</button>
+            <button onclick="searchGenre('EDM Remix')" class="genre-btn bg-slate-800 hover:bg-rose-600 border border-slate-700 text-xs px-3 py-1.5 rounded-full transition">🎧 EDM</button>
+            <button onclick="searchGenre('Jazz Chillout')" class="genre-btn bg-slate-800 hover:bg-rose-600 border border-slate-700 text-xs px-3 py-1.5 rounded-full transition">🎷 Jazz</button>
+        </div>
+    </div>
+
+    <!-- Main Content / Video Grid -->
+    <main class="max-w-4xl mx-auto w-full px-4 flex-grow pb-12">
+        <div id="loading" class="text-center py-12 hidden">
+            <div class="inline-block animate-spin rounded-full h-8 w-8 border-4 border-rose-500 border-t-transparent"></div>
+            <p class="text-sm text-slate-400 mt-2">Memuat daftar musik...</p>
+        </div>
+
+        <div id="videoGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+            <!-- Hasil pencarian akan dirender di sini secara dinamis -->
+            <div class="col-span-full text-center py-16 text-slate-500">
+                <p>Silakan ketik genre atau klik tombol kategori di atas untuk mulai memutar musik.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal Video Player -->
+    <div id="playerModal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
+        <div class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl relative">
+            <div class="flex items-center justify-between p-3 border-b border-slate-700">
+                <h3 id="modalTitle" class="text-sm font-medium truncate pr-4">Memutar Video</h3>
+                <button onclick="closePlayer()" class="text-slate-400 hover:text-white font-bold text-lg px-2">&times;</button>
+            </div>
+            <div class="relative w-full" style="padding-bottom: 56.25%;">
+                <iframe id="youtubePlayer" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-slate-800 border-t border-slate-700 text-center py-4 text-xs text-slate-500">
+        Powered by YouTube Data API v3 &bull; Gratis Selamanya
+    </footer>
+
+    <!-- JavaScript Logika API -->
+    <script>
+        // MASUKKAN YOUTUBE API KEY ANDA DI SINI
+        const API_KEY = "AIzaSyDgu2BS4TTqCPNJV6GgkkHr7k9IzLIActo";
+
+        const searchForm = document.getElementById('searchForm');
+        const searchInput = document.getElementById('searchInput');
+        const videoGrid = document.getElementById('videoGrid');
+        const loading = document.getElementById('loading');
+        const playerModal = document.getElementById('playerModal');
+        const youtubePlayer = document.getElementById('youtubePlayer');
+        const modalTitle = document.getElementById('modalTitle');
+
+        // Event listener form pencarian
+        searchForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            const query = searchInput.value.trim();
+            if (query) fetchYouTubeMusic(query);
+        });
+
+        // Fungsi klik tombol genre cepat
+        function searchGenre(genreName) {
+            searchInput.value = genreName;
+            fetchYouTubeMusic(genreName);
+        }
+
+        // Fungsi utama melakukan fetch ke REST API YouTube Data v3
+        async function fetchYouTubeMusic(keyword) {
+            if (API_KEY === "AIzaSyDgu2BS4TTqCPNJV6GgkkHr7k9IzLIActo") {
+                alert("Harap masukkan YouTube API Key Anda terlebih dahulu di dalam kode!");
+                return;
+            }
+
+            loading.classList.remove('hidden');
+            videoGrid.innerHTML = '';
+
+            // Endpoint REST API YouTube Search
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(keyword + ' official music video')}&type=video&key=${API_KEY}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                loading.classList.add('hidden');
+
+                if (data.error) {
+                    alert('Gagal memuat API: ' + data.error.message);
+                    return;
+                }
+
+                if (data.items && data.items.length > 0) {
+                    renderVideos(data.items);
+                } else {
+                    videoGrid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">Tidak ada hasil ditemukan untuk "${keyword}".</div>`;
+                }
+            } catch (err) {
+                loading.classList.add('hidden');
+                console.error(err);
+                alert('Terjadi kesalahan jaringan saat mengambil data.');
+            }
+        }
+
+        // Render hasil JSON ke dalam bentuk Grid Card
+        function renderVideos(items) {
+            videoGrid.innerHTML = '';
+            items.forEach(item => {
+                const videoId = item.id.videoId;
+                const title = item.snippet.title;
+                const channelTitle = item.snippet.channelTitle;
+                const thumbnail = item.snippet.thumbnails.medium.url;
+
+                const card = document.createElement('div');
+                card.className = 'bg-slate-800 border border-slate-700 rounded-xl overflow-hidden hover:border-rose-500 transition cursor-pointer flex flex-col';
+                card.onclick = () => openPlayer(videoId, title);
+
+                card.innerHTML = `
+                    <div class="relative aspect-video bg-slate-900 overflow-hidden">
+                        <img src="${thumbnail}" alt="${title}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        <div class="absolute inset-0 bg-black/30 flex items-center justify-center opacity-0 hover:opacity-100 transition">
+                            <span class="bg-rose-600 text-white rounded-full p-3 shadow-lg">▶</span>
+                        </div>
+                    </div>
+                    <div class="p-3 flex flex-col flex-grow">
+                        <h4 class="text-sm font-semibold text-slate-200 line-clamp-2 mb-1">${title}</h4>
+                        <p class="text-xs text-slate-400 mt-auto">${channelTitle}</p>
+                    </div>
+                `;
+                videoGrid.appendChild(card);
+            });
+        }
+
+        // Buka Modal Pemutar Video
+        function openPlayer(videoId, title) {
+            modalTitle.innerText = title;
+            youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            playerModal.classList.remove('hidden');
+            playerModal.classList.add('flex');
+        }
+
+        // Tutup Modal Pemutar Video & Hentikan Audio/Video
+        function closePlayer() {
+            youtubePlayer.src = '';
+            playerModal.classList.remove('flex');
+            playerModal.classList.add('hidden');
+        }
+
+        // Tutup modal jika klik di luar kotak video
+        playerModal.addEventListener('click', (e) => {
+            if (e.target === playerModal) {
+                closePlayer();
+            }
+        });
+    </script>
+</body>
+</html>
