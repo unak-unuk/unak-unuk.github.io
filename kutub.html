@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>U-Cup</title>
+    <title>UCUP</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
@@ -13,7 +13,7 @@
     <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 px-4 py-3 shadow-md">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <h1 class="text-xl font-bold tracking-wider text-rose-500 flex items-center gap-2">
-                U Cup
+                🎧 U CUP
             </h1>
             <!-- Search & Genre Form -->
             <form id="searchForm" class="flex w-full sm:w-auto gap-2">
@@ -61,7 +61,7 @@
         </div>
     </main>
 
-    <!-- Modal Video Player -->
+    <!-- Modal Video Player Utama -->
     <div id="playerModal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-2 sm:p-4">
         <div id="modalContainer" class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-3xl overflow-hidden shadow-2xl relative flex flex-col max-h-[95vh]">
             
@@ -69,7 +69,10 @@
             <div id="modalHeader" class="flex items-center justify-between p-3 border-b border-slate-700 bg-slate-800 transition-all duration-300">
                 <h3 id="modalTitle" class="text-sm font-medium truncate pr-4 text-slate-200">Memutar Video</h3>
                 <div class="flex items-center gap-2">
-                    <button onclick="toggleFullScreen()" class="text-slate-300 hover:text-white text-xs bg-slate-700 hover:bg-slate-600 px-2.5 py-1.5 rounded transition flex items-center gap-1">
+                    <button onclick="openMiniScreen()" class="text-slate-300 hover:text-white text-xs bg-slate-700 hover:bg-slate-600 px-2.5 py-1.5 rounded transition">
+                        🗗 Mini Screen
+                    </button>
+                    <button onclick="toggleFullScreen()" class="text-slate-300 hover:text-white text-xs bg-slate-700 hover:bg-slate-600 px-2.5 py-1.5 rounded transition">
                         ⛶
                     </button>
                     <button onclick="closePlayer()" class="text-slate-400 hover:text-white font-bold text-xl px-2">&times;</button>
@@ -81,20 +84,33 @@
                 <iframe id="youtubePlayer" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
 
-            <!-- Bagian Saran Video & Tombol Toggle Autoplay -->
+            <!-- Bagian Saran Video & Toggle Autoplay -->
             <div id="suggestionSection" class="p-3 bg-slate-900 overflow-y-auto flex-grow transition-all duration-300">
                 <div class="flex items-center justify-between mb-2">
                     <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Saran Video Selanjutnya:</p>
-                    <!-- Tombol Fitur Autoplay Next -->
                     <button id="autoPlayBtn" onclick="toggleAutoPlay()" class="text-xs px-2.5 py-1 rounded-full font-medium transition bg-slate-800 border border-slate-700 text-slate-300 hover:bg-slate-700">
-                        Autoplay: <span id="autoPlayStatus" class="text-rose-400">OFF</span>
+                        Autoplay: <span id="autoPlayStatus" class="text-rose-400 font-bold">OFF</span>
                     </button>
                 </div>
                 <div id="suggestionList" class="flex flex-col gap-2">
-                    <!-- Item saran video akan masuk secara dinamis di sini -->
+                    <!-- Saran video dinamis -->
                 </div>
             </div>
 
+        </div>
+    </div>
+
+    <!-- Floating Mini Screen Player (Tampil saat mode Mini Screen aktif) -->
+    <div id="miniPlayer" class="fixed bottom-4 right-4 bg-slate-800 border border-slate-700 rounded-xl shadow-2xl z-50 hidden w-72 sm:w-80 overflow-hidden">
+        <div class="flex items-center justify-between bg-slate-900 px-3 py-2 border-b border-slate-700">
+            <span id="miniTitle" class="text-xs font-medium text-slate-200 truncate pr-2">Memutar Musik</span>
+            <div class="flex items-center gap-1">
+                <button onclick="restoreModalPlayer()" class="text-slate-300 hover:text-white text-xs px-1" title="Perbesar">🗖</button>
+                <button onclick="closePlayer()" class="text-slate-400 hover:text-white text-sm font-bold px-1" title="Tutup">&times;</button>
+            </div>
+        </div>
+        <div class="relative w-full bg-black" style="padding-bottom: 56.25%;">
+            <iframe id="miniYoutubePlayer" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
         </div>
     </div>
 
@@ -119,12 +135,16 @@
         const suggestionList = document.getElementById('suggestionList');
         const autoPlayBtn = document.getElementById('autoPlayBtn');
         const autoPlayStatus = document.getElementById('autoPlayStatus');
+        
+        const miniPlayer = document.getElementById('miniPlayer');
+        const miniYoutubePlayer = document.getElementById('miniYoutubePlayer');
+        const miniTitle = document.getElementById('miniTitle');
 
         let currentVideoItems = []; 
         let currentIndex = 0;
-        let isAutoPlayOn = false; // Status awal Autoplay OFF
+        let activeVideoId = '';
+        let isAutoPlayOn = false;
 
-        // Event listener form pencarian
         searchForm.addEventListener('submit', (e) => {
             e.preventDefault();
             const query = searchInput.value.trim();
@@ -196,66 +216,42 @@
 
         function openPlayer(videoId, title, index) {
             currentIndex = index;
+            activeVideoId = videoId;
             modalTitle.innerText = title;
+            miniTitle.innerText = title;
             
-            // Tambahkan parameter enablejsapi=1 agar kita bisa mendeteksi kapan video selesai (ended)
-            youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
+            const embedUrl = `https://www.youtube.com/embed/${videoId}?autoplay=1&enablejsapi=1`;
+            youtubePlayer.src = embedUrl;
+            miniYoutubePlayer.src = embedUrl;
+
+            // Sembunyikan mini player jika modal utama dibuka
+            miniPlayer.classList.add('hidden');
             playerModal.classList.remove('hidden');
             playerModal.classList.add('flex');
 
-            renderSuggestions(currentIndex);
+            renderDynamicSuggestions();
         }
 
-        // Toggle fitur Autoplay On/Off
-        function toggleAutoPlay() {
-            isAutoPlayOn = !isAutoPlayOn;
-            if (isAutoPlayOn) {
-                autoPlayStatus.innerText = "ON";
-                autoPlayStatus.className = "text-emerald-400 font-bold";
-                autoPlayBtn.classList.add('border-emerald-500');
-            } else {
-                autoPlayStatus.innerText = "OFF";
-                autoPlayStatus.className = "text-rose-400 font-bold";
-                autoPlayBtn.classList.remove('border-emerald-500');
-            }
-        }
-
-        // Listener pesan dari iframe YouTube untuk mendeteksi saat video selesai diputar
-        window.addEventListener('message', function(event) {
-            if (!isAutoPlayOn) return;
-            try {
-                let data = JSON.parse(event.data);
-                // State 0 di YouTube IFrame API artinya video telah selesai (ENDED)
-                if (data.event === 'infoDelivery' && data.info && data.info.playerState === 0) {
-                    playNextVideo();
-                }
-            } catch (e) {
-                // Abaikan pesan lain yang bukan format JSON pemutar YouTube
-            }
-        });
-
-        // Putar video berikutnya secara otomatis
-        function playNextVideo() {
-            if (currentVideoItems.length === 0) return;
-            // Geser index ke video berikutnya (jika di ujung, kembali ke awal)
-            currentIndex = (currentIndex + 1) % currentVideoItems.length;
-            const nextItem = currentVideoItems[currentIndex];
-            openPlayer(nextItem.id.videoId, nextItem.snippet.title, currentIndex);
-        }
-
-        function renderSuggestions(activeIndex) {
+        // Fungsi membuat saran video menjadi dinamis & selalu berubah-ubah acak
+        function renderDynamicSuggestions() {
             suggestionList.innerHTML = '';
-            currentVideoItems.forEach((item, index) => {
-                if (index === activeIndex) return;
+            
+            // Buat salinan array dan acak urutannya (Fisher-Yates Shuffle)
+            let shuffled = [...currentVideoItems]
+                .filter((_, idx) => idx !== currentIndex)
+                .sort(() => Math.random() - 0.5);
 
+            // Ambil hingga 6 saran acak
+            shuffled.slice(0, 6).forEach((item) => {
                 const videoId = item.id.videoId;
                 const title = item.snippet.title;
                 const channelTitle = item.snippet.channelTitle;
                 const thumbnail = item.snippet.thumbnails.medium.url;
+                const originalIndex = currentVideoItems.findIndex(v => v.id.videoId === videoId);
 
                 const itemDiv = document.createElement('div');
                 itemDiv.className = 'flex items-center gap-3 p-2 bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition border border-slate-700/50';
-                itemDiv.onclick = () => openPlayer(videoId, title, index);
+                itemDiv.onclick = () => openPlayer(videoId, title, originalIndex);
 
                 itemDiv.innerHTML = `
                     <img src="${thumbnail}" alt="${title}" class="w-20 h-12 object-cover rounded flex-shrink-0">
@@ -269,10 +265,60 @@
             });
         }
 
-        function closePlayer() {
-            youtubePlayer.src = '';
+        // Fitur Mini Screen: Tutup modal utama tapi biarkan mini player melayang
+        function openMiniScreen() {
+            if (document.fullscreenElement) {
+                document.exitFullscreen();
+            }
             playerModal.classList.remove('flex');
             playerModal.classList.add('hidden');
+            miniPlayer.classList.remove('hidden');
+        }
+
+        // Kembalikan dari mini screen ke modal utama
+        function restoreModalPlayer() {
+            miniPlayer.classList.add('hidden');
+            playerModal.classList.remove('hidden');
+            playerModal.classList.add('flex');
+        }
+
+        function toggleAutoPlay() {
+            isAutoPlayOn = !isAutoPlayOn;
+            if (isAutoPlayOn) {
+                autoPlayStatus.innerText = "ON";
+                autoPlayStatus.className = "text-emerald-400 font-bold";
+                autoPlayBtn.classList.add('border-emerald-500');
+            } else {
+                autoPlayStatus.innerText = "OFF";
+                autoPlayStatus.className = "text-rose-400 font-bold";
+                autoPlayBtn.classList.remove('border-emerald-500');
+            }
+        }
+
+        // Penanganan event otomatis untuk Auto-Play video selanjutnya
+        window.addEventListener('message', function(event) {
+            if (!isAutoPlayOn) return;
+            try {
+                let data = JSON.parse(event.data);
+                if (data.event === 'infoDelivery' && data.info && data.info.playerState === 0) {
+                    playNextVideo();
+                }
+            } catch (e) {}
+        });
+
+        function playNextVideo() {
+            if (currentVideoItems.length === 0) return;
+            currentIndex = (currentIndex + 1) % currentVideoItems.length;
+            const nextItem = currentVideoItems[currentIndex];
+            openPlayer(nextItem.id.videoId, nextItem.snippet.title, currentIndex);
+        }
+
+        function closePlayer() {
+            youtubePlayer.src = '';
+            miniYoutubePlayer.src = '';
+            playerModal.classList.remove('flex');
+            playerModal.classList.add('hidden');
+            miniPlayer.classList.add('hidden');
             
             if (document.fullscreenElement) {
                 document.exitFullscreen();
