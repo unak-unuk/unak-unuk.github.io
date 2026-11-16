@@ -9,7 +9,7 @@
     <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background-color: #f8f9fa; padding-bottom: 70px; } /* Padding bawah agar tidak tertutup bottom navbar */
+        body { background-color: #f8f9fa; padding-bottom: 70px; }
         .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; overflow: hidden; }
         #yt-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; border: 0; }
         .placeholder-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; background: #212529; display: flex; flex-direction: column; justify-content: center; align-items: center; }
@@ -26,7 +26,6 @@
         .playlist-item { cursor: pointer; transition: background 0.2s; position: relative; overflow: hidden; }
         .playlist-item:hover { background-color: #e9ecef; }
         
-        /* State Aktif dengan Animasi Equalizer di Background */
         .playlist-item.active {
             background-color: #cfe2ff !important;
             border-color: #9ec5fe !important;
@@ -149,9 +148,8 @@
                     <div class="card shadow-sm mb-3">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
                             <span><i class="fa-solid fa-list me-1"></i> Semua Daftar Putar Pengguna</span>
-                            <span class="badge bg-light text-dark">Akses Publik (Play khusus Admin)</span>
+                            <span class="badge bg-light text-dark">Akses Publik</span>
                         </div>
-                        <!-- Sistem scroll pada playlist agar rapi -->
                         <div class="card-body p-0 playlist-scroll-container" id="public-playlist-container">
                             <div class="text-center p-4 text-muted">Memuat data...</div>
                         </div>
@@ -167,20 +165,18 @@
                     <div class="card shadow-sm">
                         <div class="card-body p-0">
                             <div class="video-container">
-                                <!-- Pemutar YouTube Iframe API -->
                                 <div id="yt-player"></div>
-                                <!-- Placeholder box -->
                                 <div class="placeholder-box text-white text-center p-4" id="placeholder-video">
                                     <i class="fa-brands fa-youtube text-danger fa-3x mb-3"></i>
                                     <h5>Pemutar Video Siap</h5>
-                                    <p class="text-muted small mb-3">Pilih video dari menu Daftar Playlist (Login Admin untuk memutar).</p>
+                                    <p class="text-muted small mb-3">Menunggu siaran diputar oleh Admin...</p>
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer bg-white">
                             <div class="d-flex justify-content-between align-items-center video-info-box">
                                 <div class="text-truncate pe-2" style="flex: 1; min-width: 0;">
-                                    <h5 id="current-video-title" class="mb-1 text-truncate" style="font-size: 1.1rem;">Pilih Video</h5>
+                                    <h5 id="current-video-title" class="mb-1 text-truncate" style="font-size: 1.1rem;">Belum ada video</h5>
                                     <p id="current-playlist-name" class="text-muted small mb-0 text-truncate">-</p>
                                 </div>
                                 <button id="btn-next-queue" class="btn btn-outline-primary btn-sm text-nowrap flex-shrink-0" onclick="playNextInQueue()" style="display:none;"><i class="fa-solid fa-forward-step"></i> Selanjutnya</button>
@@ -272,7 +268,7 @@
         </div>
     </div>
 
-    <!-- Modal Pencarian & Input YouTube API (Dapat diakses Publik/Pengguna) -->
+    <!-- Modal Pencarian & Input YouTube API -->
     <div class="modal fade" id="searchModal" tabindex="-1">
         <div class="modal-dialog modal-lg">
             <div class="modal-content">
@@ -281,16 +277,13 @@
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body">
-                    <!-- Pilihan Kategori Tujuan -->
                     <div class="mb-3">
                         <label class="form-label fw-bold small">Pilih Kategori / Playlist Tujuan:</label>
-                        <select id="modal-target-playlist" class="form-select form-select-sm">
-                            <!-- Diisi via Javascript -->
-                        </select>
+                        <select id="modal-target-playlist" class="form-select form-select-sm"></select>
                     </div>
                     <div class="input-group mb-3">
                         <input type="text" id="yt-search-keyword" class="form-control" placeholder="Ketik kata kunci pencarian video YouTube...">
-                        <button class="btn.btn-dark btn btn-dark" onclick="searchYouTubeAPI()"><i class="fa-solid fa-search"></i> Cari</button>
+                        <button class="btn btn-dark" onclick="searchYouTubeAPI()"><i class="fa-solid fa-search"></i> Cari</button>
                     </div>
                     <div id="yt-search-results" style="max-height: 350px; overflow-y: auto;">
                         <p class="text-muted text-center">Hasil pencarian akan muncul di sini.</p>
@@ -304,7 +297,6 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://www.youtube.com/iframe_api"></script>
     <script>
-        // Konfigurasi Database & API
         const BIN_ID = "6afb5d03ac6210605a8cdcd4";
         const MASTER_KEY = "$2a$10$Ii1ep5GX66sB9lery6p2suxzNGrSMg2iwncn5Z2y/HT5WjaHRrf1q";
         const YT_API_KEY = "AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk";
@@ -312,15 +304,15 @@
 
         let appData = {
             status: "ONLINE",
+            activePlaylist: null,
+            activeVideo: null,
             playlists: []
         };
 
         let player = null;
-        let activePlaylistIndex = null;
-        let activeVideoIndex = null;
         let pendingVideoId = null;
+        let lastSyncedVideoId = null;
 
-        // Inisialisasi YouTube Player API secara aman
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('yt-player', {
                 height: '100%',
@@ -345,20 +337,20 @@
         }
 
         function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.ENDED) {
+            // Hanya admin yang memicu logika "video selesai & hapus" agar tersinkron konsisten
+            let isAdmin = (sessionStorage.getItem('isAdminLoggedIn') === 'true');
+            if (event.data === YT.PlayerState.ENDED && isAdmin) {
                 handleVideoEnded();
             }
         }
 
         document.addEventListener("DOMContentLoaded", () => {
             fetchData();
-            setInterval(fetchData, 10000);
+            setInterval(fetchData, 5000); // Sinkronisasi otomatis tiap 5 detik antar perangkat
         });
 
-        // Navigasi Halaman dengan Toggle Top Navbar yang otomatis menutup
         function navigatePage(pageId) {
             showPage(pageId);
-            // Otomatis tutup navbar di perangkat mobile setelah dipilih
             let navbarCollapse = document.getElementById('navbarNav');
             if (navbarCollapse.classList.contains('show')) {
                 let bsCollapse = new bootstrap.Collapse(navbarCollapse, {toggle: false});
@@ -409,13 +401,15 @@
                     appData = result.record;
                     checkSystemStatus();
                     updateUI();
+                    
+                    // Sinkronisasi pemutar video di semua perangkat berdasarkan database server
+                    syncGlobalPlayer();
                 }
             } catch (error) {
                 console.error("Gagal mengambil data:", error);
             }
         }
 
-        // Cek Status Sistem (Online / Offline)
         function checkSystemStatus() {
             let overlay = document.getElementById('offline-overlay');
             if (appData.status === "OFFLINE") {
@@ -443,6 +437,40 @@
             }
         }
 
+        // Sinkronisasi otomatis video yang sedang diputar di semua perangkat
+        function syncGlobalPlayer() {
+            if (appData.activePlaylist !== null && appData.activeVideo !== null) {
+                let pl = appData.playlists[appData.activePlaylist];
+                if (pl && pl.videos && pl.videos[appData.activeVideo]) {
+                    let vid = pl.videos[appData.activeVideo];
+                    
+                    if (lastSyncedVideoId !== vid.videoId) {
+                        lastSyncedVideoId = vid.videoId;
+                        
+                        let placeholder = document.getElementById('placeholder-video');
+                        if(placeholder) placeholder.style.display = 'none';
+                        document.getElementById('btn-next-queue').style.display = 'inline-block';
+
+                        if (player && typeof player.loadVideoById === 'function') {
+                            player.loadVideoById(vid.videoId);
+                        } else {
+                            pendingVideoId = vid.videoId;
+                        }
+
+                        document.getElementById('current-video-title').innerText = vid.title;
+                        document.getElementById('current-playlist-name').innerText = "Kategori: " + pl.title + ` (Urutan ke-${appData.activeVideo + 1})`;
+                    }
+                } else {
+                    // Jika video aktif sudah terhapus/selesai
+                    lastSyncedVideoId = null;
+                    document.getElementById('placeholder-video').style.display = 'flex';
+                    document.getElementById('current-video-title').innerText = "Belum ada video";
+                    document.getElementById('current-playlist-name').innerText = "-";
+                    document.getElementById('btn-next-queue').style.display = 'none';
+                }
+            }
+        }
+
         function updateUI() {
             let container = document.getElementById('public-playlist-container');
             if(!appData.playlists || appData.playlists.length === 0) {
@@ -450,22 +478,16 @@
                 return;
             }
 
-            let isAdmin = (sessionStorage.getItem('isAdminLoggedIn') === 'true');
             let html = "";
-
             appData.playlists.forEach((pl, pIdx) => {
                 html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary text-truncate sticky-top"><i class="fa-solid fa-folder me-1"></i> ${pl.title}</div>`;
                 if(!pl.videos || pl.videos.length === 0) {
                     html += `<div class="p-2 text-muted small ps-3">Daftar putar kosong</div>`;
                 } else {
                     pl.videos.forEach((vid, vIdx) => {
-                        let isActive = (activePlaylistIndex === pIdx && activeVideoIndex === vIdx);
+                        let isActive = (appData.activePlaylist === pIdx && appData.activeVideo === vIdx);
                         let activeClass = isActive ? 'active border-primary' : '';
                         
-                        // Rule: Pengguna umum tidak bisa play video, play video hanya bisa oleh admin atau lewat halaman player jika sudah dipilih admin
-                        let clickAction = isAdmin ? `playVideoSpecific(${pIdx}, ${vIdx})` : `alert('Akses Dibatasi: Pemutaran video hanya dapat dilakukan oleh Admin.')`;
-                        
-                        // Judul berjalan (marquee) jika video sedang aktif
                         let titleDisplay = isActive ? `
                             <div class="marquee-container">
                                 <span class="marquee-text fw-bold text-primary">${vIdx + 1}. ${vid.title}</span>
@@ -475,12 +497,11 @@
                         `;
 
                         html += `
-                            <div class="playlist-item p-2 border-bottom ps-3 d-flex align-items-center ${activeClass}" onclick="${clickAction}" title="${isAdmin ? 'Klik untuk memutar' : 'Khusus Admin'}">
+                            <div class="playlist-item p-2 border-bottom ps-3 d-flex align-items-center ${activeClass}">
                                 <img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" class="me-2 rounded flex-shrink-0" width="60" height="45" style="object-fit:cover;">
                                 <div class="text-truncate small" style="flex: 1; min-width: 0;">
                                     ${titleDisplay}
                                 </div>
-                                <!-- Animasi Equalizer Bergerak di Background Item Aktif -->
                                 <div class="equalizer-bg">
                                     <div class="bar"></div>
                                     <div class="bar"></div>
@@ -494,70 +515,32 @@
             container.innerHTML = html;
         }
 
-        // Putar video (hanya dieksekusi jika admin)
-        function playVideoSpecific(pIndex, vIndex) {
+        // Tombol Putar dari Halaman Admin (Mensinkronkan semua perangkat)
+        function adminPlayVideo(pIndex, vIndex) {
             let pl = appData.playlists[pIndex];
             if(!pl || !pl.videos || !pl.videos[vIndex]) return;
 
-            activePlaylistIndex = pIndex;
-            activeVideoIndex = vIndex;
-            let vid = pl.videos[vIndex];
-
-            // Pindah ke halaman Player secara otomatis
-            showPage('player');
-            document.getElementById('btn-next-queue').style.display = 'inline-block';
-
-            let placeholder = document.getElementById('placeholder-video');
-            if(placeholder) {
-                placeholder.style.display = 'none';
-            }
-
-            if (player && typeof player.loadVideoById === 'function') {
-                player.loadVideoById(vid.videoId);
-            } else {
-                pendingVideoId = vid.videoId;
-            }
-
-            document.getElementById('current-video-title').innerText = vid.title;
-            document.getElementById('current-playlist-name').innerText = "Kategori: " + pl.title + ` (Urutan ke-${vIndex + 1})`;
-            updateUI();
-        }
-
-        function playFirstAvailable() {
-            let isAdmin = (sessionStorage.getItem('isAdminLoggedIn') === 'true');
-            if(!isAdmin) {
-                alert('Akses Dibatasi: Pemutaran video hanya dapat dilakukan oleh Admin.');
-                navigatePage('playlist');
-                return;
-            }
-
-            if(!appData.playlists) return;
-            for(let p = 0; p < appData.playlists.length; p++) {
-                if(appData.playlists[p].videos && appData.playlists[p].videos.length > 0) {
-                    playVideoSpecific(p, 0);
-                    return;
-                }
-            }
-            alert("Daftar putar kosong! Silakan tambahkan video terlebih dahulu.");
+            appData.activePlaylist = pIndex;
+            appData.activeVideo = vIndex;
+            
+            saveData();
+            navigatePage('player');
         }
 
         function playNextInQueue() {
             let isAdmin = (sessionStorage.getItem('isAdminLoggedIn') === 'true');
             if(!isAdmin) return;
 
-            if(activePlaylistIndex === null || activeVideoIndex === null) {
-                playFirstAvailable();
-                return;
-            }
+            if(appData.activePlaylist === null || appData.activeVideo === null) return;
             
-            let pl = appData.playlists[activePlaylistIndex];
-            if(pl && pl.videos && activeVideoIndex + 1 < pl.videos.length) {
-                playVideoSpecific(activePlaylistIndex, activeVideoIndex + 1);
+            let pl = appData.playlists[appData.activePlaylist];
+            if(pl && pl.videos && appData.activeVideo + 1 < pl.videos.length) {
+                adminPlayVideo(appData.activePlaylist, appData.activeVideo + 1);
             } else {
                 let found = false;
-                for(let p = activePlaylistIndex + 1; p < appData.playlists.length; p++) {
+                for(let p = appData.activePlaylist + 1; p < appData.playlists.length; p++) {
                     if(appData.playlists[p].videos && appData.playlists[p].videos.length > 0) {
-                        playVideoSpecific(p, 0);
+                        adminPlayVideo(p, 0);
                         found = true;
                         break;
                     }
@@ -569,24 +552,21 @@
         }
 
         function handleVideoEnded() {
-            if(activePlaylistIndex === null || activeVideoIndex === null) return;
+            if(appData.activePlaylist === null || appData.activeVideo === null) return;
 
-            let pl = appData.playlists[activePlaylistIndex];
-            if(pl && pl.videos && pl.videos[activeVideoIndex]) {
-                pl.videos.splice(activeVideoIndex, 1);
-                saveData();
+            let pl = appData.playlists[appData.activePlaylist];
+            if(pl && pl.videos && pl.videos[appData.activeVideo]) {
+                // Hapus video yang selesai diputar dari antrean
+                pl.videos.splice(appData.activeVideo, 1);
 
                 if(pl.videos.length > 0) {
-                    let nextIdx = activeVideoIndex < pl.videos.length ? activeVideoIndex : 0;
-                    playVideoSpecific(activePlaylistIndex, nextIdx);
+                    appData.activeVideo = appData.activeVideo < pl.videos.length ? appData.activeVideo : 0;
                 } else {
-                    activePlaylistIndex = null;
-                    activeVideoIndex = null;
-                    document.getElementById('placeholder-video').style.display = 'flex';
-                    document.getElementById('current-video-title').innerText = "Antrean Selesai";
-                    document.getElementById('btn-next-queue').style.display = 'none';
-                    playFirstAvailable();
+                    appData.activePlaylist = null;
+                    appData.activeVideo = null;
                 }
+
+                saveData();
             }
         }
 
@@ -639,14 +619,14 @@
                         </div>
                         <div class="card-body">
                             <div class="table-responsive">
-                                <table class="table table-sm table-bordered mb-0">
+                                <table class="table table-sm table-bordered mb-0 align-middle">
                                     <thead class="table-light">
                                         <tr>
                                             <th style="width: 50px;" class="text-center">Urutan</th>
                                             <th>Thumbnail</th>
                                             <th>Judul Video</th>
                                             <th>ID Video</th>
-                                            <th class="text-center" style="width: 80px;">Aksi</th>
+                                            <th class="text-center" style="width: 140px;">Aksi</th>
                                         </tr>
                                     </thead>
                                     <tbody>
@@ -658,12 +638,13 @@
                     pl.videos.forEach((vid, vIndex) => {
                         html += `
                             <tr>
-                                <td class="align-middle text-center fw-bold text-secondary">${vIndex + 1}</td>
-                                <td class="align-middle text-center"><img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" width="50" height="35" class="rounded"></td>
-                                <td class="align-middle">${vid.title}</td>
-                                <td class="align-middle text-muted small">${vid.videoId}</td>
-                                <td class="align-middle text-center">
-                                    <button class="btn.btn-danger btn btn-danger btn-sm" onclick="deleteVideo(${pIndex}, ${vIndex})"><i class="fa-solid fa-trash"></i></button>
+                                <td class="text-center fw-bold text-secondary">${vIndex + 1}</td>
+                                <td class="text-center"><img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" width="50" height="35" class="rounded"></td>
+                                <td>${vid.title}</td>
+                                <td class="text-muted small">${vid.videoId}</td>
+                                <td class="text-center">
+                                    <button class="btn btn-success btn-sm me-1" onclick="adminPlayVideo(${pIndex}, ${vIndex})" title="Putar Video Ini untuk Semua Perangkat"><i class="fa-solid fa-play"></i> Putar</button>
+                                    <button class="btn btn-danger btn-sm" onclick="deleteVideo(${pIndex}, ${vIndex})"><i class="fa-solid fa-trash"></i></button>
                                 </td>
                             </tr>
                         `;
@@ -701,6 +682,10 @@
         function deletePlaylist(pIndex) {
             if(confirm("Yakin ingin menghapus kategori ini?")) {
                 appData.playlists.splice(pIndex, 1);
+                if(appData.activePlaylist === pIndex) {
+                    appData.activePlaylist = null;
+                    appData.activeVideo = null;
+                }
                 saveData();
             }
         }
@@ -712,14 +697,12 @@
             }
         }
 
-        // Membuka Modal Pencarian YouTube dari Bottom Navbar (Bisa diakses Pengguna)
         function openPublicSearchModal() {
             if(!appData.playlists || appData.playlists.length === 0) {
-                alert("Belum ada kategori/playlist yang dibuat oleh Admin. Silakan hubungi admin terlebih dahulu.");
+                alert("Belum ada kategori/playlist yang dibuat. Silakan buat kategori terlebih dahulu di panel admin.");
                 return;
             }
 
-            // Isi dropdown pilihan playlist di modal
             let selectTarget = document.getElementById('modal-target-playlist');
             selectTarget.innerHTML = "";
             appData.playlists.forEach((pl, idx) => {
@@ -770,7 +753,7 @@
                                     <small class="text-muted text-truncate d-block">${channel}</small>
                                 </div>
                             </div>
-                            <button class="btn.btn-success btn btn-success btn-sm text-nowrap flex-shrink-0 ms-2" onclick="addVideoFromSearch('${vidId}', '${title.replace(/'/g, "\\'")}')">
+                            <button class="btn btn-success btn-sm text-nowrap flex-shrink-0 ms-2" onclick="addVideoFromSearch('${vidId}', '${title.replace(/'/g, "\\'")}')">
                                 <i class="fa-solid fa-plus"></i> Tambah
                             </button>
                         </div>
