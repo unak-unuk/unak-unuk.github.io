@@ -11,9 +11,11 @@
     <style>
         body { background-color: #f8f9fa; }
         .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; }
-        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .video-container div { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
         .playlist-item { cursor: pointer; transition: background 0.2s; }
         .playlist-item:hover, .playlist-item.active { background-color: #e9ecef; }
+        .search-result-item { cursor: pointer; transition: background 0.2s; }
+        .search-result-item:hover { background-color: #f1f3f5; }
     </style>
 </head>
 <body>
@@ -49,15 +51,21 @@
                 <div class="col-lg-8 mb-4">
                     <div class="card shadow-sm">
                         <div class="card-body p-0">
-                            <div class="video-container bg-dark" id="player-box">
+                            <div class="video-container bg-dark">
+                                <div id="yt-player"></div>
                                 <div class="d-flex justify-content-center align-items-center h-100 text-white text-center p-4" id="placeholder-video">
-                                    <p class="mb-0">Silakan pilih video dari daftar playlist di samping atau di bawah.</p>
+                                    <p class="mb-0">Silakan pilih video dari daftar playlist di samping atau aktifkan pemutaran berurutan.</p>
                                 </div>
                             </div>
                         </div>
                         <div class="card-footer bg-white">
-                            <h5 id="current-video-title" class="mb-1 text-truncate">Pilih Video</h5>
-                            <p id="current-playlist-name" class="text-muted small mb-0"></p>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h5 id="current-video-title" class="mb-1 text-truncate">Pilih Video</h5>
+                                    <p id="current-playlist-name" class="text-muted small mb-0">-</p>
+                                </div>
+                                <button class="btn btn-outline-primary btn-sm" onclick="playNextInQueue()"><i class="fa-solid fa-forward-step"></i> Putar Urutan Berikutnya</button>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -65,8 +73,9 @@
                 <!-- Daftar Playlist Sidebar -->
                 <div class="col-lg-4">
                     <div class="card shadow-sm">
-                        <div class="card-header bg-primary text-white">
-                            <i class="fa-solid fa-list me-1"></i> Daftar Playlist
+                        <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
+                            <span><i class="fa-solid fa-list me-1"></i> Daftar Antrean Video</span>
+                            <button class="btn btn-light btn-sm py-0 px-2" onclick="playFirstAvailable()" title="Putar dari atas"><i class="fa-solid fa-play"></i> Mulai</button>
                         </div>
                         <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;" id="public-playlist-container">
                             <div class="text-center p-4 text-muted">Memuat data...</div>
@@ -137,7 +146,7 @@
                 </div>
                 <div class="card-body">
                     <div class="input-group">
-                        <input type="text" id="new-playlist-title" class="form-control" placeholder="Nama Kategori (Cth: Video Kajian, Musik, dll)">
+                        <input type="text" id="new-playlist-title" class="form-control" placeholder="Nama Kategori (Cth: Antrean Utama)">
                         <button class="btn btn-primary" onclick="addPlaylist()"><i class="fa-solid fa-plus"></i> Tambah Kategori</button>
                     </div>
                 </div>
@@ -151,8 +160,30 @@
 
     </div>
 
-    <!-- Bootstrap & Script Pendukung -->
+    <!-- Modal Pencarian YouTube API -->
+    <div class="modal fade" id="searchModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title"><i class="fa-brands fa-youtube"></i> Cari Video dari YouTube API</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="input-group mb-3">
+                        <input type="text" id="yt-search-keyword" class="form-control" placeholder="Ketik kata kunci pencarian video YouTube...">
+                        <button class="btn btn-dark" onclick="searchYouTubeAPI()"><i class="fa-solid fa-search"></i> Cari</button>
+                    </div>
+                    <div id="yt-search-results" style="max-height: 400px; overflow-y: auto;">
+                        <p class="text-muted text-center">Hasil pencarian akan muncul di sini.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap & YouTube Iframe API -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://www.youtube.com/iframe_api"></script>
     <script>
         // Konfigurasi Database & API
         const BIN_ID = "6afb5d03ac6210605a8cdcd4";
@@ -164,6 +195,29 @@
             status: "ONLINE",
             playlists: []
         };
+
+        let player;
+        let activePlaylistIndex = null;
+        let activeVideoIndex = null;
+        let activeModalPlaylistIndex = null;
+
+        // Inisialisasi YouTube Player API
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('yt-player', {
+                height: '100%',
+                width: '100%',
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        // Listener saat status video berubah (terdeteksi ketika video selesai: YT.PlayerState.ENDED)
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                handleVideoEnded();
+            }
+        }
 
         document.addEventListener("DOMContentLoaded", () => {
             fetchData();
@@ -208,10 +262,9 @@
                     body: JSON.stringify(appData)
                 });
                 if(response.ok) {
-                    alert("Perubahan berhasil disimpan!");
                     fetchData();
                 } else {
-                    alert("Gagal menyimpan data ke server.");
+                    console.error("Gagal menyimpan data ke server.");
                 }
             } catch (error) {
                 console.error("Gagal menyimpan:", error);
@@ -232,22 +285,23 @@
 
             let container = document.getElementById('public-playlist-container');
             if(!appData.playlists || appData.playlists.length === 0) {
-                container.innerHTML = `<div class="p-3 text-center text-muted">Belum ada playlist tersedia.</div>`;
+                container.innerHTML = `<div class="p-3 text-center text-muted">Belum ada antrean video.</div>`;
                 return;
             }
 
             let html = "";
-            appData.playlists.forEach((pl) => {
+            appData.playlists.forEach((pl, pIdx) => {
                 html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary"><i class="fa-solid fa-folder me-1"></i> ${pl.title}</div>`;
                 if(!pl.videos || pl.videos.length === 0) {
-                    html += `<div class="p-2 text-muted small ps-3">Tidak ada video di playlist ini</div>`;
+                    html += `<div class="p-2 text-muted small ps-3">Antrean kosong</div>`;
                 } else {
-                    pl.videos.forEach((vid) => {
+                    pl.videos.forEach((vid, vIdx) => {
+                        let activeClass = (activePlaylistIndex === pIdx && activeVideoIndex === vIdx) ? 'active border-primary' : '';
                         html += `
-                            <div class="playlist-item p-2 border-bottom ps-3 d-flex align-items-center" onclick="playVideo('${vid.videoId}', '${vid.title.replace(/'/g, "\\'")}', '${pl.title.replace(/'/g, "\\'")}')">
+                            <div class="playlist-item p-2 border-bottom ps-3 d-flex align-items-center ${activeClass}" onclick="playVideoSpecific(${pIdx}, ${vIdx})">
                                 <img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" class="me-2 rounded" width="60" height="45" style="object-fit:cover;">
                                 <div class="text-truncate small">
-                                    <div class="fw-semibold text-dark text-truncate">${vid.title}</div>
+                                    <div class="fw-semibold text-dark text-truncate">${vIdx + 1}. ${vid.title}</div>
                                 </div>
                             </div>
                         `;
@@ -257,16 +311,89 @@
             container.innerHTML = html;
         }
 
-        function playVideo(videoId, title, playlistTitle) {
-            const playerBox = document.getElementById('player-box');
-            playerBox.innerHTML = `
-                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
-                    title="YouTube video player" frameborder="0" 
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
-                    allowfullscreen></iframe>
-            `;
-            document.getElementById('current-video-title').innerText = title;
-            document.getElementById('current-playlist-name').innerText = "Playlist: " + playlistTitle;
+        // Putar video berdasarkan indeks dari atas ke bawah
+        function playVideoSpecific(pIndex, vIndex) {
+            let pl = appData.playlists[pIndex];
+            if(!pl || !pl.videos || !pl.videos[vIndex]) return;
+
+            activePlaylistIndex = pIndex;
+            activeVideoIndex = vIndex;
+            let vid = pl.videos[vIndex];
+
+            document.getElementById('placeholder-video').style.display = 'none';
+            if(player && player.loadVideoById) {
+                player.loadVideoById(vid.videoId);
+            }
+            document.getElementById('current-video-title').innerText = vid.title;
+            document.getElementById('current-playlist-name').innerText = "Kategori: " + pl.title + ` (Urutan ke-${vIndex + 1})`;
+            updateUI();
+        }
+
+        // Mulai putar dari antrean teratas pertama yang tersedia
+        function playFirstAvailable() {
+            if(!appData.playlists) return;
+            for(let p = 0; p < appData.playlists.length; p++) {
+                if(appData.playlists[p].videos && appData.playlists[p].videos.length > 0) {
+                    playVideoSpecific(p, 0);
+                    return;
+                }
+            }
+            alert("Antrean video kosong!");
+        }
+
+        // Tombol Putar Urutan Berikutnya
+        function playNextInQueue() {
+            if(activePlaylistIndex === null || activeVideoIndex === null) {
+                playFirstAvailable();
+                return;
+            }
+            
+            let pl = appData.playlists[activePlaylistIndex];
+            // Cek apakah masih ada video di bawahnya dalam kategori yang sama
+            if(pl && pl.videos && activeVideoIndex + 1 < pl.videos.length) {
+                playVideoSpecific(activePlaylistIndex, activeVideoIndex + 1);
+            } else {
+                // Cari kategori berikutnya dari atas
+                let found = false;
+                for(let p = activePlaylistIndex + 1; p < appData.playlists.length; p++) {
+                    if(appData.playlists[p].videos && appData.playlists[p].videos.length > 0) {
+                        playVideoSpecific(p, 0);
+                        found = true;
+                        break;
+                    }
+                }
+                if(!found) {
+                    alert("Semua video dalam antrean telah selesai.");
+                }
+            }
+        }
+
+        // RULE UTAMA: Video yang sudah diputar otomatis dihapus dari daftar
+        function handleVideoEnded() {
+            if(activePlaylistIndex === null || activeVideoIndex === null) return;
+
+            let pl = appData.playlists[activePlaylistIndex];
+            if(pl && pl.videos && pl.videos[activeVideoIndex]) {
+                // Hapus video yang baru saja selesai dari array
+                pl.videos.splice(activeVideoIndex, 1);
+                
+                // Simpan ke database JSONBin
+                saveData();
+
+                // Lanjutkan memutar video berikutnya pada indeks yang sama (karena elemen bergeser naik dari atas ke bawah)
+                if(pl.videos.length > 0) {
+                    // Jika masih ada video di posisi ini atau sesudahnya
+                    let nextIdx = activeVideoIndex < pl.videos.length ? activeVideoIndex : 0;
+                    playVideoSpecific(activePlaylistIndex, nextIdx);
+                } else {
+                    // Jika kategori ini habis, cari antrean berikutnya
+                    activePlaylistIndex = null;
+                    activeVideoIndex = null;
+                    document.getElementById('placeholder-video').style.display = 'flex';
+                    document.getElementById('current-video-title').innerText = "Antrean Selesai";
+                    playFirstAvailable();
+                }
+            }
         }
 
         function checkAdminAccess() {
@@ -302,7 +429,7 @@
             let container = document.getElementById('admin-playlist-editor');
             
             if(!appData.playlists || appData.playlists.length === 0) {
-                container.innerHTML = `<div class="alert alert-info">Belum ada playlist. Buat kategori playlist baru di atas.</div>`;
+                container.innerHTML = `<div class="alert alert-info">Belum ada kategori. Buat kategori antrean baru di atas.</div>`;
                 return;
             }
 
@@ -315,28 +442,17 @@
                             <button class="btn btn-outline-danger btn-sm" onclick="deletePlaylist(${pIndex})"><i class="fa-solid fa-trash"></i> Hapus Kategori</button>
                         </div>
                         <div class="card-body">
-                            <!-- Import dari YouTube Playlist ID -->
-                            <div class="p-3 bg-light rounded mb-3 border">
-                                <label class="form-label small fw-bold"><i class="fa-brands fa-youtube text-danger"></i> Impor Otomatis dari Playlist YouTube:</label>
-                                <div class="input-group input-group-sm">
-                                    <input type="text" id="yt-playlist-id-${pIndex}" class="form-control" placeholder="Masukkan Playlist ID YouTube (Cth: PLxxxx...)">
-                                    <button class="btn btn-danger" onclick="importYouTubePlaylist(${pIndex})"><i class="fa-solid fa-cloud-arrow-down"></i> Impor Semua Video</button>
-                                </div>
-                                <small class="text-muted" style="font-size: 11px;">Tips: Ambil teks di belakang <code>list=</code> dari link playlist YouTube Anda.</small>
+                            <!-- Tombol Buka Modal Pencarian YouTube API -->
+                            <div class="mb-3">
+                                <button class="btn btn-danger btn-sm" onclick="openSearchModal(${pIndex})"><i class="fa-brands fa-youtube"></i> Cari & Tambah Video dari YouTube API</button>
                             </div>
 
-                            <!-- Form Tambah Video Manual -->
-                            <div class="input-group input-group-sm mb-3">
-                                <input type="text" id="vid-url-${pIndex}" class="form-control" placeholder="Link YouTube atau Video ID (Cth: dQw4w9WgXcQ)">
-                                <input type="text" id="vid-title-${pIndex}" class="form-control" placeholder="Judul Video">
-                                <button class="btn btn-success" onclick="addVideo(${pIndex})"><i class="fa-solid fa-plus"></i> Tambah Manual</button>
-                            </div>
-
-                            <!-- Tabel Video -->
+                            <!-- Tabel Antrean Video (Atas ke Bawah) -->
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered mb-0">
                                     <thead class="table-light">
                                         <tr>
+                                            <th style="width: 50px;" class="text-center">Urutan</th>
                                             <th>Thumbnail</th>
                                             <th>Judul Video</th>
                                             <th>ID Video</th>
@@ -347,11 +463,12 @@
                 `;
                 
                 if(!pl.videos || pl.videos.length === 0) {
-                    html += `<tr><td colspan="4" class="text-center text-muted">Belum ada video dalam playlist ini.</td></tr>`;
+                    html += `<tr><td colspan="5" class="text-center text-muted">Antrean video kosong.</td></tr>`;
                 } else {
                     pl.videos.forEach((vid, vIndex) => {
                         html += `
                             <tr>
+                                <td class="align-middle text-center fw-bold text-secondary">${vIndex + 1}</td>
                                 <td class="align-middle text-center"><img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" width="50" height="35" class="rounded"></td>
                                 <td class="align-middle">${vid.title}</td>
                                 <td class="align-middle text-muted small">${vid.videoId}</td>
@@ -377,12 +494,13 @@
         function saveStatusSystem() {
             appData.status = document.getElementById('admin-status-select').value;
             saveData();
+            alert("Status sistem berhasil disimpan!");
         }
 
         function addPlaylist() {
             let titleInput = document.getElementById('new-playlist-title');
             let title = titleInput.value.trim();
-            if(!title) return alert('Nama playlist tidak boleh kosong!');
+            if(!title) return alert('Nama kategori tidak boleh kosong!');
 
             if(!appData.playlists) appData.playlists = [];
             appData.playlists.push({ title: title, videos: [] });
@@ -391,90 +509,96 @@
         }
 
         function deletePlaylist(pIndex) {
-            if(confirm("Yakin ingin menghapus kategori ini beserta videonya?")) {
+            if(confirm("Yakin ingin menghapus kategori ini?")) {
                 appData.playlists.splice(pIndex, 1);
                 saveData();
             }
         }
 
-        function extractVideoId(urlOrId) {
-            let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
-            let match = urlOrId.match(regExp);
-            return (match && match[2].length === 11) ? match[2] : (urlOrId.length === 11 ? urlOrId : null);
-        }
-
-        function addVideo(pIndex) {
-            let urlInput = document.getElementById(`vid-url-${pIndex}`).value.trim();
-            let titleInput = document.getElementById(`vid-title-${pIndex}`).value.trim();
-
-            let videoId = extractVideoId(urlInput);
-            if(!videoId) return alert('Link YouTube atau ID Video tidak valid!');
-            if(!titleInput) return alert('Judul video wajib diisi!');
-
-            if(!appData.playlists[pIndex].videos) appData.playlists[pIndex].videos = [];
-            appData.playlists[pIndex].videos.push({ videoId: videoId, title: titleInput });
-            saveData();
-        }
-
         function deleteVideo(pIndex, vIndex) {
-            if(confirm("Hapus video ini dari playlist?")) {
+            if(confirm("Hapus video ini dari antrean?")) {
                 appData.playlists[pIndex].videos.splice(vIndex, 1);
                 saveData();
             }
         }
 
-        // Fungsi Otomatis Mengambil Data dari YouTube Playlist API
-        async function importYouTubePlaylist(pIndex) {
-            let inputField = document.getElementById(`yt-playlist-id-${pIndex}`);
-            let rawInput = inputField.value.trim();
-            if(!rawInput) return alert('Masukkan ID Playlist YouTube atau URL Playlist!');
+        // Buka Modal Pencarian YouTube API
+        function openSearchModal(pIndex) {
+            activeModalPlaylistIndex = pIndex;
+            document.getElementById('yt-search-keyword').value = '';
+            document.getElementById('yt-search-results').innerHTML = `<p class="text-muted text-center">Ketik kata kunci untuk mencari video di YouTube.</p>`;
+            let modal = new bootstrap.Modal(document.getElementById('searchModal'));
+            modal.show();
+        }
 
-            // Ekstrak Playlist ID jika user memasukkan link lengkap (misal: https://www.youtube.com/playlist?list=PLxxx)
-            let playlistId = rawInput;
-            if(rawInput.includes("list=")) {
-                let urlParams = new URLSearchParams(rawInput.split('?')[1]);
-                playlistId = urlParams.get('list') || rawInput;
-            }
+        // Fungsi Pencarian YouTube API
+        async function searchYouTubeAPI() {
+            let keyword = document.getElementById('yt-search-keyword').value.trim();
+            if(!keyword) return alert('Masukkan kata kunci pencarian!');
+
+            let resultsContainer = document.getElementById('yt-search-results');
+            resultsContainer.innerHTML = `<div class="text-center p-3"><div class="spinner-border text-danger" role="status"></div><p class="mt-2">Mencari video...</p></div>`;
 
             try {
-                let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${YT_API_KEY}`;
+                let url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(keyword)}&key=${YT_API_KEY}`;
                 let response = await fetch(url);
                 let data = await response.json();
 
                 if(data.error) {
-                    alert("Gagal mengambil dari YouTube: " + data.error.message);
+                    resultsContainer.innerHTML = `<div class="alert alert-danger">Error: ${data.error.message}</div>`;
                     return;
                 }
 
                 if(!data.items || data.items.length === 0) {
-                    alert("Tidak ada video ditemukan di playlist tersebut atau playlist privat.");
+                    resultsContainer.innerHTML = `<div class="alert alert-warning">Tidak ada video ditemukan.</div>`;
                     return;
                 }
 
-                if(!appData.playlists[pIndex].videos) {
-                    appData.playlists[pIndex].videos = [];
-                }
-
-                // Masukkan semua video dari YouTube API ke array video kategori ini
+                let html = "";
                 data.items.forEach(item => {
-                    let vidId = item.snippet.resourceId.videoId;
-                    let vidTitle = item.snippet.title;
-                    // Hindari duplikasi video yang sama
-                    let exists = appData.playlists[pIndex].videos.some(v => v.videoId === vidId);
-                    if(!exists && vidId) {
-                        appData.playlists[pIndex].videos.push({
-                            videoId: vidId,
-                            title: vidTitle
-                        });
-                    }
-                });
+                    let vidId = item.id.videoId;
+                    let title = item.snippet.title;
+                    let channel = item.snippet.channelTitle;
+                    let thumb = item.snippet.thumbnails.default.url;
 
-                inputField.value = '';
-                saveData();
+                    html += `
+                        <div class="search-result-item d-flex align-items-center justify-content-between p-2 border-bottom">
+                            <div class="d-flex align-items-center">
+                                <img src="${thumb}" class="rounded me-3" width="80" height="60" style="object-fit:cover;">
+                                <div>
+                                    <h6 class="mb-1 text-dark fw-semibold" style="font-size: 14px;">${title}</h6>
+                                    <small class="text-muted">${channel}</small>
+                                </div>
+                            </div>
+                            <button class="btn btn-success btn-sm text-nowrap" onclick="addVideoFromSearch('${vidId}', '${title.replace(/'/g, "\\'")}')">
+                                <i class="fa-solid fa-plus"></i> Tambah
+                            </button>
+                        </div>
+                    `;
+                });
+                resultsContainer.innerHTML = html;
             } catch (err) {
                 console.error(err);
-                alert("Terjadi kesalahan saat menghubungi YouTube API.");
+                resultsContainer.innerHTML = `<div class="alert alert-danger">Gagal menghubungi YouTube Search API.</div>`;
             }
+        }
+
+        // Tambahkan Video dari Hasil Pencarian ke Kategori yang Dipilih
+        function addVideoFromSearch(videoId, title) {
+            if(activeModalPlaylistIndex === null) return;
+
+            if(!appData.playlists[activeModalPlaylistIndex].videos) {
+                appData.playlists[activeModalPlaylistIndex].videos = [];
+            }
+
+            // Tambahkan ke antrean (otomatis masuk ke bawah urutan)
+            appData.playlists[activeModalPlaylistIndex].videos.push({
+                videoId: videoId,
+                title: title
+            });
+
+            saveData();
+            alert(`Video "${title}" berhasil ditambahkan ke antrean!`);
         }
     </script>
 </body>
