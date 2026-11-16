@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube Clone - Single File</title>
+    <!-- FontAwesome untuk ikon pencarian -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', Arial, sans-serif;
+        }
+
+        body {
+            background-color: #f9f9f9;
+            color: #0f0f0f;
+        }
+
+        /* Navbar */
+        .navbar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 24px;
+            height: 56px;
+            background-color: #ffffff;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        }
+
+        .nav-left, .nav-center {
+            display: flex;
+            align-items: center;
+        }
+
+        .menu-icon {
+            font-size: 18px;
+            cursor: pointer;
+            margin-right: 16px;
+        }
+
+        .logo {
+            font-size: 20px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            cursor: pointer;
+        }
+
+        .nav-center {
+            flex: 0 1 600px;
+        }
+
+        .nav-center input {
+            width: 100%;
+            height: 40px;
+            padding: 0 16px;
+            border: 1px solid #ccc;
+            border-radius: 40px 0 0 40px;
+            font-size: 16px;
+            outline: none;
+        }
+
+        .nav-center button {
+            height: 40px;
+            width: 64px;
+            background-color: #f8f8f8;
+            border: 1px solid #ccc;
+            border-left: none;
+            border-radius: 0 40px 40px 0;
+            cursor: pointer;
+            font-size: 16px;
+            color: #333;
+        }
+
+        .nav-center button:hover {
+            background-color: #f0f0f0;
+        }
+
+        /* Layout Utama */
+        .main-container {
+            display: flex;
+            gap: 24px;
+            padding: 24px;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        /* Bagian Video Player */
+        .video-section {
+            flex: 2;
+        }
+
+        .video-container {
+            position: relative;
+            width: 100%;
+            padding-bottom: 56.25%; /* Rasio aspek 16:9 */
+            background-color: #000;
+            border-radius: 12px;
+            overflow: hidden;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        #main-video-title {
+            font-size: 20px;
+            font-weight: bold;
+            margin-top: 12px;
+        }
+
+        .channel-title {
+            font-size: 14px;
+            color: #606060;
+            margin: 6px 0 12px 0;
+        }
+
+        .video-desc {
+            font-size: 14px;
+            background-color: #f2f2f2;
+            padding: 12px;
+            border-radius: 8px;
+            white-space: pre-line;
+            line-height: 1.4;
+        }
+
+        /* Sidebar Daftar Video */
+        .sidebar-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .sidebar-section h3 {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .video-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .video-card {
+            display: flex;
+            gap: 10px;
+            cursor: pointer;
+            transition: background 0.2s;
+            border-radius: 8px;
+            padding: 4px;
+        }
+
+        .video-card:hover {
+            background-color: #eaeaea;
+        }
+
+        .video-card img {
+            width: 168px;
+            height: 94px;
+            object-fit: cover;
+            border-radius: 8px;
+        }
+
+        .video-info h4 {
+            font-size: 14px;
+            font-weight: 500;
+            line-height: 1.3;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .video-info p {
+            font-size: 12px;
+            color: #606060;
+        }
+
+        /* Responsif untuk Layar Kecil */
+        @media (max-width: 900px) {
+            .main-container {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header / Navbar -->
+    <header class="navbar">
+        <div class="nav-left">
+            <i class="fa-solid fa-bars menu-icon"></i>
+            <h1 class="logo"><i class="fa-brands fa-youtube" style="color: #ff0000;"></i> MyTube</h1>
+        </div>
+        <div class="nav-center">
+            <input type="text" id="search-input" placeholder="Telusuri...">
+            <button id="search-btn"><i class="fa-solid fa-magnifying-glass"></i></button>
+        </div>
+    </header>
+
+    <!-- Konten Utama -->
+    <div class="main-container">
+        
+        <!-- Bagian Pemutar Video & Detail (Kiri) -->
+        <div class="video-section" id="video-section" style="display: none;">
+            <div class="video-container">
+                <iframe id="main-video-player" src="" frameborder="0" allowfullscreen></iframe>
+            </div>
+            <h2 id="main-video-title">Judul Video Akan Tampil Disini</h2>
+            <p id="main-video-channel" class="channel-title">Nama Channel</p>
+            <p id="main-video-desc" class="video-desc">Deskripsi video akan muncul di sini...</p>
+        </div>
+
+        <!-- Bagian Daftar Video / Hasil Pencarian (Kanan) -->
+        <div class="sidebar-section">
+            <h3 id="sidebar-title">Rekomendasi / Hasil Pencarian</h3>
+            <div id="video-list" class="video-list">
+                <!-- Daftar video akan dimuat di sini secara dinamis -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Logika JavaScript -->
+    <script>
+        const API_KEY = "AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk";
+
+        const searchInput = document.getElementById("search-input");
+        const searchBtn = document.getElementById("search-btn");
+        const videoListEl = document.getElementById("video-list");
+        const videoSection = document.getElementById("video-section");
+        const mainPlayer = document.getElementById("main-video-player");
+        const mainTitle = document.getElementById("main-video-title");
+        const mainChannel = document.getElementById("main-video-channel");
+        const mainDesc = document.getElementById("main-video-desc");
+
+        // Jalankan pencarian default saat pertama kali dibuka
+        window.addEventListener("DOMContentLoaded", () => {
+            searchVideos("Coding Indonesia");
+        });
+
+        // Event klik tombol cari
+        searchBtn.addEventListener("click", () => {
+            const query = searchInput.value.trim();
+            if (query) {
+                searchVideos(query);
+            }
+        });
+
+        // Event tekan tombol Enter pada input pencarian
+        searchInput.addEventListener("keypress", (e) => {
+            if (e.key === "Enter") {
+                const query = searchInput.value.trim();
+                if (query) {
+                    searchVideos(query);
+                }
+            }
+        });
+
+        // Fungsi mengambil data dari YouTube Data API v3
+        async function searchVideos(query) {
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`;
+
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+
+                if (data.items && data.items.length > 0) {
+                    displayVideos(data.items);
+                    playVideo(data.items[0]);
+                } else {
+                    videoListEl.innerHTML = "<p>Tidak ada video ditemukan.</p>";
+                }
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+                alert("Terjadi kesalahan saat memuat video. Periksa koneksi atau kuota API Anda.");
+            }
+        }
+
+        // Menampilkan daftar video di sidebar
+        function displayVideos(videos) {
+            videoListEl.innerHTML = "";
+
+            videos.forEach(video => {
+                const snippet = video.snippet;
+
+                const card = document.createElement("div");
+                card.classList.add("video-card");
+                card.innerHTML = `
+                    <img src="${snippet.thumbnails.medium.url}" alt="${snippet.title}">
+                    <div class="video-info">
+                        <h4>${snippet.title}</h4>
+                        <p>${snippet.channelTitle}</p>
+                    </div>
+                `;
+
+                // Ketika kartu video diklik, putar video tersebut
+                card.addEventListener("click", () => {
+                    playVideo(video);
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                });
+
+                videoListEl.appendChild(card);
+            });
+        }
+
+        // Memuat dan memutar video di pemutar utama
+        function playVideo(video) {
+            videoSection.style.display = "block";
+            const videoId = video.id.videoId;
+            const snippet = video.snippet;
+
+            mainPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
+            mainTitle.textContent = snippet.title;
+            mainChannel.textContent = snippet.channelTitle;
+            mainDesc.textContent = snippet.description || "Tidak ada deskripsi.";
+        }
+    </script>
+</body>
+</html>
