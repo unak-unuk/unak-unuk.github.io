@@ -3,396 +3,427 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Video Playlist - JSONBin Fixed</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome untuk ikon -->
+    <title>YouTube Playlist Public App</title>
+    <!-- Bootstrap 5 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- FontAwesome Icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { padding-bottom: 80px; background-color: #0f172a; color: #f8fafc; }
-        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        body { background-color: #f8f9fa; }
+        .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; }
+        .video-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .playlist-item { cursor: pointer; transition: background 0.2s; }
+        .playlist-item:hover, .playlist-item.active { background-color: #e9ecef; }
     </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body>
 
-    <!-- HEADER: Nama App & Pencarian Database Lokal -->
-    <header class="bg-slate-900/90 backdrop-blur sticky top-0 z-30 border-b border-slate-800 px-4 py-3 shadow-md">
-        <div class="max-w-md mx-auto flex items-center justify-between gap-3">
-            <h1 class="font-bold text-lg text-red-500 flex items-center gap-2">
-                <i class="fa-solid fa-play-circle"></i> MyTube Playlist
-            </h1>
-            <div class="relative flex-1 max-w-[180px]">
-                <input type="text" id="localSearchInput" placeholder="Cari playlist..." 
-                    class="w-full bg-slate-800 text-xs text-white px-3 py-1.5 rounded-full border border-slate-700 focus:outline-none focus:border-red-500">
+    <!-- Navbar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fa-brands fa-youtube text-danger"></i> YT Playlist App</a>
+            <div class="d-flex">
+                <button id="nav-btn-home" class="btn btn-outline-light btn-sm me-2" onclick="showPage('user')"><i class="fa-solid fa-house"></i> Beranda</button>
+                <button id="nav-btn-admin" class="btn btn-outline-warning btn-sm" onclick="checkAdminAccess()"><i class="fa-solid fa-lock"></i> Admin</button>
             </div>
-        </div>
-    </header>
-
-    <!-- MAIN CONTENT -->
-    <main class="max-w-md mx-auto w-full flex-1 p-3 flex flex-col gap-4">
-        
-        <!-- DISPLAY VIDEO UTAMA (POSISI STATIS) -->
-        <section class="bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700">
-            <div class="aspect-video w-full bg-black relative" id="playerContainer">
-                <div id="youtubePlayer" class="w-full h-full"></div>
-                <div id="placeholderPlayer" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-xs p-4 text-center">
-                    <i class="fa-solid fa-film text-3xl mb-2"></i>
-                    <span>Belum ada video yang diputar. Silakan pilih dari playlist atau tambah lagu baru.</span>
-                </div>
-            </div>
-            <div class="p-3">
-                <h2 id="currentVideoTitle" class="font-semibold text-sm text-white line-clamp-1">-</h2>
-                <p id="currentVideoChannel" class="text-xs text-slate-400 mt-0.5">-</p>
-            </div>
-        </section>
-
-        <!-- PLAYLIST VIDEO (Sembunyikan yang sudah diputar) -->
-        <section class="flex-1 flex flex-col">
-            <div class="flex items-center justify-between mb-2">
-                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Antrean Playlist</h3>
-                <div class="flex items-center gap-2">
-                    <span id="syncStatus" class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded flex items-center gap-1">
-                        <i class="fa-solid fa-circle text-[8px]"></i> Menghubungkan...
-                    </span>
-                    <span id="playlistCount" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 lagu</span>
-                </div>
-            </div>
-            
-            <div id="playlistContainer" class="flex flex-col gap-2 overflow-y-auto max-h-[350px] custom-scrollbar">
-                <div class="text-center py-8 text-xs text-slate-500">Memuat playlist dari JSONBin...</div>
-            </div>
-        </section>
-
-    </main>
-
-    <!-- NAVBAR BAWAH STATIS: Tombol Tambah Playlist -->
-    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-3 z-30 shadow-2xl">
-        <div class="max-w-md mx-auto flex items-center justify-around">
-            <button onclick="switchTab('playlist')" id="navPlaylistBtn" class="flex flex-col items-center text-red-500 text-xs gap-1">
-                <i class="fa-solid fa-list text-base"></i>
-                <span>Playlist</span>
-            </button>
-            <button onclick="openAddModal()" class="bg-red-600 hover:bg-red-500 text-white px-5 py-2 rounded-full font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-600/30 transition-all active:scale-95">
-                <i class="fa-solid fa-plus"></i> Tambah Playlist
-            </button>
-            <button onclick="syncData()" class="flex flex-col items-center text-slate-400 hover:text-white text-xs gap-1">
-                <i class="fa-solid fa-rotate text-base" id="syncIcon"></i>
-                <span>Sinkron</span>
-            </button>
         </div>
     </nav>
 
-    <!-- POP-UP PENCARIAN & TAMBAH LAGU YOUTUBE -->
-    <div id="addModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex flex-col justify-end sm:justify-center p-0 sm:p-4">
-        <div class="bg-slate-900 w-full max-w-md mx-auto rounded-t-2xl sm:rounded-2xl border border-slate-800 flex flex-col max-h-[85vh] overflow-hidden shadow-2xl">
-            
-            <!-- Modal Header -->
-            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
-                <h3 class="font-bold text-sm flex items-center gap-2 text-white">
-                    <i class="fa-brands fa-youtube text-red-500"></i> Cari & Tambah Lagu YouTube
-                </h3>
-                <button onclick="closeAddModal()" class="text-slate-400 hover:text-white p-1">
-                    <i class="fa-solid fa-xmark text-lg"></i>
-                </button>
-            </div>
-
-            <!-- Modal Search Input -->
-            <div class="p-3 border-b border-slate-800 bg-slate-950/50">
-                <div class="flex gap-2">
-                    <input type="text" id="ytSearchQuery" placeholder="Ketik judul lagu atau artis..." 
-                        class="flex-1 bg-slate-800 text-xs text-white px-3 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-red-500"
-                        onkeypress="if(event.key === 'Enter') searchYouTube()">
-                    <button onclick="searchYouTube()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all">
-                        <i class="fa-solid fa-magnifying-glass"></i>
-                    </button>
-                </div>
-            </div>
-
-            <!-- Modal Search Results -->
-            <div id="ytSearchResults" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2 custom-scrollbar">
-                <div class="text-center py-10 text-xs text-slate-500">
-                    <i class="fa-solid fa-music text-2xl mb-2 block"></i>
-                    <span>Ketik kata kunci pencarian di atas untuk mencari video YouTube.</span>
-                </div>
-            </div>
-
-        </div>
-    </div>
-
-    <!-- YouTube IFrame API -->
-    <script src="https://www.youtube.com/iframe_api"></script>
-
-    <script>
-        // Konfigurasi Kredensial JSONBin & YouTube API
-        const API_KEY_YT = 'AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk';
-        const BIN_ID = '6afb5d03ac6210605a8cdcd4'; 
-        const MASTER_KEY = '$2a$10$Ii1ep5GX66sB9lery6p2suxzNGrSMg2iwncn5Z2y/HT5WjaHRrf1q';
-        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+    <!-- Konten Utama -->
+    <div class="container my-4">
         
-        let playlistData = [];
-        let currentPlayingId = null;
-        let player = null;
-
-        // Inisialisasi Player YouTube
-        function onYouTubeIframeAPIReady() {
-            player = new YT.Player('youtubePlayer', {
-                height: '100%',
-                width: '100%',
-                playerVars: { 'autoplay': 1, 'controls': 1 },
-                events: {
-                    'onStateChange': onPlayerStateChange
-                }
-            });
-        }
-
-        function onPlayerStateChange(event) {
-            if (event.data === YT.PlayerState.ENDED) {
-                if (currentPlayingId) {
-                    markAsPlayed(currentPlayingId);
-                }
-            }
-        }
-
-        // Ambil Data dari JSONBin.io (Menggunakan header X-Access-Key atau X-Master-Key)
-        async function fetchPlaylist() {
-            const statusBadge = document.getElementById('syncStatus');
-            statusBadge.className = "text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded flex items-center gap-1";
-            statusBadge.innerHTML = `<i class="fa-solid fa-circle text-[8px]"></i> Sinkron...`;
-
-            try {
-                const response = await fetch(JSONBIN_URL + '/latest', {
-                    method: 'GET',
-                    headers: {
-                        'X-Master-Key': MASTER_KEY,
-                        'X-Access-Key': MASTER_KEY
-                    }
-                });
-
-                if (!response.ok) throw new Error('Gagal terhubung ke server JSONBin');
-
-                const json = await response.json();
-                
-                if (json.record && Array.isArray(json.record.playlist)) {
-                    playlistData = json.record.playlist;
-                } else {
-                    playlistData = [];
-                    await savePlaylist(); 
-                }
-                
-                localStorage.setItem('my_playlist_cache', JSON.stringify(playlistData));
-                
-                statusBadge.className = "text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded flex items-center gap-1";
-                statusBadge.innerHTML = `<i class="fa-solid fa-check text-[8px]"></i> Terhubung`;
-                
-                renderPlaylist();
-            } catch (err) {
-                console.error("JSONBin Fetch Error:", err);
-                statusBadge.className = "text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded flex items-center gap-1";
-                statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[8px]"></i> Offline (Cache)`;
-
-                let local = localStorage.getItem('my_playlist_cache');
-                playlistData = local ? JSON.parse(local) : [];
-                renderPlaylist();
-            }
-        }
-
-        // Simpan Data ke JSONBin.io & LocalStorage
-        async function savePlaylist() {
-            localStorage.setItem('my_playlist_cache', JSON.stringify(playlistData));
-            
-            try {
-                const response = await fetch(JSONBIN_URL, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-Master-Key': MASTER_KEY,
-                        'X-Access-Key': MASTER_KEY
-                    },
-                    body: JSON.stringify({ playlist: playlistData })
-                });
-
-                if (!response.ok) throw new Error('Gagal menyimpan ke cloud');
-            } catch (err) {
-                console.error("JSONBin Save Error:", err);
-            }
-        }
-
-        function syncData() {
-            const icon = document.getElementById('syncIcon');
-            icon.classList.add('fa-spin');
-            fetchPlaylist().then(() => {
-                setTimeout(() => icon.classList.remove('fa-spin'), 500);
-            });
-        }
-
-        // Render Playlist (Sembunyikan yang played === true)
-        function renderPlaylist() {
-            const container = document.getElementById('playlistContainer');
-            const keyword = document.getElementById('localSearchInput').value.toLowerCase();
-            
-            const activeList = playlistData.filter(item => !item.played && item.title.toLowerCase().includes(keyword));
-            
-            document.getElementById('playlistCount').innerText = `${activeList.length} lagu`;
-
-            if (activeList.length === 0) {
-                container.innerHTML = `
-                    <div class="text-center py-10 text-xs text-slate-500 bg-slate-800/40 rounded-xl border border-dashed border-slate-700">
-                        <i class="fa-solid fa-list-check text-2xl mb-2 block"></i>
-                        <span>Tidak ada antrean playlist aktif.<br>Klik tombol "Tambah Playlist" di bawah.</span>
-                    </div>`;
-                return;
-            }
-
-            container.innerHTML = activeList.map(item => `
-                <div class="flex items-center gap-3 bg-slate-800/80 hover:bg-slate-800 p-2.5 rounded-xl border border-slate-700/50 transition-all group">
-                    <img src="${item.thumbnail}" class="w-16 h-12 object-cover rounded-lg bg-slate-900 shrink-0 cursor-pointer" onclick="playVideo('${item.videoId}', '${item.id}')">
-                    <div class="flex-1 min-w-0 cursor-pointer" onclick="playVideo('${item.videoId}', '${item.id}')">
-                        <h4 class="text-xs font-semibold text-white line-clamp-1 group-hover:text-red-400">${item.title}</h4>
-                        <p class="text-[10px] text-slate-400 truncate mt-0.5">${item.channel}</p>
-                    </div>
-                    <div class="flex items-center gap-1">
-                        <button onclick="playVideo('${item.videoId}', '${item.id}')" class="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white p-2 rounded-lg text-xs transition-all" title="Putar">
-                            <i class="fa-solid fa-play"></i>
-                        </button>
-                        <button onclick="markAsPlayed('${item.id}')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 p-2 rounded-lg text-xs transition-all" title="Sembunyikan / Selesai">
-                            <i class="fa-solid fa-check"></i>
-                        </button>
+        <!-- ================= HALAMAN PENGGUNA ================= -->
+        <div id="page-user" class="page-section">
+            <div class="row">
+                <!-- Status Bar -->
+                <div class="col-12 mb-3">
+                    <div id="status-alert" class="alert d-flex align-items-center justify-content-between py-2" role="alert">
+                        <div>
+                            <i class="fa-solid fa-circle-info me-2"></i> Status Sistem: <strong id="status-text">Memuat...</strong>
+                        </div>
+                        <small id="last-updated" class="text-muted"></small>
                     </div>
                 </div>
-            `).join('');
-        }
 
-        // Putar Video
-        function playVideo(videoId, id) {
-            currentPlayingId = id;
-            if (player && player.loadVideoById) {
-                player.loadVideoById(videoId);
-            }
-            
-            const currentItem = playlistData.find(i => i.id === id);
-            if (currentItem) {
-                document.getElementById('currentVideoTitle').innerText = currentItem.title;
-                document.getElementById('currentVideoChannel').innerText = currentItem.channel;
-                document.getElementById('placeholderPlayer').style.display = 'none';
-            }
-        }
-
-        // Tandai sudah diputar
-        async function markAsPlayed(id) {
-            const index = playlistData.findIndex(i => i.id === id);
-            if (index !== -1) {
-                playlistData[index].played = true;
-                await savePlaylist();
-                renderPlaylist();
-
-                if (currentPlayingId === id) {
-                    currentPlayingId = null;
-                    document.getElementById('currentVideoTitle').innerText = '-';
-                    document.getElementById('currentVideoChannel').innerText = '-';
-                    document.getElementById('placeholderPlayer').style.display = 'flex';
-                }
-            }
-        }
-
-        // Pencarian YouTube API
-        async function searchYouTube() {
-            const query = document.getElementById('ytSearchQuery').value.trim();
-            const resultsContainer = document.getElementById('ytSearchResults');
-            
-            if (!query) return;
-
-            resultsContainer.innerHTML = `<div class="text-center py-10 text-xs text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mencari video...</div>`;
-
-            try {
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${API_KEY_YT}`;
-                const res = await fetch(url);
-                const data = await res.json();
-
-                if (data.error) {
-                    resultsContainer.innerHTML = `<div class="text-center py-10 text-xs text-red-400">Error API: ${data.error.message}</div>`;
-                    return;
-                }
-
-                const items = data.items || [];
-                if (items.length === 0) {
-                    resultsContainer.innerHTML = `<div class="text-center py-10 text-xs text-slate-500">Tidak ada hasil ditemukan.</div>`;
-                    return;
-                }
-
-                resultsContainer.innerHTML = items.map(item => {
-                    const videoId = item.id.videoId;
-                    const title = item.snippet.title;
-                    const channel = item.snippet.channelTitle;
-                    const thumb = item.snippet.thumbnails.medium.url;
-
-                    const isExist = playlistData.some(p => p.videoId === videoId);
-
-                    return `
-                        <div class="flex items-center gap-3 bg-slate-800 p-2 rounded-xl border border-slate-700">
-                            <img src="${thumb}" class="w-20 h-14 object-cover rounded-lg bg-slate-900 shrink-0">
-                            <div class="flex-1 min-w-0">
-                                <h4 class="text-xs font-semibold text-white line-clamp-1">${title}</h4>
-                                <p class="text-[10px] text-slate-400 truncate mt-0.5">${channel}</p>
-                            </div>
-                            <div>
-                                ${isExist 
-                                    ? `<span class="text-[10px] bg-slate-700 text-slate-400 px-2.5 py-1.5 rounded-lg font-medium">Ditambahkan</span>`
-                                    : `<button onclick="addToPlaylist('${videoId}', \`${escapeHtml(title)}\`, \`${escapeHtml(channel)}\`, '${thumb}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow">
-                                        <i class="fa-solid fa-plus"></i>
-                                       </button>`
-                                }
+                <!-- Main Player & Playlist View -->
+                <div class="col-lg-8 mb-4">
+                    <div class="card shadow-sm">
+                        <div class="card-body p-0">
+                            <div class="video-container bg-dark" id="player-box">
+                                <div class="d-flex justify-content-center align-items-center h-100 text-white text-center p-4" id="placeholder-video">
+                                    <p class="mb-0">Silakan pilih video dari daftar playlist di samping atau di bawah.</p>
+                                </div>
                             </div>
                         </div>
-                    `;
-                }).join('');
+                        <div class="card-footer bg-white">
+                            <h5 id="current-video-title" class="mb-1 text-truncate">Pilih Video</h5>
+                            <p id="current-playlist-name" class="text-muted small mb-0"></p>
+                        </div>
+                    </div>
+                </div>
 
-            } catch (err) {
-                console.error(err);
-                resultsContainer.innerHTML = `<div class="text-center py-10 text-xs text-red-400">Gagal terhubung ke YouTube API.</div>`;
+                <!-- Daftar Playlist Sidebar -->
+                <div class="col-lg-4">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <i class="fa-solid fa-list me-1"></i> Daftar Playlist
+                        </div>
+                        <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;" id="public-playlist-container">
+                            <div class="text-center p-4 text-muted">Memuat data...</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= HALAMAN LOGIN ADMIN ================= -->
+        <div id="page-login" class="page-section" style="display: none;">
+            <div class="row justify-content-center">
+                <div class="col-md-5">
+                    <div class="card shadow">
+                        <div class="card-header bg-dark text-white">
+                            <h5 class="mb-0"><i class="fa-solid fa-user-lock"></i> Login Admin</h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="login-form" onsubmit="handleLogin(event)">
+                                <div class="mb-3">
+                                    <label class="form-label">Username</label>
+                                    <input type="text" id="admin-user" class="form-control" required>
+                                </div>
+                                <div class="mb-3">
+                                    <label class="form-label">Password</label>
+                                    <input type="password" id="admin-pass" class="form-control" required>
+                                </div>
+                                <button type="submit" class="btn btn-dark w-100">Masuk</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ================= HALAMAN PANEL ADMIN ================= -->
+        <div id="page-admin" class="page-section" style="display: none;">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2>Panel Pengelola Admin</h2>
+                <button class="btn btn-danger btn-sm" onclick="logoutAdmin()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
+            </div>
+
+            <!-- Pengaturan Status -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-secondary text-white">
+                    <i class="fa-solid fa-sliders"></i> Pengaturan Status Sistem
+                </div>
+                <div class="card-body">
+                    <div class="row align-items-center">
+                        <div class="col-md-8">
+                            <label class="form-label fw-bold">Ubah Status Sistem (Online / Offline):</label>
+                            <select id="admin-status-select" class="form-select">
+                                <option value="ONLINE">ONLINE (Dapat diakses pengguna)</option>
+                                <option value="OFFLINE">OFFLINE (Sedang pemeliharaan / Tutup)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-4 mt-3 mt-md-0">
+                            <button class="btn btn-success w-100 mt-4" onclick="saveStatusSystem()"><i class="fa-solid fa-floppy-disk"></i> Simpan Status</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Kelola Playlist -->
+            <div class="card shadow-sm mb-4">
+                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
+                    <span><i class="fa-solid fa-folder-plus"></i> Tambah Playlist / Kategori Baru</span>
+                </div>
+                <div class="card-body">
+                    <div class="input-group">
+                        <input type="text" id="new-playlist-title" class="form-control" placeholder="Nama Kategori / Playlist (Cth: Musik Rohani, Kajian, dll)">
+                        <button class="btn btn-primary" onclick="addPlaylist()"><i class="fa-solid fa-plus"></i> Tambah</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- List Kategori & Video Admin -->
+            <div id="admin-playlist-editor">
+                <!-- Diisi via Javascript -->
+            </div>
+        </div>
+
+    </div>
+
+    <!-- Bootstrap & Script Pendukung -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Konfigurasi Database & API
+        const BIN_ID = "6afb5d03ac6210605a8cdcd4";
+        const MASTER_KEY = "$2a$10$Ii1ep5GX66sB9lery6p2suxzNGrSMg2iwncn5Z2y/HT5WjaHRrf1q";
+        const YT_API_KEY = "AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk";
+        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+
+        let appData = {
+            status: "ONLINE",
+            playlists: []
+        };
+
+        // Saat halaman pertama kali dimuat
+        document.addEventListener("DOMContentLoaded", () => {
+            fetchData();
+            // Refresh otomatis data tiap 10 detik agar sinkron
+            setInterval(fetchData, 10000);
+        });
+
+        // Navigasi Halaman
+        function showPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
+            if(pageId === 'user') {
+                document.getElementById('page-user').style.display = 'block';
+            } else if(pageId === 'login') {
+                document.getElementById('page-login').style.display = 'block';
+            } else if(pageId === 'admin') {
+                document.getElementById('page-admin').style.display = 'block';
+                renderAdminEditor();
             }
         }
 
-        // Tambah ke Playlist dengan Validasi Duplikat Video ID
-        async function addToPlaylist(videoId, title, channel, thumbnail) {
-            const isDuplicate = playlistData.some(item => item.videoId === videoId);
-            if (isDuplicate) {
-                alert("Video ini sudah ada di dalam playlist!");
+        // Ambil Data dari JSONBin
+        async function fetchData() {
+            try {
+                let response = await fetch(JSONBIN_URL + "/latest", {
+                    headers: { "X-Master-Key": MASTER_KEY }
+                });
+                if(response.ok) {
+                    let result = await response.json();
+                    appData = result.record;
+                    updateUI();
+                }
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+            }
+        }
+
+        // Simpan Data ke JSONBin
+        async function saveData() {
+            try {
+                let response = await fetch(JSONBIN_URL, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "X-Master-Key": MASTER_KEY
+                    },
+                    body: JSON.stringify(appData)
+                });
+                if(response.ok) {
+                    alert("Perubahan berhasil disimpan!");
+                    fetchData();
+                } else {
+                    alert("Gagal menyimpan data ke server.");
+                }
+            } catch (error) {
+                console.error("Gagal menyimpan:", error);
+            }
+        }
+
+        // Perbarui Tampilan Sisi Pengguna
+        function updateUI() {
+            // Update Status Banner
+            const alertBox = document.getElementById('status-alert');
+            const statusText = document.getElementById('status-text');
+            
+            if(appData.status === "ONLINE") {
+                alertBox.className = "alert alert-success d-flex align-items-center justify-content-between py-2";
+                statusText.innerText = "ONLINE - Layanan aktif dan dapat disaksikan.";
+            } else {
+                alertBox.className = "alert alert-danger d-flex align-items-center justify-content-between py-2";
+                statusText.innerText = "OFFLINE - Layanan sedang ditutup / istirahat.";
+            }
+
+            // Render Public Playlist List
+            let container = document.getElementById('public-playlist-container');
+            if(!appData.playlists || appData.playlists.length === 0) {
+                container.innerHTML = `<div class="p-3 text-center text-muted">Belum ada playlist tersedia.</div>`;
                 return;
             }
 
-            const newItem = {
-                id: 'vid_' + Date.now() + Math.random().toString(36.substr(2, 5)),
-                videoId: videoId,
-                title: title,
-                channel: channel,
-                thumbnail: thumbnail,
-                played: false
-            };
-
-            playlistData.push(newItem);
-            await savePlaylist();
-            renderPlaylist();
-            searchYouTube(); 
+            let html = "";
+            appData.playlists.forEach((pl, pIndex) => {
+                html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary"><i class="fa-solid folder me-1"></i> ${pl.title}</div>`;
+                if(!pl.videos || pl.videos.length === 0) {
+                    html += `<div class="p-2 text-muted small ps-3">Tidak ada video di playlist ini</div>`;
+                } else {
+                    pl.videos.forEach((vid, vIndex) => {
+                        html += `
+                            <div class="playlist-item p-2 border-bottom ps-3 d-flex align-items-center" onclick="playVideo('${vid.videoId}', '${vid.title}', '${pl.title}')">
+                                <img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" class="me-2 rounded" width="60" height="45" style="object-fit:cover;">
+                                <div class="text-truncate small">
+                                    <div class="fw-semibold text-dark text-truncate">${vid.title}</div>
+                                </div>
+                            </div>
+                        `;
+                    });
+                }
+            });
+            container.innerHTML = html;
         }
 
-        function escapeHtml(text) {
-            return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        // Fungsi Memutar Video YouTube
+        function playVideo(videoId, title, playlistTitle) {
+            const playerBox = document.getElementById('player-box');
+            playerBox.innerHTML = `
+                <iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1" 
+                    title="YouTube video player" frameborder="0" 
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
+                    allowfullscreen></iframe>
+            `;
+            document.getElementById('current-video-title').innerText = title;
+            document.getElementById('current-playlist-name').innerText = "Playlist: " + playlistTitle;
         }
 
-        function openAddModal() {
-            document.getElementById('addModal').classList.remove('hidden');
+        // Fungsi Keamanan Admin
+        function checkAdminAccess() {
+            let session = sessionStorage.getItem('isAdminLoggedIn');
+            if(session === 'true') {
+                showPage('admin');
+            } else {
+                showPage('login');
+            }
         }
 
-        function closeAddModal() {
-            document.getElementById('addModal').classList.add('hidden');
+        function handleLogin(e) {
+            e.preventDefault();
+            let u = document.getElementById('admin-user').value;
+            let p = document.getElementById('admin-pass').value;
+
+            if(u === 'haryono' && p === 'hry33576') {
+                sessionStorage.setItem('isAdminLoggedIn', 'true');
+                showPage('admin');
+                document.getElementById('login-form').reset();
+            } else {
+                alert('Username atau Password salah!');
+            }
         }
 
-        document.getElementById('localSearchInput').addEventListener('input', renderPlaylist);
+        function logoutAdmin() {
+            sessionStorage.removeItem('isAdminLoggedIn');
+            showPage('user');
+        }
 
-        window.onload = () => {
-            fetchPlaylist();
-        };
+        // Render Halaman Editor Admin
+        function renderAdminEditor() {
+            document.getElementById('admin-status-select').value = appData.status || "ONLINE";
+            let container = document.getElementById('admin-playlist-editor');
+            
+            if(!appData.playlists || appData.playlists.length === 0) {
+                container.innerHTML = `<div class="alert alert-info">Belum ada playlist. Buat playlist baru di atas.</div>`;
+                return;
+            }
+
+            let html = "";
+            appData.playlists.forEach((pl, pIndex) => {
+                html += `
+                    <div class="card shadow-sm mb-3">
+                        <div class="card-header bg-light d-flex justify-content-between align-items-center">
+                            <strong><i class="fa-solid fa-list-ul"></i> ${pl.title}</strong>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deletePlaylist(${pIndex})"><i class="fa-solid fa-trash"></i> Hapus Playlist</button>
+                        </div>
+                        <div class="card-body">
+                            <!-- Form Tambah Video -->
+                            <div class="input-group mb-3">
+                                <input type="text" id="vid-url-${pIndex}" class="form-control form-control-sm" placeholder="Link YouTube atau Video ID (Cth: dQw4w9WgXcQ)">
+                                <input type="text" id="vid-title-${pIndex}" class="form-control form-control-sm" placeholder="Judul Video">
+                                <button class="btn btn-success btn-sm" onclick="addVideo(${pIndex})"><i class="fa-solid fa-plus"></i> Tambah Video</button>
+                            </div>
+                            <!-- Tabel Video -->
+                            <div class="table-responsive">
+                                <table class="table table-sm table-bordered mb-0">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Thumbnail</th>
+                                            <th>Judul Video</th>
+                                            <th>ID Video</th>
+                                            <th class="text-center" style="width: 80px;">Aksi</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                `;
+                
+                if(!pl.videos || pl.videos.length === 0) {
+                    html += `<tr><td colspan="4" class="text-center text-muted">Belum ada video dalam playlist ini.</td></tr>`;
+                } else {
+                    pl.videos.forEach((vid, vIndex) => {
+                        html += `
+                            <tr>
+                                <td class="align-middle text-center"><img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" width="50" height="35" class="rounded"></td>
+                                <td class="align-middle">${vid.title}</td>
+                                <td class="align-middle text-muted small">${vid.videoId}</td>
+                                <td class="align-middle text-center">
+                                    <button class="btn btn-danger btn-sm" onclick="deleteVideo(${pIndex}, ${vIndex})"><i class="fa-solid fa-trash"></i></button>
+                                </td>
+                            </tr>
+                        `;
+                    });
+                }
+
+                html += `
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            container.innerHTML = html;
+        }
+
+        // Fungsi Aksi Admin (Simpan Status, Tambah/Hapus Playlist & Video)
+        function saveStatusSystem() {
+            appData.status = document.getElementById('admin-status-select').value;
+            saveData();
+        }
+
+        function addPlaylist() {
+            let titleInput = document.getElementById('new-playlist-title');
+            let title = titleInput.value.trim();
+            if(!title) return alert('Nama playlist tidak boleh kosong!');
+
+            if(!appData.playlists) appData.playlists = [];
+            appData.playlists.push({ title: title, videos: [] });
+            titleInput.value = '';
+            saveData();
+        }
+
+        function deletePlaylist(pIndex) {
+            if(confirm("Yakin ingin menghapus playlist ini beserta semua videonya?")) {
+                appData.playlists.splice(pIndex, 1);
+                saveData();
+            }
+        }
+
+        // Ekstraksi Video ID dari URL YouTube atau Input Langsung
+        function extractVideoId(urlOrId) {
+            let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
+            let match = urlOrId.match(regExp);
+            return (match && match[2].length === 11) ? match[2] : (urlOrId.length === 11 ? urlOrId : null);
+        }
+
+        function addVideo(pIndex) {
+            let urlInput = document.getElementById(`vid-url-${pIndex}`).value.trim();
+            let titleInput = document.getElementById(`vid-title-${pIndex}`).value.trim();
+
+            let videoId = extractVideoId(urlInput);
+            if(!videoId) return alert('Link YouTube atau ID Video tidak valid!');
+            if(!titleInput) return alert('Judul video wajib diisi!');
+
+            if(!appData.playlists[pIndex].videos) appData.playlists[pIndex].videos = [];
+            appData.playlists[pIndex].videos.push({ videoId: videoId, title: titleInput });
+            saveData();
+        }
+
+        function deleteVideo(pIndex, vIndex) {
+            if(confirm("Hapus video ini dari playlist?")) {
+                appData.playlists[pIndex].videos.splice(vIndex, 1);
+                saveData();
+            }
+        }
     </script>
 </body>
 </html>
