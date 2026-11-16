@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Online Video Playlist</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome untuk ikon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body { padding-bottom: 80px; background-color: #0f172a; color: #f8fafc; }
+        .custom-scrollbar::-webkit-scrollbar { width: 4px; }
+        .custom-scrollbar::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+    <!-- HEADER: Nama App & Pencarian Database Lokal -->
+    <header class="bg-slate-900/90 backdrop-blur sticky top-0 z-30 border-b border-slate-800 px-4 py-3 shadow-md">
+        <div class="max-w-md mx-auto flex items-center justify-between gap-3">
+            <h1 class="font-bold text-lg text-red-500 flex items-center gap-2">
+                <i class="fa-solid fa-play-circle"></i> MyTube Playlist
+            </h1>
+            <div class="relative flex-1 max-w-[200px]">
+                <input type="text" id="localSearchInput" placeholder="Cari playlist..." 
+                    class="w-full bg-slate-800 text-xs text-white px-3 py-1.5 rounded-full border border-slate-700 focus:outline-none focus:border-red-500">
+            </div>
+        </div>
+    </header>
+
+    <!-- MAIN CONTENT -->
+    <main class="max-w-md mx-auto w-full flex-1 p-3 flex flex-col gap-4">
+        
+        <!-- DISPLAY VIDEO UTAMA (POSISI STATIS) -->
+        <section class="bg-slate-800 rounded-xl overflow-hidden shadow-lg border border-slate-700">
+            <div class="aspect-video w-full bg-black relative" id="playerContainer">
+                <div id="youtubePlayer" class="w-full h-full"></div>
+                <div id="placeholderPlayer" class="absolute inset-0 flex flex-col items-center justify-center text-slate-500 text-xs p-4 text-center">
+                    <i class="fa-solid fa-film text-3xl mb-2"></i>
+                    <span>Belum ada video yang diputar. Silakan pilih dari playlist atau tambah lagu baru.</span>
+                </div>
+            </div>
+            <div class="p-3">
+                <h2 id="currentVideoTitle" class="font-semibold text-sm text-white line-clamp-1">-</h2>
+                <p id="currentVideoChannel" class="text-xs text-slate-400 mt-0.5">-</p>
+            </div>
+        </section>
+
+        <!-- PLAYLIST VIDEO (Sembunyikan yang sudah diputar) -->
+        <section class="flex-1 flex flex-col">
+            <div class="flex items-center justify-between mb-2">
+                <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Antrean Playlist</h3>
+                <span id="playlistCount" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 lagu</span>
+            </div>
+            
+            <div id="playlistContainer" class="flex flex-col gap-2 overflow-y-auto max-h-[350px] custom-scrollbar">
+                <!-- Data Playlist Masuk Sini -->
+                <div class="text-center py-8 text-xs text-slate-500">Memuat playlist...</div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- NAVBAR BAWAH STATIS: Tombol Tambah Playlist -->
+    <nav class="fixed bottom-0 left-0 right-0 bg-slate-900 border-t border-slate-800 p-3 z-30 shadow-2xl">
+        <div class="max-w-md mx-auto flex items-center justify-around">
+            <button onclick="switchTab('playlist')" id="navPlaylistBtn" class="flex flex-col items-center text-red-500 text-xs gap-1">
+                <i class="fa-solid fa-list text-base"></i>
+                <span>Playlist</span>
+            </button>
+            <button onclick="openAddModal()" class="bg-red-600 hover:bg-red-500 text-white px-5 py-2 rounded-full font-bold text-xs flex items-center gap-2 shadow-lg shadow-red-600/30 transition-all active:scale-95">
+                <i class="fa-solid fa-plus"></i> Tambah Playlist
+            </button>
+            <button onclick="syncData()" class="flex flex-col items-center text-slate-400 hover:text-white text-xs gap-1">
+                <i class="fa-solid fa-rotate text-base" id="syncIcon"></i>
+                <span>Sinkron</span>
+            </button>
+        </div>
+    </nav>
+
+    <!-- POP-UP PENCARIAN & TAMBAH LAGU YOUTUBE -->
+    <div id="addModal" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex flex-col justify-end sm:justify-center p-0 sm:p-4">
+        <div class="bg-slate-900 w-full max-w-md mx-auto rounded-t-2xl sm:rounded-2xl border border-slate-800 flex flex-col max-h-[85vh] overflow-hidden shadow-2xl">
+            
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-slate-800 flex items-center justify-between">
+                <h3 class="font-bold text-sm flex items-center gap-2 text-white">
+                    <i class="fa-brands fa-youtube text-red-500"></i> Cari & Tambah Lagu YouTube
+                </h3>
+                <button onclick="closeAddModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Modal Search Input -->
+            <div class="p-3 border-b border-slate-800 bg-slate-950/50">
+                <div class="flex gap-2">
+                    <input type="text" id="ytSearchQuery" placeholder="Ketik judul lagu atau artis..." 
+                        class="flex-1 bg-slate-800 text-xs text-white px-3 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-red-500"
+                        onkeypress="if(event.key === 'Y' || event.key === 'Enter') searchYouTube()">
+                    <button onclick="searchYouTube()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Modal Search Results -->
+            <div id="ytSearchResults" class="flex-1 overflow-y-auto p-3 flex flex-col gap-2 custom-scrollbar">
+                <div class="text-center py-10 text-xs text-slate-500">
+                    <i class="fa-solid fa-music text-2xl mb-2 block"></i>
+                    <span>Ketik kata kunci pencarian di atas untuk mencari video YouTube.</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- YouTube IFrame API -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
+    <script>
+        // Konfigurasi JSONBin & YouTube API
+        const API_KEY_YT = 'AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk';
+        const BIN_ID = '6af2b75fac6210605a7c08ff'; // Bin ID Anda dari memori
+        const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
+        
+        let playlistData = [];
+        let currentPlayingId = null;
+        let player = null;
+
+        // Struktur data JSONBin: { playlist: [ {id, videoId, title, channel, thumbnail, played: false} ] }
+
+        // Inisialisasi Player YouTube
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('youtubePlayer', {
+                height: '100%',
+                width: '100%',
+                playerVars: { 'autoplay': 1, 'controls': 1 },
+                events: {
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        // Ketika video selesai diputar, ubah status played menjadi true
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                if (currentPlayingId) {
+                    markAsPlayed(currentPlayingId);
+                }
+            }
+        }
+
+        // Ambil Data dari JSONBin
+        async function fetchPlaylist() {
+            try {
+                const response = await fetch(JSONBIN_URL, {
+                    headers: { 'X-Master-Key': '$2a$10$...' // Opsional jika private, gunakan public bin jika bebas
+                    }
+                });
+                // Jika menggunakan JSONBin Publik tanpa key master, cukup fetch biasa:
+                const res = await fetch(JSONBIN_URL + '/latest');
+                const json = await res.json();
+                playlistData = json.record.playlist || [];
+                renderPlaylist();
+            } catch (err) {
+                console.error("Gagal mengambil data:", err);
+                // Fallback ke localStorage jika offline/gagal
+                let local = localStorage.getItem('my_playlist');
+                if (local) {
+                    playlistData = JSON.parse(local);
+                    renderPlaylist();
+                }
+            }
+        }
+
+        // Simpan Data ke JSONBin & LocalStorage
+        async function savePlaylist() {
+            localStorage.setItem('my_playlist', JSON.stringify(playlistData));
+            try {
+                await fetch(JSONBIN_URL, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ playlist: playlistData })
+                });
+            } catch (err) {
+                console.error("Gagal sinkron ke cloud:", err);
+            }
+        }
+
+        function syncData() {
+            const icon = document.getElementById('syncIcon');
+            icon.classList.add('fa-spin');
+            fetchPlaylist().then(() => {
+                setTimeout(() => icon.classList.remove('fa-spin'), 500);
+            });
+        }
+
+        // Render Playlist (Hanya tampilkan yang played === false)
+        function renderPlaylist() {
+            const container = document.getElementById('playlistContainer');
+            const keyword = document.getElementById('localSearchInput').value.toLowerCase();
+            
+            // Filter: hanya yang belum diputar (played !== true) dan sesuai pencarian lokal
+            const activeList = playlistData.filter(item => !item.played && item.title.toLowerCase().includes(keyword));
+            
+            document.getElementById('playlistCount').innerText = `${activeList.length} lagu`;
+
+            if (activeList.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-10 text-xs text-slate-500 bg-slate-800/40 rounded-xl border border-dashed border-slate-700">
+                        <i class="fa-solid fa-list-check text-2xl mb-2 block"></i>
+                        <span>Tidak ada antrean playlist aktif.<br>Klik tombol "Tambah Playlist" di bawah.</span>
+                    </div>`;
+                return;
+            }
+
+            container.innerHTML = activeList.map(item => `
+                <div class="flex items-center gap-3 bg-slate-800/80 hover:bg-slate-800 p-2.5 rounded-xl border border-slate-700/50 transition-all group">
+                    <img src="${item.thumbnail}" class="w-16 h-12 object-cover rounded-lg bg-slate-900 shrink-0 cursor-pointer" onclick="playVideo('${item.videoId}', '${item.id}')">
+                    <div class="flex-1 min-w-0 cursor-pointer" onclick="playVideo('${item.videoId}', '${item.id}')">
+                        <h4 class="text-xs font-semibold text-white line-clamp-1 group-hover:text-red-400">${item.title}</h4>
+                        <p class="text-[10px] text-slate-400 truncate mt-0.5">${item.channel}</p>
+                    </div>
+                    <div class="flex items-center gap-1">
+                        <button onclick="playVideo('${item.videoId}', '${item.id}')" class="bg-red-600/20 hover:bg-red-600 text-red-500 hover:text-white p-2 rounded-lg text-xs transition-all" title="Putar">
+                            <i class="fa-solid fa-play"></i>
+                        </button>
+                        <button onclick="markAsPlayed('${item.id}')" class="bg-slate-700 hover:bg-slate-600 text-slate-300 p-2 rounded-lg text-xs transition-all" title="Sembunyikan / Selesai">
+                            <i class="fa-solid fa-check"></i>
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Putar Video
+        function playVideo(videoId, id) {
+            currentPlayingId = id;
+            if (player && player.loadVideoById) {
+                player.loadVideoById(videoId);
+            }
+            
+            // Update UI Info Player Utama
+            const currentItem = playlistData.find(i => i.id === id);
+            if (currentItem) {
+                document.getElementById('currentVideoTitle').innerText = currentItem.title;
+                document.getElementById('currentVideoChannel').innerText = currentItem.channel;
+                document.getElementById('placeholderPlayer').style.display = 'none';
+            }
+        }
+
+        // Tandai sudah diputar (Sembunyikan dari playlist aktif)
+        async function markAsPlayed(id) {
+            const index = playlistData.findIndex(i => i.id === id);
+            if (index !== -1) {
+                playlistData[index].played = true;
+                await savePlaylist();
+                renderPlaylist();
+
+                // Jika video yang sedang diputar ditandai selesai, reset player jika itu videonya
+                if (currentPlayingId === id) {
+                    currentPlayingId = null;
+                    document.getElementById('currentVideoTitle').innerText = '-';
+                    document.getElementById('currentVideoChannel').innerText = '-';
+                    document.getElementById('placeholderPlayer').style.display = 'flex';
+                }
+            }
+        }
+
+        // Pencarian YouTube API
+        async function searchYouTube() {
+            const query = document.getElementById('ytSearchQuery').value.trim();
+            const resultsContainer = document.getElementById('ytSearchResults');
+            
+            if (!query) return;
+
+            resultsContainer.innerHTML = `<div class="text-center py-10 text-xs text-slate-400"><i class="fa-solid fa-spinner fa-spin mr-2"></i> Mencari video...</div>`;
+
+            try {
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=10&q=${encodeURIComponent(query)}&key=${API_KEY_YT}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.error) {
+                    resultsContainer.innerHTML = `<div class="text-center py-10 text-xs text-red-400">Error API: ${data.error.message}</div>`;
+                    return;
+                }
+
+                const items = data.items || [];
+                if (items.length === 0) {
+                    resultsContainer.innerHTML = `<div class="text-center py-10 text-xs text-slate-500">Tidak ada hasil ditemukan.</div>`;
+                    return;
+                }
+
+                resultsContainer.innerHTML = items.map(item => {
+                    const videoId = item.id.videoId;
+                    const title = item.snippet.title;
+                    const channel = item.snippet.channelTitle;
+                    const thumb = item.snippet.thumbnails.medium.url;
+
+                    // Cek apakah video sudah ada di playlist
+                    const isExist = playlistData.some(p => p.videoId === videoId);
+
+                    return `
+                        <div class="flex items-center gap-3 bg-slate-800 p-2 rounded-xl border border-slate-700">
+                            <img src="${thumb}" class="w-20 h-14 object-cover rounded-lg bg-slate-900 shrink-0">
+                            <div class="flex-1 min-w-0">
+                                <h4 class="text-xs font-semibold text-white line-clamp-1">${title}</h4>
+                                <p class="text-[10px] text-slate-400 truncate mt-0.5">${channel}</p>
+                            </div>
+                            <div>
+                                ${isExist 
+                                    ? `<span class="text-[10px] bg-slate-700 text-slate-400 px-2.5 py-1.5 rounded-lg font-medium">Ditambahkan</span>`
+                                    : `<button onclick="addToPlaylist('${videoId}', \`${escapeHtml(title)}\`, \`${escapeHtml(channel)}\`, '${thumb}')" class="bg-red-600 hover:bg-red-500 text-white px-3 py-1.5 rounded-lg text-xs font-bold transition-all shadow">
+                                        <i class="fa-solid fa-plus"></i>
+                                       </button>`
+                                }
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+
+            } catch (err) {
+                console.error(err);
+                resultsContainer.innerHTML = `<div class="text-center py-10 text-xs text-red-400">Gagal terhubung ke YouTube API.</div>`;
+            }
+        }
+
+        // Tambah ke Playlist dengan Penanganan Duplikat (Validasi Video ID Sama)
+        async function addToPlaylist(videoId, title, channel, thumbnail) {
+            // Validasi pencegahan input video yang sama
+            const isDuplicate = playlistData.some(item => item.videoId === videoId);
+            if (isDuplicate) {
+                alert("Video ini sudah ada di dalam playlist!");
+                return;
+            }
+
+            const newItem = {
+                id: 'vid_' + Date.now() + Math.random().toString(36.substr(2, 5)),
+                videoId: videoId,
+                title: title,
+                channel: channel,
+                thumbnail: thumbnail,
+                played: false
+            };
+
+            playlistData.push(newItem);
+            await savePlaylist();
+            renderPlaylist();
+            searchYouTube(); // Refresh hasil pencarian agar tombol berubah jadi "Ditambahkan"
+        }
+
+        // Helper escape string HTML sederhana
+        function escapeHtml(text) {
+            return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+        }
+
+        // Kontrol Modal Pop-up
+        function openAddModal() {
+            document.getElementById('addModal').classList.remove('hidden');
+        }
+
+        function closeAddModal() {
+            document.getElementById('addModal').classList.add('hidden');
+        }
+
+        // Filter Pencarian Lokal
+        document.getElementById('localSearchInput').addEventListener('input', renderPlaylist);
+
+        // Load awal saat halaman dibuka
+        window.onload = () => {
+            fetchPlaylist();
+        };
+    </script>
+</body>
+</html>
