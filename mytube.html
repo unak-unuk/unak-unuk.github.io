@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Clone - Single File</title>
-    <!-- FontAwesome untuk ikon pencarian -->
+    <title>YouTube Clone - Sticky & Autoplay</title>
+    <!-- FontAwesome untuk ikon -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
     <style>
@@ -30,7 +30,7 @@
             background-color: #ffffff;
             position: sticky;
             top: 0;
-            z-index: 100;
+            z-index: 1000;
             box-shadow: 0 1px 2px rgba(0,0,0,0.1);
         }
 
@@ -83,18 +83,21 @@
             background-color: #f0f0f0;
         }
 
-        /* Layout Utama */
+        /* Layout Utama dengan Grid agar Sticky berfungsi sempurna */
         .main-container {
-            display: flex;
+            display: grid;
+            grid-template-columns: 2fr 1fr;
             gap: 24px;
             padding: 24px;
             max-width: 1600px;
             margin: 0 auto;
+            align-items: start; /* Penting agar elemen kiri bisa sticky mandiri */
         }
 
-        /* Bagian Video Player */
+        /* Bagian Video Player (Sticky) */
         .video-section {
-            flex: 2;
+            position: sticky;
+            top: 80px; /* Jarak dari atas navbar saat dishoot */
         }
 
         .video-container {
@@ -133,11 +136,12 @@
             border-radius: 8px;
             white-space: pre-line;
             line-height: 1.4;
+            max-height: 150px;
+            overflow-y: auto;
         }
 
         /* Sidebar Daftar Video */
         .sidebar-section {
-            flex: 1;
             display: flex;
             flex-direction: column;
             gap: 12px;
@@ -167,6 +171,13 @@
             background-color: #eaeaea;
         }
 
+        /* Menandai video yang sedang aktif diputar */
+        .video-card.active {
+            background-color: #e5e5e5;
+            border-left: 4px solid #ff0000;
+            padding-left: 8px;
+        }
+
         .video-card img {
             width: 168px;
             height: 94px;
@@ -193,7 +204,11 @@
         /* Responsif untuk Layar Kecil */
         @media (max-width: 900px) {
             .main-container {
-                flex-direction: column;
+                grid-template-columns: 1fr;
+            }
+            .video-section {
+                position: relative;
+                top: 0;
             }
         }
     </style>
@@ -215,10 +230,11 @@
     <!-- Konten Utama -->
     <div class="main-container">
         
-        <!-- Bagian Pemutar Video & Detail (Kiri) -->
+        <!-- Bagian Pemutar Video & Detail (Kiri - Sticky) -->
         <div class="video-section" id="video-section" style="display: none;">
-            <div class="video-container">
-                <iframe id="main-video-player" src="" frameborder="0" allowfullscreen></iframe>
+            <div class="video-container" id="player-container">
+                <!-- Iframe akan di-inject via JS dengan YouTube IFrame API -->
+                <div id="youtube-player"></div>
             </div>
             <h2 id="main-video-title">Judul Video Akan Tampil Disini</h2>
             <p id="main-video-channel" class="channel-title">Nama Channel</p>
@@ -229,13 +245,15 @@
         <div class="sidebar-section">
             <h3 id="sidebar-title">Rekomendasi / Hasil Pencarian</h3>
             <div id="video-list" class="video-list">
-                <!-- Daftar video akan dimuat di sini secara dinamis -->
+                <!-- Daftar video dimuat secara dinamis -->
             </div>
         </div>
 
     </div>
 
-    <!-- Logika JavaScript -->
+    <!-- YouTube IFrame API (Diperlukan untuk mendeteksi event video selesai / onStateChange) -->
+    <script src="https://www.youtube.com/iframe_api"></script>
+
     <script>
         const API_KEY = "AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk";
 
@@ -243,35 +261,43 @@
         const searchBtn = document.getElementById("search-btn");
         const videoListEl = document.getElementById("video-list");
         const videoSection = document.getElementById("video-section");
-        const mainPlayer = document.getElementById("main-video-player");
         const mainTitle = document.getElementById("main-video-title");
         const mainChannel = document.getElementById("main-video-channel");
         const mainDesc = document.getElementById("main-video-desc");
 
-        // Jalankan pencarian default saat pertama kali dibuka
-        window.addEventListener("DOMContentLoaded", () => {
-            searchVideos("Coding Indonesia");
-        });
+        let player;
+        let currentVideos = []; // Menyimpan daftar hasil pencarian
+        let currentIndex = 0;   // Menyimpan index video yang sedang diputar
 
-        // Event klik tombol cari
-        searchBtn.addEventListener("click", () => {
-            const query = searchInput.value.trim();
-            if (query) {
-                searchVideos(query);
+        // Jalur inisialisasi YouTube IFrame API
+        function onYouTubeIframeAPIReady() {
+            // API siap digunakan
+            searchVideos("Coding Indonesia");
+        }
+
+        // Event pencarian
+        window.addEventListener("DOMContentLoaded", () => {
+            // Fallback jika API belum sempat terpanggil
+            if(typeof YT === 'undefined' || typeof YT.Player === 'undefined') {
+                setTimeout(() => {
+                    if(currentVideos.length === 0) searchVideos("Coding Indonesia");
+                }, 1000);
             }
         });
 
-        // Event tekan tombol Enter pada input pencarian
+        searchBtn.addEventListener("click", () => {
+            const query = searchInput.value.trim();
+            if (query) searchVideos(query);
+        });
+
         searchInput.addEventListener("keypress", (e) => {
             if (e.key === "Enter") {
                 const query = searchInput.value.trim();
-                if (query) {
-                    searchVideos(query);
-                }
+                if (query) searchVideos(query);
             }
         });
 
-        // Fungsi mengambil data dari YouTube Data API v3
+        // Ambil data video dari YouTube API v3
         async function searchVideos(query) {
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(query)}&type=video&key=${API_KEY}`;
 
@@ -280,26 +306,29 @@
                 const data = await response.json();
 
                 if (data.items && data.items.length > 0) {
-                    displayVideos(data.items);
-                    playVideo(data.items[0]);
+                    currentVideos = data.items;
+                    currentIndex = 0;
+                    displayVideos();
+                    playVideoByIndex(currentIndex);
                 } else {
                     videoListEl.innerHTML = "<p>Tidak ada video ditemukan.</p>";
                 }
             } catch (error) {
                 console.error("Gagal mengambil data:", error);
-                alert("Terjadi kesalahan saat memuat video. Periksa koneksi atau kuota API Anda.");
+                alert("Terjadi kesalahan saat memuat video.");
             }
         }
 
-        // Menampilkan daftar video di sidebar
-        function displayVideos(videos) {
+        // Tampilkan daftar video ke sidebar
+        function displayVideos() {
             videoListEl.innerHTML = "";
 
-            videos.forEach(video => {
+            currentVideos.forEach((video, index) => {
                 const snippet = video.snippet;
-
                 const card = document.createElement("div");
                 card.classList.add("video-card");
+                if (index === currentIndex) card.classList.add("active");
+
                 card.innerHTML = `
                     <img src="${snippet.thumbnails.medium.url}" alt="${snippet.title}">
                     <div class="video-info">
@@ -308,26 +337,76 @@
                     </div>
                 `;
 
-                // Ketika kartu video diklik, putar video tersebut
                 card.addEventListener("click", () => {
-                    playVideo(video);
-                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                    currentIndex = index;
+                    playVideoByIndex(currentIndex);
+                    updateActiveCardStyle();
                 });
 
                 videoListEl.appendChild(card);
             });
         }
 
-        // Memuat dan memutar video di pemutar utama
-        function playVideo(video) {
+        // Sorot video yang sedang aktif di sidebar
+        function updateActiveCardStyle() {
+            const cards = document.querySelectorAll(".video-card");
+            cards.forEach((card, idx) => {
+                if (idx === currentIndex) {
+                    card.classList.add("active");
+                } else {
+                    card.classList.remove("active");
+                }
+            });
+        }
+
+        // Putar video berdasarkan index list
+        function playVideoByIndex(index) {
+            if (index < 0 || index >= currentVideos.length) return;
+            
             videoSection.style.display = "block";
+            const video = currentVideos[index];
             const videoId = video.id.videoId;
             const snippet = video.snippet;
 
-            mainPlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
             mainTitle.textContent = snippet.title;
             mainChannel.textContent = snippet.channelTitle;
             mainDesc.textContent = snippet.description || "Tidak ada deskripsi.";
+
+            // Inisialisasi atau muat ulang player YouTube
+            if (!player) {
+                player = new YT.Player('youtube-player', {
+                    height: '100%',
+                    width: '100%',
+                    videoId: videoId,
+                    playerVars: {
+                        'autoplay': 1,
+                        'controls': 1
+                    },
+                    events: {
+                        'onStateChange': onPlayerStateChange
+                    }
+                });
+            } else {
+                player.loadVideoById(videoId);
+            }
+
+            updateActiveCardStyle();
+        }
+
+        // Deteksi status pemutar video (Mendeteksi ketika video selesai: YT.PlayerState.ENDED)
+        function onPlayerStateChange(event) {
+            if (event.data === YT.PlayerState.ENDED) {
+                // Video selesai, lanjut ke index berikutnya (Autoplay playlist)
+                currentIndex++;
+                if (currentIndex < currentVideos.length) {
+                    playVideoByIndex(currentIndex);
+                    // Scroll ke atas halaman list jika diperlukan agar selaras
+                } else {
+                    // Reset ke awal playlist jika sudah habis (opsional)
+                    currentIndex = 0;
+                    playVideoByIndex(currentIndex);
+                }
+            }
         }
     </script>
 </body>
