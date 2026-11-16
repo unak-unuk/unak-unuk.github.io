@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Video Playlist - JSONBin Connected</title>
+    <title>Online Video Playlist - JSONBin Ready</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome untuk ikon -->
@@ -60,7 +60,6 @@
             </div>
             
             <div id="playlistContainer" class="flex flex-col gap-2 overflow-y-auto max-h-[350px] custom-scrollbar">
-                <!-- Data Playlist Masuk Sini -->
                 <div class="text-center py-8 text-xs text-slate-500">Memuat playlist dari JSONBin...</div>
             </div>
         </section>
@@ -125,9 +124,9 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // Konfigurasi API & JSONBin
+        // Konfigurasi Kredensial Baru Anda
         const API_KEY_YT = 'AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk';
-        const BIN_ID = '6af2b75fac6210605a7c08ff'; 
+        const BIN_ID = '6afb5d03ac6210605a8cdcd4'; 
         const MASTER_KEY = '$2a$10$Ii1ep5GX66sB9lery6p2suxzNGrSMg2iwncn5Z2y/HT5WjaHRrf1q';
         const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
         
@@ -171,10 +170,15 @@
                 if (!response.ok) throw new Error('Gagal terhubung ke server JSONBin');
 
                 const json = await response.json();
-                // Validasi struktur data record
-                playlistData = json.record && json.record.playlist ? json.record.playlist : [];
                 
-                // Simpan ke localStorage sebagai cache offline
+                // Periksa apakah struktur record.playlist ada, jika belum inisialisasi array kosong
+                if (json.record && Array.isArray(json.record.playlist)) {
+                    playlistData = json.record.playlist;
+                } else {
+                    playlistData = [];
+                    await savePlaylist(); // Inisialisasi struktur awal di bin baru
+                }
+                
                 localStorage.setItem('my_playlist_cache', JSON.stringify(playlistData));
                 
                 statusBadge.className = "text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded flex items-center gap-1";
@@ -186,15 +190,9 @@
                 statusBadge.className = "text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded flex items-center gap-1";
                 statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[8px]"></i> Offline (Cache)`;
 
-                // Fallback ke localStorage jika gagal koneksi
                 let local = localStorage.getItem('my_playlist_cache');
-                if (local) {
-                    playlistData = JSON.parse(local);
-                    renderPlaylist();
-                } else {
-                    playlistData = [];
-                    renderPlaylist();
-                }
+                playlistData = local ? JSON.parse(local) : [];
+                renderPlaylist();
             }
         }
 
@@ -215,7 +213,6 @@
                 if (!response.ok) throw new Error('Gagal menyimpan ke cloud');
             } catch (err) {
                 console.error("JSONBin Save Error:", err);
-                alert("Perubahan disimpan secara lokal. Gagal memperbarui cloud JSONBin.");
             }
         }
 
@@ -279,7 +276,7 @@
             }
         }
 
-        // Tandai sudah diputar (Sembunyikan dari antrean)
+        // Tandai sudah diputar
         async function markAsPlayed(id) {
             const index = playlistData.findIndex(i => i.id === id);
             if (index !== -1) {
@@ -374,7 +371,7 @@
             playlistData.push(newItem);
             await savePlaylist();
             renderPlaylist();
-            searchYouTube(); 
+            searchYouTube(); // Refresh hasil pencarian modal agar tombol berubah menjadi "Ditambahkan"
         }
 
         function escapeHtml(text) {
