@@ -10,13 +10,15 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background-color: #f8f9fa; }
-        .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; }
-        #yt-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; overflow: hidden; }
+        #yt-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; border: 0; }
         .placeholder-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; background: #212529; }
         .playlist-item { cursor: pointer; transition: background 0.2s; }
         .playlist-item:hover, .playlist-item.active { background-color: #e9ecef; }
         .search-result-item { cursor: pointer; transition: background 0.2s; }
         .search-result-item:hover { background-color: #f1f3f5; }
+        /* Mengatasi teks info video agar tidak melebihi frame */
+        .video-info-box { max-width: 100%; overflow: hidden; }
     </style>
 </head>
 <body>
@@ -65,12 +67,12 @@
                             </div>
                         </div>
                         <div class="card-footer bg-white">
-                            <div class="d-flex justify-content-between align-items-center">
-                                <div>
-                                    <h5 id="current-video-title" class="mb-1 text-truncate">Pilih Video</h5>
-                                    <p id="current-playlist-name" class="text-muted small mb-0">-</p>
+                            <div class="d-flex justify-content-between align-items-center video-info-box">
+                                <div class="text-truncate pe-2" style="flex: 1; min-width: 0;">
+                                    <h5 id="current-video-title" class="mb-1 text-truncate" style="font-size: 1.1rem;">Pilih Video</h5>
+                                    <p id="current-playlist-name" class="text-muted small mb-0 text-truncate">-</p>
                                 </div>
-                                <button class="btn btn-outline-primary btn-sm text-nowrap" onclick="playNextInQueue()"><i class="fa-solid fa-forward-step"></i> Selanjutnya</button>
+                                <button class="btn btn-outline-primary btn-sm text-nowrap flex-shrink-0" onclick="playNextInQueue()"><i class="fa-solid fa-forward-step"></i> Selanjutnya</button>
                             </div>
                         </div>
                     </div>
@@ -204,7 +206,7 @@
         let activePlaylistIndex = null;
         let activeVideoIndex = null;
         let activeModalPlaylistIndex = null;
-        let isApiReady = false;
+        let pendingVideoId = null;
 
         // Inisialisasi YouTube Player API secara aman
         function onYouTubeIframeAPIReady() {
@@ -224,7 +226,10 @@
         }
 
         function onPlayerReady(event) {
-            isApiReady = true;
+            if (pendingVideoId) {
+                player.loadVideoById(pendingVideoId);
+                pendingVideoId = null;
+            }
         }
 
         function onPlayerStateChange(event) {
@@ -304,7 +309,7 @@
 
             let html = "";
             appData.playlists.forEach((pl, pIdx) => {
-                html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary"><i class="fa-solid fa-folder me-1"></i> ${pl.title}</div>`;
+                html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary text-truncate"><i class="fa-solid fa-folder me-1"></i> ${pl.title}</div>`;
                 if(!pl.videos || pl.videos.length === 0) {
                     html += `<div class="p-2 text-muted small ps-3">Antrean kosong</div>`;
                 } else {
@@ -312,8 +317,8 @@
                         let activeClass = (activePlaylistIndex === pIdx && activeVideoIndex === vIdx) ? 'active border-primary' : '';
                         html += `
                             <div class="playlist-item p-2 border-bottom ps-3 d-flex align-items-center ${activeClass}" onclick="playVideoSpecific(${pIdx}, ${vIdx})">
-                                <img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" class="me-2 rounded" width="60" height="45" style="object-fit:cover;">
-                                <div class="text-truncate small">
+                                <img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" class="me-2 rounded flex-shrink-0" width="60" height="45" style="object-fit:cover;">
+                                <div class="text-truncate small" style="flex: 1; min-width: 0;">
                                     <div class="fw-semibold text-dark text-truncate">${vIdx + 1}. ${vid.title}</div>
                                 </div>
                             </div>
@@ -333,18 +338,13 @@
             activeVideoIndex = vIndex;
             let vid = pl.videos[vIndex];
 
-            // Sembunyikan kotak placeholder agar pemutar YouTube tampil
+            // Sembunyikan placeholder box
             document.getElementById('placeholder-video').style.display = 'none';
 
-            if(player && typeof player.loadVideoById === 'function') {
+            if (player && typeof player.loadVideoById === 'function') {
                 player.loadVideoById(vid.videoId);
             } else {
-                // Fallback jika API belum siap
-                setTimeout(() => {
-                    if(player && typeof player.loadVideoById === 'function') {
-                        player.loadVideoById(vid.videoId);
-                    }
-                }, 1000);
+                pendingVideoId = vid.videoId;
             }
 
             document.getElementById('current-video-title').innerText = vid.title;
@@ -574,14 +574,14 @@
 
                     html += `
                         <div class="search-result-item d-flex align-items-center justify-content-between p-2 border-bottom">
-                            <div class="d-flex align-items-center">
-                                <img src="${thumb}" class="rounded me-3" width="80" height="60" style="object-fit:cover;">
-                                <div>
-                                    <h6 class="mb-1 text-dark fw-semibold" style="font-size: 14px;">${title}</h6>
-                                    <small class="text-muted">${channel}</small>
+                            <div class="d-flex align-items-center text-truncate pe-2" style="flex: 1; min-width: 0;">
+                                <img src="${thumb}" class="rounded me-3 flex-shrink-0" width="80" height="60" style="object-fit:cover;">
+                                <div class="text-truncate" style="flex: 1; min-width: 0;">
+                                    <h6 class="mb-1 text-dark fw-semibold text-truncate" style="font-size: 14px;">${title}</h6>
+                                    <small class="text-muted text-truncate d-block">${channel}</small>
                                 </div>
                             </div>
-                            <button class="btn btn-success btn-sm text-nowrap" onclick="addVideoFromSearch('${vidId}', '${title.replace(/'/g, "\\'")}')">
+                            <button class="btn btn-success btn-sm text-nowrap flex-shrink-0 ms-2" onclick="addVideoFromSearch('${vidId}', '${title.replace(/'/g, "\\'")}')">
                                 <i class="fa-solid fa-plus"></i> Tambah
                             </button>
                         </div>
