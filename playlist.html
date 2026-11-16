@@ -12,12 +12,11 @@
         body { background-color: #f8f9fa; }
         .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; overflow: hidden; }
         #yt-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; border: 0; }
-        .placeholder-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; background: #212529; }
+        .placeholder-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; background: #212529; display: flex; flex-direction: column; justify-content: center; align-items: center; }
         .playlist-item { cursor: pointer; transition: background 0.2s; }
         .playlist-item:hover, .playlist-item.active { background-color: #e9ecef; }
         .search-result-item { cursor: pointer; transition: background 0.2s; }
         .search-result-item:hover { background-color: #f1f3f5; }
-        /* Mengatasi teks info video agar tidak melebihi frame */
         .video-info-box { max-width: 100%; overflow: hidden; }
     </style>
 </head>
@@ -57,8 +56,8 @@
                             <div class="video-container">
                                 <!-- Pemutar YouTube Iframe API -->
                                 <div id="yt-player"></div>
-                                <!-- Placeholder jika belum ada video diputar -->
-                                <div class="placeholder-box d-flex flex-column justify-content-center align-items-center text-white text-center p-4" id="placeholder-video">
+                                <!-- Placeholder box yang akan disembunyikan saat video dimainkan -->
+                                <div class="placeholder-box text-white text-center p-4" id="placeholder-video">
                                     <i class="fa-brands fa-youtube text-danger fa-3x mb-3"></i>
                                     <h5>Pemutar Video Siap</h5>
                                     <p class="text-muted small mb-3">Silakan klik tombol di bawah atau pilih video dari daftar antrean.</p>
@@ -338,8 +337,11 @@
             activeVideoIndex = vIndex;
             let vid = pl.videos[vIndex];
 
-            // Sembunyikan placeholder box
-            document.getElementById('placeholder-video').style.display = 'none';
+            // Sembunyikan kotak placeholder secara paksa agar pemutar video kelihatan
+            let placeholder = document.getElementById('placeholder-video');
+            if(placeholder) {
+                placeholder.style.display = 'none';
+            }
 
             if (player && typeof player.loadVideoById === 'function') {
                 player.loadVideoById(vid.videoId);
