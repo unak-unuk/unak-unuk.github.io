@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Online Video Playlist</title>
+    <title>Online Video Playlist - JSONBin Connected</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- FontAwesome untuk ikon -->
@@ -22,7 +22,7 @@
             <h1 class="font-bold text-lg text-red-500 flex items-center gap-2">
                 <i class="fa-solid fa-play-circle"></i> MyTube Playlist
             </h1>
-            <div class="relative flex-1 max-w-[200px]">
+            <div class="relative flex-1 max-w-[180px]">
                 <input type="text" id="localSearchInput" placeholder="Cari playlist..." 
                     class="w-full bg-slate-800 text-xs text-white px-3 py-1.5 rounded-full border border-slate-700 focus:outline-none focus:border-red-500">
             </div>
@@ -51,12 +51,17 @@
         <section class="flex-1 flex flex-col">
             <div class="flex items-center justify-between mb-2">
                 <h3 class="text-xs font-bold uppercase tracking-wider text-slate-400">Antrean Playlist</h3>
-                <span id="playlistCount" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 lagu</span>
+                <div class="flex items-center gap-2">
+                    <span id="syncStatus" class="text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded flex items-center gap-1">
+                        <i class="fa-solid fa-circle text-[8px]"></i> Menghubungkan...
+                    </span>
+                    <span id="playlistCount" class="text-xs bg-slate-800 px-2 py-0.5 rounded text-slate-400">0 lagu</span>
+                </div>
             </div>
             
             <div id="playlistContainer" class="flex flex-col gap-2 overflow-y-auto max-h-[350px] custom-scrollbar">
                 <!-- Data Playlist Masuk Sini -->
-                <div class="text-center py-8 text-xs text-slate-500">Memuat playlist...</div>
+                <div class="text-center py-8 text-xs text-slate-500">Memuat playlist dari JSONBin...</div>
             </div>
         </section>
 
@@ -98,7 +103,7 @@
                 <div class="flex gap-2">
                     <input type="text" id="ytSearchQuery" placeholder="Ketik judul lagu atau artis..." 
                         class="flex-1 bg-slate-800 text-xs text-white px-3 py-2 rounded-lg border border-slate-700 focus:outline-none focus:border-red-500"
-                        onkeypress="if(event.key === 'Y' || event.key === 'Enter') searchYouTube()">
+                        onkeypress="if(event.key === 'Enter') searchYouTube()">
                     <button onclick="searchYouTube()" class="bg-red-600 hover:bg-red-500 text-white px-4 py-2 rounded-lg text-xs font-bold transition-all">
                         <i class="fa-solid fa-magnifying-glass"></i>
                     </button>
@@ -120,16 +125,15 @@
     <script src="https://www.youtube.com/iframe_api"></script>
 
     <script>
-        // Konfigurasi JSONBin & YouTube API
+        // Konfigurasi API & JSONBin
         const API_KEY_YT = 'AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk';
-        const BIN_ID = '6af2b75fac6210605a7c08ff'; // Bin ID Anda dari memori
+        const BIN_ID = '6af2b75fac6210605a7c08ff'; 
+        const MASTER_KEY = '$2a$10$Ii1ep5GX66sB9lery6p2suxzNGrSMg2iwncn5Z2y/HT5WjaHRrf1q';
         const JSONBIN_URL = `https://api.jsonbin.io/v3/b/${BIN_ID}`;
         
         let playlistData = [];
         let currentPlayingId = null;
         let player = null;
-
-        // Struktur data JSONBin: { playlist: [ {id, videoId, title, channel, thumbnail, played: false} ] }
 
         // Inisialisasi Player YouTube
         function onYouTubeIframeAPIReady() {
@@ -143,7 +147,6 @@
             });
         }
 
-        // Ketika video selesai diputar, ubah status played menjadi true
         function onPlayerStateChange(event) {
             if (event.data === YT.PlayerState.ENDED) {
                 if (currentPlayingId) {
@@ -152,42 +155,67 @@
             }
         }
 
-        // Ambil Data dari JSONBin
+        // Ambil Data dari JSONBin.io
         async function fetchPlaylist() {
+            const statusBadge = document.getElementById('syncStatus');
+            statusBadge.className = "text-[10px] bg-amber-500/20 text-amber-400 px-2 py-0.5 rounded flex items-center gap-1";
+            statusBadge.innerHTML = `<i class="fa-solid fa-circle text-[8px]"></i> Sinkron...`;
+
             try {
-                const response = await fetch(JSONBIN_URL, {
-                    headers: { 'X-Master-Key': '$2a$10$...' // Opsional jika private, gunakan public bin jika bebas
+                const response = await fetch(JSONBIN_URL + '/latest', {
+                    headers: {
+                        'X-Master-Key': MASTER_KEY
                     }
                 });
-                // Jika menggunakan JSONBin Publik tanpa key master, cukup fetch biasa:
-                const res = await fetch(JSONBIN_URL + '/latest');
-                const json = await res.json();
-                playlistData = json.record.playlist || [];
+
+                if (!response.ok) throw new Error('Gagal terhubung ke server JSONBin');
+
+                const json = await response.json();
+                // Validasi struktur data record
+                playlistData = json.record && json.record.playlist ? json.record.playlist : [];
+                
+                // Simpan ke localStorage sebagai cache offline
+                localStorage.setItem('my_playlist_cache', JSON.stringify(playlistData));
+                
+                statusBadge.className = "text-[10px] bg-emerald-500/20 text-emerald-400 px-2 py-0.5 rounded flex items-center gap-1";
+                statusBadge.innerHTML = `<i class="fa-solid fa-check text-[8px]"></i> Terhubung`;
+                
                 renderPlaylist();
             } catch (err) {
-                console.error("Gagal mengambil data:", err);
-                // Fallback ke localStorage jika offline/gagal
-                let local = localStorage.getItem('my_playlist');
+                console.error("JSONBin Fetch Error:", err);
+                statusBadge.className = "text-[10px] bg-rose-500/20 text-rose-400 px-2 py-0.5 rounded flex items-center gap-1";
+                statusBadge.innerHTML = `<i class="fa-solid fa-triangle-exclamation text-[8px]"></i> Offline (Cache)`;
+
+                // Fallback ke localStorage jika gagal koneksi
+                let local = localStorage.getItem('my_playlist_cache');
                 if (local) {
                     playlistData = JSON.parse(local);
+                    renderPlaylist();
+                } else {
+                    playlistData = [];
                     renderPlaylist();
                 }
             }
         }
 
-        // Simpan Data ke JSONBin & LocalStorage
+        // Simpan Data ke JSONBin.io & LocalStorage
         async function savePlaylist() {
-            localStorage.setItem('my_playlist', JSON.stringify(playlistData));
+            localStorage.setItem('my_playlist_cache', JSON.stringify(playlistData));
+            
             try {
-                await fetch(JSONBIN_URL, {
+                const response = await fetch(JSONBIN_URL, {
                     method: 'PUT',
                     headers: {
                         'Content-Type': 'application/json',
+                        'X-Master-Key': MASTER_KEY
                     },
                     body: JSON.stringify({ playlist: playlistData })
                 });
+
+                if (!response.ok) throw new Error('Gagal menyimpan ke cloud');
             } catch (err) {
-                console.error("Gagal sinkron ke cloud:", err);
+                console.error("JSONBin Save Error:", err);
+                alert("Perubahan disimpan secara lokal. Gagal memperbarui cloud JSONBin.");
             }
         }
 
@@ -199,12 +227,11 @@
             });
         }
 
-        // Render Playlist (Hanya tampilkan yang played === false)
+        // Render Playlist (Sembunyikan yang played === true)
         function renderPlaylist() {
             const container = document.getElementById('playlistContainer');
             const keyword = document.getElementById('localSearchInput').value.toLowerCase();
             
-            // Filter: hanya yang belum diputar (played !== true) dan sesuai pencarian lokal
             const activeList = playlistData.filter(item => !item.played && item.title.toLowerCase().includes(keyword));
             
             document.getElementById('playlistCount').innerText = `${activeList.length} lagu`;
@@ -244,7 +271,6 @@
                 player.loadVideoById(videoId);
             }
             
-            // Update UI Info Player Utama
             const currentItem = playlistData.find(i => i.id === id);
             if (currentItem) {
                 document.getElementById('currentVideoTitle').innerText = currentItem.title;
@@ -253,7 +279,7 @@
             }
         }
 
-        // Tandai sudah diputar (Sembunyikan dari playlist aktif)
+        // Tandai sudah diputar (Sembunyikan dari antrean)
         async function markAsPlayed(id) {
             const index = playlistData.findIndex(i => i.id === id);
             if (index !== -1) {
@@ -261,7 +287,6 @@
                 await savePlaylist();
                 renderPlaylist();
 
-                // Jika video yang sedang diputar ditandai selesai, reset player jika itu videonya
                 if (currentPlayingId === id) {
                     currentPlayingId = null;
                     document.getElementById('currentVideoTitle').innerText = '-';
@@ -302,7 +327,6 @@
                     const channel = item.snippet.channelTitle;
                     const thumb = item.snippet.thumbnails.medium.url;
 
-                    // Cek apakah video sudah ada di playlist
                     const isExist = playlistData.some(p => p.videoId === videoId);
 
                     return `
@@ -330,9 +354,8 @@
             }
         }
 
-        // Tambah ke Playlist dengan Penanganan Duplikat (Validasi Video ID Sama)
+        // Tambah ke Playlist dengan Validasi Duplikat Video ID
         async function addToPlaylist(videoId, title, channel, thumbnail) {
-            // Validasi pencegahan input video yang sama
             const isDuplicate = playlistData.some(item => item.videoId === videoId);
             if (isDuplicate) {
                 alert("Video ini sudah ada di dalam playlist!");
@@ -351,15 +374,13 @@
             playlistData.push(newItem);
             await savePlaylist();
             renderPlaylist();
-            searchYouTube(); // Refresh hasil pencarian agar tombol berubah jadi "Ditambahkan"
+            searchYouTube(); 
         }
 
-        // Helper escape string HTML sederhana
         function escapeHtml(text) {
             return text.replace(/'/g, "\\'").replace(/"/g, '&quot;');
         }
 
-        // Kontrol Modal Pop-up
         function openAddModal() {
             document.getElementById('addModal').classList.remove('hidden');
         }
@@ -368,10 +389,8 @@
             document.getElementById('addModal').classList.add('hidden');
         }
 
-        // Filter Pencarian Lokal
         document.getElementById('localSearchInput').addEventListener('input', renderPlaylist);
 
-        // Load awal saat halaman dibuka
         window.onload = () => {
             fetchPlaylist();
         };
