@@ -10,8 +10,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         body { background-color: #f8f9fa; }
-        .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; }
-        .video-container div { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; }
+        #yt-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; }
+        .placeholder-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; background: #212529; }
         .playlist-item { cursor: pointer; transition: background 0.2s; }
         .playlist-item:hover, .playlist-item.active { background-color: #e9ecef; }
         .search-result-item { cursor: pointer; transition: background 0.2s; }
@@ -51,10 +52,15 @@
                 <div class="col-lg-8 mb-4">
                     <div class="card shadow-sm">
                         <div class="card-body p-0">
-                            <div class="video-container bg-dark">
+                            <div class="video-container">
+                                <!-- Pemutar YouTube Iframe API -->
                                 <div id="yt-player"></div>
-                                <div class="d-flex justify-content-center align-items-center h-100 text-white text-center p-4" id="placeholder-video">
-                                    <p class="mb-0">Silakan pilih video dari daftar playlist di samping atau aktifkan pemutaran berurutan.</p>
+                                <!-- Placeholder jika belum ada video diputar -->
+                                <div class="placeholder-box d-flex flex-column justify-content-center align-items-center text-white text-center p-4" id="placeholder-video">
+                                    <i class="fa-brands fa-youtube text-danger fa-3x mb-3"></i>
+                                    <h5>Pemutar Video Siap</h5>
+                                    <p class="text-muted small mb-3">Silakan klik tombol di bawah atau pilih video dari daftar antrean.</p>
+                                    <button class="btn btn-danger btn-sm" onclick="playFirstAvailable()"><i class="fa-solid fa-play me-1"></i> Mulai Putar Antrean</button>
                                 </div>
                             </div>
                         </div>
@@ -64,7 +70,7 @@
                                     <h5 id="current-video-title" class="mb-1 text-truncate">Pilih Video</h5>
                                     <p id="current-playlist-name" class="text-muted small mb-0">-</p>
                                 </div>
-                                <button class="btn btn-outline-primary btn-sm" onclick="playNextInQueue()"><i class="fa-solid fa-forward-step"></i> Putar Urutan Berikutnya</button>
+                                <button class="btn btn-outline-primary btn-sm text-nowrap" onclick="playNextInQueue()"><i class="fa-solid fa-forward-step"></i> Selanjutnya</button>
                             </div>
                         </div>
                     </div>
@@ -153,9 +159,7 @@
             </div>
 
             <!-- List Kategori & Video Admin -->
-            <div id="admin-playlist-editor">
-                <!-- Diisi via Javascript -->
-            </div>
+            <div id="admin-playlist-editor"></div>
         </div>
 
     </div>
@@ -196,24 +200,35 @@
             playlists: []
         };
 
-        let player;
+        let player = null;
         let activePlaylistIndex = null;
         let activeVideoIndex = null;
         let activeModalPlaylistIndex = null;
+        let isApiReady = false;
 
-        // Inisialisasi YouTube Player API
+        // Inisialisasi YouTube Player API secara aman
         function onYouTubeIframeAPIReady() {
             player = new YT.Player('yt-player', {
                 height: '100%',
                 width: '100%',
+                playerVars: {
+                    'autoplay': 1,
+                    'controls': 1,
+                    'rel': 0
+                },
                 events: {
+                    'onReady': onPlayerReady,
                     'onStateChange': onPlayerStateChange
                 }
             });
         }
 
-        // Listener saat status video berubah (terdeteksi ketika video selesai: YT.PlayerState.ENDED)
+        function onPlayerReady(event) {
+            isApiReady = true;
+        }
+
         function onPlayerStateChange(event) {
+            // Ketika video selesai diputar (YT.PlayerState.ENDED)
             if (event.data === YT.PlayerState.ENDED) {
                 handleVideoEnded();
             }
@@ -263,8 +278,6 @@
                 });
                 if(response.ok) {
                     fetchData();
-                } else {
-                    console.error("Gagal menyimpan data ke server.");
                 }
             } catch (error) {
                 console.error("Gagal menyimpan:", error);
@@ -320,16 +333,26 @@
             activeVideoIndex = vIndex;
             let vid = pl.videos[vIndex];
 
+            // Sembunyikan kotak placeholder agar pemutar YouTube tampil
             document.getElementById('placeholder-video').style.display = 'none';
-            if(player && player.loadVideoById) {
+
+            if(player && typeof player.loadVideoById === 'function') {
                 player.loadVideoById(vid.videoId);
+            } else {
+                // Fallback jika API belum siap
+                setTimeout(() => {
+                    if(player && typeof player.loadVideoById === 'function') {
+                        player.loadVideoById(vid.videoId);
+                    }
+                }, 1000);
             }
+
             document.getElementById('current-video-title').innerText = vid.title;
             document.getElementById('current-playlist-name').innerText = "Kategori: " + pl.title + ` (Urutan ke-${vIndex + 1})`;
             updateUI();
         }
 
-        // Mulai putar dari antrean teratas pertama yang tersedia
+        // Mulai putar dari antrean teratas pertama
         function playFirstAvailable() {
             if(!appData.playlists) return;
             for(let p = 0; p < appData.playlists.length; p++) {
@@ -338,10 +361,10 @@
                     return;
                 }
             }
-            alert("Antrean video kosong!");
+            alert("Antrean video kosong! Silakan tambahkan video melalui halaman Admin.");
         }
 
-        // Tombol Putar Urutan Berikutnya
+        // Putar urutan berikutnya
         function playNextInQueue() {
             if(activePlaylistIndex === null || activeVideoIndex === null) {
                 playFirstAvailable();
@@ -349,11 +372,9 @@
             }
             
             let pl = appData.playlists[activePlaylistIndex];
-            // Cek apakah masih ada video di bawahnya dalam kategori yang sama
             if(pl && pl.videos && activeVideoIndex + 1 < pl.videos.length) {
                 playVideoSpecific(activePlaylistIndex, activeVideoIndex + 1);
             } else {
-                // Cari kategori berikutnya dari atas
                 let found = false;
                 for(let p = activePlaylistIndex + 1; p < appData.playlists.length; p++) {
                     if(appData.playlists[p].videos && appData.playlists[p].videos.length > 0) {
@@ -368,25 +389,19 @@
             }
         }
 
-        // RULE UTAMA: Video yang sudah diputar otomatis dihapus dari daftar
+        // Otomatis hapus video yang sudah diputar dari daftar
         function handleVideoEnded() {
             if(activePlaylistIndex === null || activeVideoIndex === null) return;
 
             let pl = appData.playlists[activePlaylistIndex];
             if(pl && pl.videos && pl.videos[activeVideoIndex]) {
-                // Hapus video yang baru saja selesai dari array
                 pl.videos.splice(activeVideoIndex, 1);
-                
-                // Simpan ke database JSONBin
                 saveData();
 
-                // Lanjutkan memutar video berikutnya pada indeks yang sama (karena elemen bergeser naik dari atas ke bawah)
                 if(pl.videos.length > 0) {
-                    // Jika masih ada video di posisi ini atau sesudahnya
                     let nextIdx = activeVideoIndex < pl.videos.length ? activeVideoIndex : 0;
                     playVideoSpecific(activePlaylistIndex, nextIdx);
                 } else {
-                    // Jika kategori ini habis, cari antrean berikutnya
                     activePlaylistIndex = null;
                     activeVideoIndex = null;
                     document.getElementById('placeholder-video').style.display = 'flex';
@@ -442,12 +457,10 @@
                             <button class="btn btn-outline-danger btn-sm" onclick="deletePlaylist(${pIndex})"><i class="fa-solid fa-trash"></i> Hapus Kategori</button>
                         </div>
                         <div class="card-body">
-                            <!-- Tombol Buka Modal Pencarian YouTube API -->
                             <div class="mb-3">
                                 <button class="btn btn-danger btn-sm" onclick="openSearchModal(${pIndex})"><i class="fa-brands fa-youtube"></i> Cari & Tambah Video dari YouTube API</button>
                             </div>
 
-                            <!-- Tabel Antrean Video (Atas ke Bawah) -->
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered mb-0">
                                     <thead class="table-light">
@@ -522,7 +535,6 @@
             }
         }
 
-        // Buka Modal Pencarian YouTube API
         function openSearchModal(pIndex) {
             activeModalPlaylistIndex = pIndex;
             document.getElementById('yt-search-keyword').value = '';
@@ -531,7 +543,6 @@
             modal.show();
         }
 
-        // Fungsi Pencarian YouTube API
         async function searchYouTubeAPI() {
             let keyword = document.getElementById('yt-search-keyword').value.trim();
             if(!keyword) return alert('Masukkan kata kunci pencarian!');
@@ -583,7 +594,6 @@
             }
         }
 
-        // Tambahkan Video dari Hasil Pencarian ke Kategori yang Dipilih
         function addVideoFromSearch(videoId, title) {
             if(activeModalPlaylistIndex === null) return;
 
@@ -591,7 +601,6 @@
                 appData.playlists[activeModalPlaylistIndex].videos = [];
             }
 
-            // Tambahkan ke antrean (otomatis masuk ke bawah urutan)
             appData.playlists[activeModalPlaylistIndex].videos.push({
                 videoId: videoId,
                 title: title
