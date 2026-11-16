@@ -13,7 +13,7 @@
     <header class="bg-slate-800 border-b border-slate-700 sticky top-0 z-50 px-4 py-3 shadow-md">
         <div class="max-w-4xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-3">
             <h1 class="text-xl font-bold tracking-wider text-rose-500 flex items-center gap-2">
-                You Ucup
+                🎧 U Cup
             </h1>
             <!-- Search & Genre Form -->
             <form id="searchForm" class="flex w-full sm:w-auto gap-2">
@@ -62,21 +62,33 @@
     </main>
 
     <!-- Modal Video Player -->
-    <div id="playerModal" class="fixed inset-0 bg-black/80 z-50 hidden items-center justify-center p-4">
-        <div id="modalContainer" class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-2xl overflow-hidden shadow-2xl relative">
-            <div class="flex items-center justify-between p-3 border-b border-slate-700">
-                <h3 id="modalTitle" class="text-sm font-medium truncate pr-4">Memutar Video</h3>
+    <div id="playerModal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-2 sm:p-4">
+        <div id="modalContainer" class="bg-slate-800 border border-slate-700 rounded-xl w-full max-w-3xl overflow-hidden shadow-2xl relative flex flex-col max-h-[95vh]">
+            
+            <!-- Header Modal (Akan disembunyikan otomatis saat mode Fullscreen) -->
+            <div id="modalHeader" class="flex items-center justify-between p-3 border-b border-slate-700 bg-slate-800 transition-all duration-300">
+                <h3 id="modalTitle" class="text-sm font-medium truncate pr-4 text-slate-200">Memutar Video</h3>
                 <div class="flex items-center gap-2">
-                    <!-- Tombol Full Screen -->
-                    <button onclick="toggleFullScreen()" class="text-slate-300 hover:text-white text-xs bg-slate-700 hover:bg-slate-600 px-2.5 py-1 rounded transition flex items-center gap-1">
-                        ⛶ Fullscreen
+                    <button onclick="toggleFullScreen()" class="text-slate-300 hover:text-white text-xs bg-slate-700 hover:bg-slate-600 px-2.5 py-1.5 rounded transition flex items-center gap-1">
+                        ⛶ Fullscreen / Landscape
                     </button>
-                    <button onclick="closePlayer()" class="text-slate-400 hover:text-white font-bold text-lg px-2">&times;</button>
+                    <button onclick="closePlayer()" class="text-slate-400 hover:text-white font-bold text-xl px-2">&times;</button>
                 </div>
             </div>
-            <div class="relative w-full" style="padding-bottom: 56.25%;">
+
+            <!-- Area Pemutar Video -->
+            <div class="relative w-full bg-black flex-shrink-0" style="padding-bottom: 56.25%;">
                 <iframe id="youtubePlayer" class="absolute top-0 left-0 w-full h-full" src="" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
             </div>
+
+            <!-- Bagian Saran Video Selanjutnya (Playlist Rekomendasi) -->
+            <div id="suggestionSection" class="p-3 bg-slate-900 overflow-y-auto flex-grow transition-all duration-300">
+                <p class="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-2">Saran Video Selanjutnya:</p>
+                <div id="suggestionList" class="flex flex-col gap-2">
+                    <!-- Item saran video akan masuk secara dinamis di sini -->
+                </div>
+            </div>
+
         </div>
     </div>
 
@@ -87,7 +99,6 @@
 
     <!-- JavaScript Logika API -->
     <script>
-        // Kunci API YouTube Anda
         const API_KEY = "AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk";
 
         const searchForm = document.getElementById('searchForm');
@@ -97,6 +108,11 @@
         const playerModal = document.getElementById('playerModal');
         const youtubePlayer = document.getElementById('youtubePlayer');
         const modalTitle = document.getElementById('modalTitle');
+        const modalHeader = document.getElementById('modalHeader');
+        const suggestionSection = document.getElementById('suggestionSection');
+        const suggestionList = document.getElementById('suggestionList');
+
+        let currentVideoItems = []; // Menyimpan daftar video hasil pencarian aktif
 
         // Event listener form pencarian
         searchForm.addEventListener('submit', (e) => {
@@ -116,8 +132,7 @@
             loading.classList.remove('hidden');
             videoGrid.innerHTML = '';
 
-            // Endpoint REST API YouTube Search
-            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(keyword + ' official music video')}&type=video&key=${API_KEY}`;
+            const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(keyword + ' official music video')}&type=video&key=${API_KEY}`;
 
             try {
                 const response = await fetch(url);
@@ -131,6 +146,7 @@
                 }
 
                 if (data.items && data.items.length > 0) {
+                    currentVideoItems = data.items; // Simpan data untuk daftar saran
                     renderVideos(data.items);
                 } else {
                     videoGrid.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">Tidak ada hasil ditemukan untuk "${keyword}".</div>`;
@@ -145,7 +161,7 @@
         // Render hasil JSON ke dalam bentuk Grid Card
         function renderVideos(items) {
             videoGrid.innerHTML = '';
-            items.forEach(item => {
+            items.forEach((item, index) => {
                 const videoId = item.id.videoId;
                 const title = item.snippet.title;
                 const channelTitle = item.snippet.channelTitle;
@@ -153,7 +169,7 @@
 
                 const card = document.createElement('div');
                 card.className = 'bg-slate-800 border border-slate-700 rounded-xl overflow-hidden hover:border-rose-500 transition cursor-pointer flex flex-col';
-                card.onclick = () => openPlayer(videoId, title);
+                card.onclick = () => openPlayer(videoId, title, index);
 
                 card.innerHTML = `
                     <div class="relative aspect-video bg-slate-900 overflow-hidden">
@@ -171,12 +187,42 @@
             });
         }
 
-        // Buka Modal Pemutar Video
-        function openPlayer(videoId, title) {
+        // Buka Modal Pemutar Video & Muat Daftar Saran
+        function openPlayer(videoId, title, currentIndex) {
             modalTitle.innerText = title;
             youtubePlayer.src = `https://www.youtube.com/embed/${videoId}?autoplay=1`;
             playerModal.classList.remove('hidden');
             playerModal.classList.add('flex');
+
+            // Render daftar video saran (selain video yang sedang diputar)
+            renderSuggestions(currentIndex);
+        }
+
+        // Render daftar saran video berikutnya
+        function renderSuggestions(currentIndex) {
+            suggestionList.innerHTML = '';
+            currentVideoItems.forEach((item, index) => {
+                if (index === currentIndex) return; // Lewati video yang sedang diputar
+
+                const videoId = item.id.videoId;
+                const title = item.snippet.title;
+                const channelTitle = item.snippet.channelTitle;
+                const thumbnail = item.snippet.thumbnails.medium.url;
+
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'flex items-center gap-3 p-2 bg-slate-800 hover:bg-slate-700 rounded-lg cursor-pointer transition border border-slate-700/50';
+                itemDiv.onclick = () => openPlayer(videoId, title, index);
+
+                itemDiv.innerHTML = `
+                    <img src="${thumbnail}" alt="${title}" class="w-20 h-12 object-cover rounded flex-shrink-0">
+                    <div class="flex flex-col overflow-hidden">
+                        <h5 class="text-xs font-medium text-slate-200 truncate">${title}</h5>
+                        <p class="text-[10px] text-slate-400">${channelTitle}</p>
+                    </div>
+                    <span class="ml-auto text-rose-500 text-xs font-semibold px-2">Putar</span>
+                `;
+                suggestionList.appendChild(itemDiv);
+            });
         }
 
         // Tutup Modal Pemutar Video & Hentikan Audio/Video
@@ -185,34 +231,57 @@
             playerModal.classList.remove('flex');
             playerModal.classList.add('hidden');
             
-            // Otomatis keluar dari fullscreen jika sedang aktif saat modal ditutup
             if (document.fullscreenElement) {
                 document.exitFullscreen();
             }
+            if (screen.orientation && screen.orientation.unlock) {
+                screen.orientation.unlock();
+            }
         }
 
-        // Fungsi Fullscreen Toggle
+        // Fungsi Fullscreen, Sembunyikan Judul, & Auto Landscape HP
         function toggleFullScreen() {
             const modalContainer = document.getElementById('modalContainer');
 
             if (!document.fullscreenElement) {
+                // Masuk Fullscreen
                 if (modalContainer.requestFullscreen) {
                     modalContainer.requestFullscreen();
-                } else if (modalContainer.webkitRequestFullscreen) { /* Safari */
+                } else if (modalContainer.webkitRequestFullscreen) {
                     modalContainer.webkitRequestFullscreen();
-                } else if (modalContainer.msRequestFullscreen) { /* IE11 */
-                    modalContainer.msRequestFullscreen();
+                }
+
+                // Sembunyikan Header/Judul dan Daftar Saran agar layar penuh fokus ke video
+                modalHeader.classList.add('hidden');
+                suggestionSection.classList.add('hidden');
+
+                // Otomatis ubah orientasi ke Landscape (jika didukung perangkat HP)
+                if (screen.orientation && screen.orientation.lock) {
+                    screen.orientation.lock('landscape').catch(err => console.log("Orientasi terkunci manual oleh browser"));
                 }
             } else {
+                // Keluar Fullscreen
                 if (document.exitFullscreen) {
                     document.exitFullscreen();
-                } else if (document.webkitExitFullscreen) { /* Safari */
+                } else if (document.webkitExitFullscreen) {
                     document.webkitExitFullscreen();
-                } else if (document.msExitFullscreen) { /* IE11 */
-                    document.msExitFullscreen();
                 }
             }
         }
+
+        // Listener untuk mendeteksi perubahan status fullscreen (misal tombol Back / Esc HP ditekan)
+        document.addEventListener('fullscreenchange', () => {
+            if (!document.fullscreenElement) {
+                // Munculkan kembali header dan daftar saran saat keluar dari fullscreen
+                modalHeader.classList.remove('hidden');
+                suggestionSection.classList.remove('hidden');
+
+                // Lepas kunci orientasi layar
+                if (screen.orientation && screen.orientation.unlock) {
+                    screen.orientation.unlock();
+                }
+            }
+        });
 
         // Tutup modal jika klik di luar kotak video
         playerModal.addEventListener('click', (e) => {
