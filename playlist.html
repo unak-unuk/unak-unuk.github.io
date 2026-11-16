@@ -132,13 +132,13 @@
 
             <!-- Kelola Playlist -->
             <div class="card shadow-sm mb-4">
-                <div class="card-header bg-success text-white d-flex justify-content-between align-items-center">
-                    <span><i class="fa-solid fa-folder-plus"></i> Tambah Playlist / Kategori Baru</span>
+                <div class="card-header bg-success text-white">
+                    <span><i class="fa-solid fa-folder-plus"></i> Tambah Kategori / Playlist Baru</span>
                 </div>
                 <div class="card-body">
                     <div class="input-group">
-                        <input type="text" id="new-playlist-title" class="form-control" placeholder="Nama Kategori / Playlist (Cth: Musik Rohani, Kajian, dll)">
-                        <button class="btn btn-primary" onclick="addPlaylist()"><i class="fa-solid fa-plus"></i> Tambah</button>
+                        <input type="text" id="new-playlist-title" class="form-control" placeholder="Nama Kategori (Cth: Video Kajian, Musik, dll)">
+                        <button class="btn btn-primary" onclick="addPlaylist()"><i class="fa-solid fa-plus"></i> Tambah Kategori</button>
                     </div>
                 </div>
             </div>
@@ -165,14 +165,11 @@
             playlists: []
         };
 
-        // Saat halaman pertama kali dimuat
         document.addEventListener("DOMContentLoaded", () => {
             fetchData();
-            // Refresh otomatis data tiap 10 detik agar sinkron
             setInterval(fetchData, 10000);
         });
 
-        // Navigasi Halaman
         function showPage(pageId) {
             document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
             if(pageId === 'user') {
@@ -185,7 +182,6 @@
             }
         }
 
-        // Ambil Data dari JSONBin
         async function fetchData() {
             try {
                 let response = await fetch(JSONBIN_URL + "/latest", {
@@ -201,7 +197,6 @@
             }
         }
 
-        // Simpan Data ke JSONBin
         async function saveData() {
             try {
                 let response = await fetch(JSONBIN_URL, {
@@ -223,9 +218,7 @@
             }
         }
 
-        // Perbarui Tampilan Sisi Pengguna
         function updateUI() {
-            // Update Status Banner
             const alertBox = document.getElementById('status-alert');
             const statusText = document.getElementById('status-text');
             
@@ -237,7 +230,6 @@
                 statusText.innerText = "OFFLINE - Layanan sedang ditutup / istirahat.";
             }
 
-            // Render Public Playlist List
             let container = document.getElementById('public-playlist-container');
             if(!appData.playlists || appData.playlists.length === 0) {
                 container.innerHTML = `<div class="p-3 text-center text-muted">Belum ada playlist tersedia.</div>`;
@@ -245,14 +237,14 @@
             }
 
             let html = "";
-            appData.playlists.forEach((pl, pIndex) => {
-                html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary"><i class="fa-solid folder me-1"></i> ${pl.title}</div>`;
+            appData.playlists.forEach((pl) => {
+                html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary"><i class="fa-solid fa-folder me-1"></i> ${pl.title}</div>`;
                 if(!pl.videos || pl.videos.length === 0) {
                     html += `<div class="p-2 text-muted small ps-3">Tidak ada video di playlist ini</div>`;
                 } else {
-                    pl.videos.forEach((vid, vIndex) => {
+                    pl.videos.forEach((vid) => {
                         html += `
-                            <div class="playlist-item p-2 border-bottom ps-3 d-flex align-items-center" onclick="playVideo('${vid.videoId}', '${vid.title}', '${pl.title}')">
+                            <div class="playlist-item p-2 border-bottom ps-3 d-flex align-items-center" onclick="playVideo('${vid.videoId}', '${vid.title.replace(/'/g, "\\'")}', '${pl.title.replace(/'/g, "\\'")}')">
                                 <img src="https://img.youtube.com/vi/${vid.videoId}/default.jpg" class="me-2 rounded" width="60" height="45" style="object-fit:cover;">
                                 <div class="text-truncate small">
                                     <div class="fw-semibold text-dark text-truncate">${vid.title}</div>
@@ -265,7 +257,6 @@
             container.innerHTML = html;
         }
 
-        // Fungsi Memutar Video YouTube
         function playVideo(videoId, title, playlistTitle) {
             const playerBox = document.getElementById('player-box');
             playerBox.innerHTML = `
@@ -278,7 +269,6 @@
             document.getElementById('current-playlist-name').innerText = "Playlist: " + playlistTitle;
         }
 
-        // Fungsi Keamanan Admin
         function checkAdminAccess() {
             let session = sessionStorage.getItem('isAdminLoggedIn');
             if(session === 'true') {
@@ -307,13 +297,12 @@
             showPage('user');
         }
 
-        // Render Halaman Editor Admin
         function renderAdminEditor() {
             document.getElementById('admin-status-select').value = appData.status || "ONLINE";
             let container = document.getElementById('admin-playlist-editor');
             
             if(!appData.playlists || appData.playlists.length === 0) {
-                container.innerHTML = `<div class="alert alert-info">Belum ada playlist. Buat playlist baru di atas.</div>`;
+                container.innerHTML = `<div class="alert alert-info">Belum ada playlist. Buat kategori playlist baru di atas.</div>`;
                 return;
             }
 
@@ -323,15 +312,26 @@
                     <div class="card shadow-sm mb-3">
                         <div class="card-header bg-light d-flex justify-content-between align-items-center">
                             <strong><i class="fa-solid fa-list-ul"></i> ${pl.title}</strong>
-                            <button class="btn btn-outline-danger btn-sm" onclick="deletePlaylist(${pIndex})"><i class="fa-solid fa-trash"></i> Hapus Playlist</button>
+                            <button class="btn btn-outline-danger btn-sm" onclick="deletePlaylist(${pIndex})"><i class="fa-solid fa-trash"></i> Hapus Kategori</button>
                         </div>
                         <div class="card-body">
-                            <!-- Form Tambah Video -->
-                            <div class="input-group mb-3">
-                                <input type="text" id="vid-url-${pIndex}" class="form-control form-control-sm" placeholder="Link YouTube atau Video ID (Cth: dQw4w9WgXcQ)">
-                                <input type="text" id="vid-title-${pIndex}" class="form-control form-control-sm" placeholder="Judul Video">
-                                <button class="btn btn-success btn-sm" onclick="addVideo(${pIndex})"><i class="fa-solid fa-plus"></i> Tambah Video</button>
+                            <!-- Import dari YouTube Playlist ID -->
+                            <div class="p-3 bg-light rounded mb-3 border">
+                                <label class="form-label small fw-bold"><i class="fa-brands fa-youtube text-danger"></i> Impor Otomatis dari Playlist YouTube:</label>
+                                <div class="input-group input-group-sm">
+                                    <input type="text" id="yt-playlist-id-${pIndex}" class="form-control" placeholder="Masukkan Playlist ID YouTube (Cth: PLxxxx...)">
+                                    <button class="btn btn-danger" onclick="importYouTubePlaylist(${pIndex})"><i class="fa-solid fa-cloud-arrow-down"></i> Impor Semua Video</button>
+                                </div>
+                                <small class="text-muted" style="font-size: 11px;">Tips: Ambil teks di belakang <code>list=</code> dari link playlist YouTube Anda.</small>
                             </div>
+
+                            <!-- Form Tambah Video Manual -->
+                            <div class="input-group input-group-sm mb-3">
+                                <input type="text" id="vid-url-${pIndex}" class="form-control" placeholder="Link YouTube atau Video ID (Cth: dQw4w9WgXcQ)">
+                                <input type="text" id="vid-title-${pIndex}" class="form-control" placeholder="Judul Video">
+                                <button class="btn btn-success" onclick="addVideo(${pIndex})"><i class="fa-solid fa-plus"></i> Tambah Manual</button>
+                            </div>
+
                             <!-- Tabel Video -->
                             <div class="table-responsive">
                                 <table class="table table-sm table-bordered mb-0">
@@ -374,7 +374,6 @@
             container.innerHTML = html;
         }
 
-        // Fungsi Aksi Admin (Simpan Status, Tambah/Hapus Playlist & Video)
         function saveStatusSystem() {
             appData.status = document.getElementById('admin-status-select').value;
             saveData();
@@ -392,13 +391,12 @@
         }
 
         function deletePlaylist(pIndex) {
-            if(confirm("Yakin ingin menghapus playlist ini beserta semua videonya?")) {
+            if(confirm("Yakin ingin menghapus kategori ini beserta videonya?")) {
                 appData.playlists.splice(pIndex, 1);
                 saveData();
             }
         }
 
-        // Ekstraksi Video ID dari URL YouTube atau Input Langsung
         function extractVideoId(urlOrId) {
             let regExp = /^.*(youtu.be\/|v\/|u\/\w\/|embed\/|watch\?v=|\&v=)([^#\&\?]*).*/;
             let match = urlOrId.match(regExp);
@@ -422,6 +420,60 @@
             if(confirm("Hapus video ini dari playlist?")) {
                 appData.playlists[pIndex].videos.splice(vIndex, 1);
                 saveData();
+            }
+        }
+
+        // Fungsi Otomatis Mengambil Data dari YouTube Playlist API
+        async function importYouTubePlaylist(pIndex) {
+            let inputField = document.getElementById(`yt-playlist-id-${pIndex}`);
+            let rawInput = inputField.value.trim();
+            if(!rawInput) return alert('Masukkan ID Playlist YouTube atau URL Playlist!');
+
+            // Ekstrak Playlist ID jika user memasukkan link lengkap (misal: https://www.youtube.com/playlist?list=PLxxx)
+            let playlistId = rawInput;
+            if(rawInput.includes("list=")) {
+                let urlParams = new URLSearchParams(rawInput.split('?')[1]);
+                playlistId = urlParams.get('list') || rawInput;
+            }
+
+            try {
+                let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&maxResults=50&playlistId=${playlistId}&key=${YT_API_KEY}`;
+                let response = await fetch(url);
+                let data = await response.json();
+
+                if(data.error) {
+                    alert("Gagal mengambil dari YouTube: " + data.error.message);
+                    return;
+                }
+
+                if(!data.items || data.items.length === 0) {
+                    alert("Tidak ada video ditemukan di playlist tersebut atau playlist privat.");
+                    return;
+                }
+
+                if(!appData.playlists[pIndex].videos) {
+                    appData.playlists[pIndex].videos = [];
+                }
+
+                // Masukkan semua video dari YouTube API ke array video kategori ini
+                data.items.forEach(item => {
+                    let vidId = item.snippet.resourceId.videoId;
+                    let vidTitle = item.snippet.title;
+                    // Hindari duplikasi video yang sama
+                    let exists = appData.playlists[pIndex].videos.some(v => v.videoId === vidId);
+                    if(!exists && vidId) {
+                        appData.playlists[pIndex].videos.push({
+                            videoId: vidId,
+                            title: vidTitle
+                        });
+                    }
+                });
+
+                inputField.value = '';
+                saveData();
+            } catch (err) {
+                console.error(err);
+                alert("Terjadi kesalahan saat menghubungi YouTube API.");
             }
         }
     </script>
