@@ -13,22 +13,67 @@
         .video-container { position: relative; width: 100%; padding-bottom: 56.25%; height: 0; background: #000; overflow: hidden; }
         #yt-player { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 2; border: 0; }
         .placeholder-box { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 3; background: #212529; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        
+        /* Sistem Scroll pada Playlist agar rapi */
+        .playlist-scroll-container {
+            max-height: 70vh;
+            overflow-y: auto;
+            border: 1px solid #dee2e6;
+            border-radius: 0.375rem;
+            background: #fff;
+        }
+
         .playlist-item { cursor: pointer; transition: background 0.2s; }
         .playlist-item:hover, .playlist-item.active { background-color: #e9ecef; }
         .search-result-item { cursor: pointer; transition: background 0.2s; }
         .search-result-item:hover { background-color: #f1f3f5; }
         .video-info-box { max-width: 100%; overflow: hidden; }
+
+        /* Mode Offline Total (Disable Semua Interaksi) */
+        .system-offline-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(33, 37, 41, 0.95);
+            z-index: 9999;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            color: #fff;
+            text-align: center;
+            padding: 20px;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Navbar -->
+    <!-- Overlay Peringatan Sistem Offline -->
+    <div id="offline-overlay" class="system-offline-overlay">
+        <div>
+            <i class="fa-solid fa-triangle-exclamation text-warning fa-4x mb-3"></i>
+            <h1 class="fw-bold">Sistem Sedang Offline</h1>
+            <p class="text-light lead">Mohon maaf, layanan penayangan video saat ini sedang ditutup atau dalam pemeliharaan. Seluruh fitur tidak dapat digunakan.</p>
+        </div>
+    </div>
+
+    <!-- Navbar / Menu Navigasi Utama (Dibagi menjadi 3 Halaman) -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#"><i class="fa-brands fa-youtube text-danger"></i> YT Playlist App</a>
-            <div class="d-flex">
-                <button id="nav-btn-home" class="btn btn-outline-light btn-sm me-2" onclick="showPage('user')"><i class="fa-solid fa-house"></i> Beranda</button>
-                <button id="nav-btn-admin" class="btn btn-outline-warning btn-sm" onclick="checkAdminAccess()"><i class="fa-solid fa-lock"></i> Admin</button>
+            <a class="navbar-brand" href="#" onclick="showPage('player')"><i class="fa-brands fa-youtube text-danger"></i> YT Playlist App</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse justify-content-end" id="navbarNav">
+                <ul class="navbar-nav align-items-center">
+                    <li class="nav-item me-2">
+                        <button id="nav-btn-player" class="btn btn-outline-light btn-sm w-100 mb-1 mb-lg-0" onclick="showPage('player')"><i class="fa-solid fa-play"></i> Video Player</button>
+                    </li>
+                    <li class="nav-item me-2">
+                        <button id="nav-btn-playlist" class="btn btn-outline-light btn-sm w-100 mb-1 mb-lg-0" onclick="showPage('playlist')"><i class="fa-solid fa-list"></i> Daftar Playlist</button>
+                    </li>
+                    <li class="nav-item">
+                        <button id="nav-btn-admin" class="btn btn-outline-warning btn-sm w-100" onclick="checkAdminAccess()"><i class="fa-solid fa-lock"></i> Admin</button>
+                    </li>
+                </ul>
             </div>
         </div>
     </nav>
@@ -36,31 +81,20 @@
     <!-- Konten Utama -->
     <div class="container my-4">
         
-        <!-- ================= HALAMAN PENGGUNA ================= -->
-        <div id="page-user" class="page-section">
-            <div class="row">
-                <!-- Status Bar -->
-                <div class="col-12 mb-3">
-                    <div id="status-alert" class="alert d-flex align-items-center justify-content-between py-2" role="alert">
-                        <div>
-                            <i class="fa-solid fa-circle-info me-2"></i> Status Sistem: <strong id="status-text">Memuat...</strong>
-                        </div>
-                        <small id="last-updated" class="text-muted"></small>
-                    </div>
-                </div>
-
-                <!-- Main Player & Playlist View -->
-                <div class="col-lg-8 mb-4">
+        <!-- ================= 1. HALAMAN VIDEO PLAYER ================= -->
+        <div id="page-player" class="page-section">
+            <div class="row justify-content-center">
+                <div class="col-lg-10 mb-4">
                     <div class="card shadow-sm">
                         <div class="card-body p-0">
                             <div class="video-container">
                                 <!-- Pemutar YouTube Iframe API -->
                                 <div id="yt-player"></div>
-                                <!-- Placeholder box yang akan disembunyikan saat video dimainkan -->
+                                <!-- Placeholder box -->
                                 <div class="placeholder-box text-white text-center p-4" id="placeholder-video">
                                     <i class="fa-brands fa-youtube text-danger fa-3x mb-3"></i>
                                     <h5>Pemutar Video Siap</h5>
-                                    <p class="text-muted small mb-3">Silakan klik tombol di bawah atau pilih video dari daftar antrean.</p>
+                                    <p class="text-muted small mb-3">Silakan klik tombol di bawah atau pilih video dari menu Daftar Playlist.</p>
                                     <button class="btn btn-danger btn-sm" onclick="playFirstAvailable()"><i class="fa-solid fa-play me-1"></i> Mulai Putar Antrean</button>
                                 </div>
                             </div>
@@ -76,15 +110,20 @@
                         </div>
                     </div>
                 </div>
+            </div>
+        </div>
 
-                <!-- Daftar Playlist Sidebar -->
-                <div class="col-lg-4">
+        <!-- ================= 2. HALAMAN DAFTAR PLAYLIST ================= -->
+        <div id="page-playlist" class="page-section" style="display: none;">
+            <div class="row justify-content-center">
+                <div class="col-lg-8">
                     <div class="card shadow-sm">
                         <div class="card-header bg-primary text-white d-flex justify-content-between align-items-center">
-                            <span><i class="fa-solid fa-list me-1"></i> Daftar Antrean Video</span>
-                            <button class="btn btn-light btn-sm py-0 px-2" onclick="playFirstAvailable()" title="Putar dari atas"><i class="fa-solid fa-play"></i> Mulai</button>
+                            <span><i class="fa-solid fa-list me-1"></i> Daftar Antrean Video (Playlist)</span>
+                            <button class="btn btn-light btn-sm py-0 px-2" onclick="playFirstAvailable()" title="Putar dari atas"><i class="fa-solid fa-play"></i> Mulai Putar</button>
                         </div>
-                        <div class="card-body p-0" style="max-height: 500px; overflow-y: auto;" id="public-playlist-container">
+                        <!-- Sistem scroll pada playlist agar rapi -->
+                        <div class="card-body p-0 playlist-scroll-container" id="public-playlist-container">
                             <div class="text-center p-4 text-muted">Memuat data...</div>
                         </div>
                     </div>
@@ -92,7 +131,7 @@
             </div>
         </div>
 
-        <!-- ================= HALAMAN LOGIN ADMIN ================= -->
+        <!-- ================= 3A. HALAMAN LOGIN ADMIN ================= -->
         <div id="page-login" class="page-section" style="display: none;">
             <div class="row justify-content-center">
                 <div class="col-md-5">
@@ -118,14 +157,14 @@
             </div>
         </div>
 
-        <!-- ================= HALAMAN PANEL ADMIN ================= -->
+        <!-- ================= 3B. HALAMAN PANEL ADMIN ================= -->
         <div id="page-admin" class="page-section" style="display: none;">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h2>Panel Pengelola Admin</h2>
                 <button class="btn btn-danger btn-sm" onclick="logoutAdmin()"><i class="fa-solid fa-right-from-bracket"></i> Keluar</button>
             </div>
 
-            <!-- Pengaturan Status -->
+            <!-- Pengaturan Status (Online/Offline) -->
             <div class="card shadow-sm mb-4">
                 <div class="card-header bg-secondary text-white">
                     <i class="fa-solid fa-sliders"></i> Pengaturan Status Sistem
@@ -136,7 +175,7 @@
                             <label class="form-label fw-bold">Ubah Status Sistem (Online / Offline):</label>
                             <select id="admin-status-select" class="form-select">
                                 <option value="ONLINE">ONLINE (Dapat diakses pengguna)</option>
-                                <option value="OFFLINE">OFFLINE (Sedang pemeliharaan / Tutup)</option>
+                                <option value="OFFLINE">OFFLINE (Sistem dikunci / Tidak bisa digunakan)</option>
                             </select>
                         </div>
                         <div class="col-md-4 mt-3 mt-md-0">
@@ -232,7 +271,6 @@
         }
 
         function onPlayerStateChange(event) {
-            // Ketika video selesai diputar (YT.PlayerState.ENDED)
             if (event.data === YT.PlayerState.ENDED) {
                 handleVideoEnded();
             }
@@ -243,14 +281,30 @@
             setInterval(fetchData, 10000);
         });
 
+        // Pengaturan Halaman (1. Player, 2. Playlist, 3. Admin)
         function showPage(pageId) {
             document.querySelectorAll('.page-section').forEach(el => el.style.display = 'none');
-            if(pageId === 'user') {
-                document.getElementById('page-user').style.display = 'block';
+            
+            // Highlight tombol navigasi aktif
+            document.querySelectorAll('.navbar-nav .btn').forEach(btn => {
+                btn.classList.remove('btn-light');
+                btn.classList.add('btn-outline-light');
+            });
+
+            if(pageId === 'player') {
+                document.getElementById('page-player').style.display = 'block';
+                document.getElementById('nav-btn-player').classList.remove('btn-outline-light');
+                document.getElementById('nav-btn-player').classList.add('btn-light');
+            } else if(pageId === 'playlist') {
+                document.getElementById('page-playlist').style.display = 'block';
+                document.getElementById('nav-btn-playlist').classList.remove('btn-outline-light');
+                document.getElementById('nav-btn-playlist').classList.add('btn-light');
             } else if(pageId === 'login') {
                 document.getElementById('page-login').style.display = 'block';
             } else if(pageId === 'admin') {
                 document.getElementById('page-admin').style.display = 'block';
+                document.getElementById('nav-btn-admin').classList.remove('btn-outline-warning');
+                document.getElementById('nav-btn-admin').classList.add('btn-warning');
                 renderAdminEditor();
             }
         }
@@ -263,10 +317,21 @@
                 if(response.ok) {
                     let result = await response.json();
                     appData = result.record;
+                    checkSystemStatus();
                     updateUI();
                 }
             } catch (error) {
                 console.error("Gagal mengambil data:", error);
+            }
+        }
+
+        // Cek Status Sistem (Online / Offline)
+        function checkSystemStatus() {
+            let overlay = document.getElementById('offline-overlay');
+            if (appData.status === "OFFLINE") {
+                overlay.style.display = 'flex';
+            } else {
+                overlay.style.display = 'none';
             }
         }
 
@@ -289,17 +354,6 @@
         }
 
         function updateUI() {
-            const alertBox = document.getElementById('status-alert');
-            const statusText = document.getElementById('status-text');
-            
-            if(appData.status === "ONLINE") {
-                alertBox.className = "alert alert-success d-flex align-items-center justify-content-between py-2";
-                statusText.innerText = "ONLINE - Layanan aktif dan dapat disaksikan.";
-            } else {
-                alertBox.className = "alert alert-danger d-flex align-items-center justify-content-between py-2";
-                statusText.innerText = "OFFLINE - Layanan sedang ditutup / istirahat.";
-            }
-
             let container = document.getElementById('public-playlist-container');
             if(!appData.playlists || appData.playlists.length === 0) {
                 container.innerHTML = `<div class="p-3 text-center text-muted">Belum ada antrean video.</div>`;
@@ -308,7 +362,7 @@
 
             let html = "";
             appData.playlists.forEach((pl, pIdx) => {
-                html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary text-truncate"><i class="fa-solid fa-folder me-1"></i> ${pl.title}</div>`;
+                html += `<div class="p-2 bg-light border-bottom fw-bold text-secondary text-truncate sticky-top"><i class="fa-solid fa-folder me-1"></i> ${pl.title}</div>`;
                 if(!pl.videos || pl.videos.length === 0) {
                     html += `<div class="p-2 text-muted small ps-3">Antrean kosong</div>`;
                 } else {
@@ -328,7 +382,7 @@
             container.innerHTML = html;
         }
 
-        // Putar video berdasarkan indeks dari atas ke bawah
+        // Putar video dan arahkan otomatis ke halaman player
         function playVideoSpecific(pIndex, vIndex) {
             let pl = appData.playlists[pIndex];
             if(!pl || !pl.videos || !pl.videos[vIndex]) return;
@@ -337,7 +391,9 @@
             activeVideoIndex = vIndex;
             let vid = pl.videos[vIndex];
 
-            // Sembunyikan kotak placeholder secara paksa agar pemutar video kelihatan
+            // Pindah ke halaman Player secara otomatis saat video diklik
+            showPage('player');
+
             let placeholder = document.getElementById('placeholder-video');
             if(placeholder) {
                 placeholder.style.display = 'none';
@@ -354,7 +410,6 @@
             updateUI();
         }
 
-        // Mulai putar dari antrean teratas pertama
         function playFirstAvailable() {
             if(!appData.playlists) return;
             for(let p = 0; p < appData.playlists.length; p++) {
@@ -366,7 +421,6 @@
             alert("Antrean video kosong! Silakan tambahkan video melalui halaman Admin.");
         }
 
-        // Putar urutan berikutnya
         function playNextInQueue() {
             if(activePlaylistIndex === null || activeVideoIndex === null) {
                 playFirstAvailable();
@@ -391,7 +445,6 @@
             }
         }
 
-        // Otomatis hapus video yang sudah diputar dari daftar
         function handleVideoEnded() {
             if(activePlaylistIndex === null || activeVideoIndex === null) return;
 
@@ -438,7 +491,7 @@
 
         function logoutAdmin() {
             sessionStorage.removeItem('isAdminLoggedIn');
-            showPage('user');
+            showPage('player');
         }
 
         function renderAdminEditor() {
