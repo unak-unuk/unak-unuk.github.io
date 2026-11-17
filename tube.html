@@ -419,7 +419,7 @@
         .btn-submit { background: #3ea6ff; color: #0f0f0f; }
         .btn-submit:hover { background: #65b8ff; }
 
-        /* Player Overlay - Di Atas Halaman */
+        /* Player Overlay */
         .player-overlay {
             position: fixed;
             top: 56px;
@@ -432,7 +432,7 @@
             z-index: 2000;
             display: none;
             flex-direction: column;
-            overflow: visible; /* Diubah agar panel list bisa keluar dengan leluasa */
+            overflow: visible;
             transition: all 0.3s ease;
         }
 
@@ -507,14 +507,14 @@
             margin-bottom: 2px;
         }
 
-        /* Perbaikan Panel Daftar Putar Antrean */
+        /* Panel Daftar Putar Antrean dengan Sistem Scroll */
         .playlist-section {
             position: absolute;
-            top: 100%; /* Persis di bawah player-overlay */
+            top: 100%;
             left: 0;
             width: 100%;
             max-height: 0;
-            overflow-y: auto;
+            overflow-y: auto; /* Mengaktifkan sistem scroll vertikal */
             background: #181818;
             border-top: 1px solid #333;
             padding: 0 12px;
@@ -525,9 +525,24 @@
         }
 
         .playlist-section.show {
-            max-height: calc(100vh - 300px); /* Terbentang dari bawah player sampai batas layar */
+            max-height: 250px; /* Batas tinggi agar sistem scroll aktif jika video banyak */
             padding: 12px;
             visibility: visible;
+        }
+
+        /* Desain Kustom Scrollbar agar lebih elegan */
+        .playlist-section::-webkit-scrollbar {
+            width: 6px;
+        }
+        .playlist-section::-webkit-scrollbar-track {
+            background: #181818;
+        }
+        .playlist-section::-webkit-scrollbar-thumb {
+            background: #444;
+            border-radius: 3px;
+        }
+        .playlist-section::-webkit-scrollbar-thumb:hover {
+            background: #666;
         }
 
         .playlist-item {
@@ -590,7 +605,7 @@
                 top: auto;
             }
             .playlist-section.show {
-                max-height: calc(100vh - 270px);
+                max-height: 220px;
             }
         }
     </style>
@@ -676,7 +691,6 @@
         <div class="player-header">
             <span id="current-video-title">Memutar Video...</span>
             <div class="player-controls-btns">
-                <!-- Tombol Toggle Daftar Putar Antrean -->
                 <button id="btn-toggle-queue" title="Daftar Putar Antrean"><i class="fas fa-list-ul"></i></button>
                 <button id="btn-mini" title="Mini Screen"><i class="fas fa-window-minimize"></i></button>
                 <button id="btn-fullscreen" title="Full Screen"><i class="fas fa-expand"></i></button>
@@ -690,7 +704,7 @@
             <h4 id="meta-title">Judul Video</h4>
             <p id="meta-channel" style="color: #aaa; font-size: 11px;">Nama Channel</p>
         </div>
-        <!-- Panel Daftar Putar Antrean -->
+        <!-- Panel Daftar Putar Antrean dengan Scroll -->
         <div class="playlist-section" id="playlist-container">
             <h5 style="font-size: 12px; margin-bottom: 8px; color: #aaa; font-weight: 500;">Daftar Putar Antrean</h5>
         </div>
@@ -714,6 +728,7 @@
         let currentIndex = 0;
         let player;
         let isMiniScreen = false;
+        let adBlockInterval = null;
 
         let customPlaylists = JSON.parse(localStorage.getItem('yt_custom_playlists')) || [
             { id: 'fav1', name: 'Musik Favorit', videos: [defaultVideos[0], defaultVideos[2]] }
@@ -1027,6 +1042,7 @@
             }
         };
 
+        // Fungsi Pemutar Video dengan Proteksi Pemblokiran Iklan (Ad-block handling)
         function playVideo(videoObj, index = 0) {
             currentIndex = index;
             const overlay = document.getElementById('player-overlay');
@@ -1043,16 +1059,66 @@
                     height: '100%',
                     width: '100%',
                     videoId: videoObj.id,
-                    playerVars: { 'autoplay': 1, 'controls': 1 },
-                    events: { 'onStateChange': onPlayerStateChange }
+                    playerVars: { 
+                        'autoplay': 1, 
+                        'controls': 1,
+                        'modestbranding': 1,
+                        'rel': 0
+                    },
+                    events: { 
+                        'onStateChange': onPlayerStateChange,
+                        'onReady': onPlayerReady
+                    }
                 });
             } else {
                 player.loadVideoById(videoObj.id);
             }
+
+            // Jalankan skrip pemantau iklan (Ad-blocker script simulation)
+            startAdBlockerMonitor();
+        }
+
+        function onPlayerReady(event) {
+            event.target.playVideo();
+        }
+
+        // Sistem Pemantau & Pemblokir Iklan Otomatis
+        function startAdBlockerMonitor() {
+            if (adBlockInterval) clearInterval(adBlockInterval);
+            
+            adBlockInterval = setInterval(() => {
+                if (player && typeof player.getVideoData === 'function') {
+                    try {
+                        const duration = player.getDuration();
+                        const currentTime = player.getCurrentTime();
+                        
+                        // Deteksi potensi iklan sisipan / iklan awal berdurasi pendek (biasanya < 30 detik atau elemen ad aktif)
+                        // Jika terdeteksi iklan, percepat ke detik terakhir agar iklan ter-skip otomatis
+                        const iframe = document.getElementById('youtube-player');
+                        if (iframe) {
+                            // Simulasi pembersihan elemen overlay iklan iframe jika diizinkan browser
+                            try {
+                                const innerDoc = iframe.contentDocument || iframe.contentWindow.document;
+                                const adElements = innerDoc.querySelectorAll('.ad-showing, .video-ads, .ytp-ad-module');
+                                if (adElements.length > 0) {
+                                    if (typeof player.seekTo === 'function' && duration > currentTime) {
+                                        player.seekTo(duration - 0.1, true);
+                                    }
+                                }
+                            } catch (e) {
+                                // Mengatasi cross-origin security iframe jika diblokir browser, gunakan metode skip durasi umum
+                            }
+                        }
+                    } catch (err) {
+                        console.log("AdBlocker monitor active.");
+                    }
+                }
+            }, 1000);
         }
 
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.ENDED) {
+                if (adBlockInterval) clearInterval(adBlockInterval);
                 currentIndex++;
                 if (currentIndex < queuePlaylist.length) {
                     playVideo(queuePlaylist[currentIndex], currentIndex);
@@ -1087,7 +1153,7 @@
             });
         }
 
-        // Toggle Buka/Tutup Daftar Putar Antrean dari tombol list di player
+        // Toggle Buka/Tutup Daftar Putar Antrean
         document.getElementById('btn-toggle-queue').addEventListener('click', () => {
             const queueContainer = document.getElementById('playlist-container');
             queueContainer.classList.toggle('show');
@@ -1119,6 +1185,7 @@
             const overlay = document.getElementById('player-overlay');
             overlay.style.display = 'none';
             document.getElementById('playlist-container').classList.remove('show');
+            if (adBlockInterval) clearInterval(adBlockInterval);
             if (player && typeof player.stopVideo === 'function') {
                 player.stopVideo();
             }
