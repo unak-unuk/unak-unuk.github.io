@@ -397,7 +397,6 @@
             margin-bottom: 16px;
         }
 
-        /* Pengaturan Tombol Modal (Tombol Submit di Kiri, Batal di Kanan) */
         .modal-buttons {
             display: flex;
             justify-content: space-between;
@@ -626,7 +625,6 @@
             <h3>Buat Playlist Baru</h3>
             <input type="text" id="playlist-name-input" placeholder="Nama Playlist...">
             <div class="modal-buttons">
-                <!-- Tombol Buat di Kiri, Batal di Kanan -->
                 <button class="btn-submit" id="modal-create-btn">Buat</button>
                 <button class="btn-cancel" id="modal-cancel-btn">Batal</button>
             </div>
@@ -638,7 +636,10 @@
         <div class="modal-box">
             <h3>Simpan video ke...</h3>
             <div id="modal-playlist-options" style="max-height: 150px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;"></div>
-            <div class="modal-buttons" style="justify-content: flex-end;">
+            
+            <!-- Perubahan Tata Letak: Tombol Tambah di Kiri Bawah, Tutup di Kanan Bawah -->
+            <div class="modal-buttons">
+                <button class="btn-submit" id="modal-open-create-from-popup" style="font-size: 13px; padding: 6px 12px;"><i class="fas fa-plus"></i> Tambah Playlist</button>
                 <button class="btn-cancel" id="modal-add-cancel-btn">Tutup</button>
             </div>
         </div>
@@ -742,7 +743,6 @@
                                 <p>${vid.channel}</p>
                             </div>
                         </div>
-                        <!-- Tombol Titik Tiga -->
                         <button class="btn-options" title="Opsi" onclick="event.stopPropagation(); openAddToPlaylistModal('${vid.id}')">
                             <i class="fas fa-ellipsis-vertical"></i>
                         </button>
@@ -894,6 +894,13 @@
             document.getElementById('modal-create-playlist').style.display = 'none';
         });
 
+        // Tombol "Tambah Playlist" di dalam pop-up penyimpanan video
+        document.getElementById('modal-open-create-from-popup').addEventListener('click', () => {
+            document.getElementById('modal-add-to-playlist').style.display = 'none';
+            document.getElementById('modal-create-playlist').style.display = 'flex';
+            document.getElementById('playlist-name-input').value = '';
+        });
+
         window.openAddToPlaylistModal = function(videoId) {
             let foundVid = defaultVideos.find(v => v.id === videoId) || currentVideosList.find(v => v.id === videoId);
             if (!foundVid) {
@@ -908,7 +915,7 @@
             container.innerHTML = "";
 
             if (customPlaylists.length === 0) {
-                container.innerHTML = `<p style="font-size:13px; color:#aaa;">Belum ada playlist. Buat terlebih dahulu di menu sidebar.</p>`;
+                container.innerHTML = `<p style="font-size:13px; color:#aaa;">Belum ada playlist. Buat terlebih dahulu melalui tombol di bawah atau menu sidebar.</p>`;
             } else {
                 customPlaylists.forEach((pl) => {
                     const isAlreadyIn = pl.videos.some(v => v.id === videoId);
@@ -924,7 +931,6 @@
                             savePlaylists();
                             document.getElementById('modal-add-to-playlist').style.display = 'none';
                             
-                            // SweetAlert Berhasil Ditambahkan
                             Swal.fire({
                                 icon: 'success',
                                 title: 'Berhasil!',
