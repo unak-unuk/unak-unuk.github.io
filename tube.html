@@ -296,7 +296,6 @@
             margin-top: 4px;
         }
 
-        /* Tombol Titik Tiga */
         .btn-options {
             background: none;
             border: none;
@@ -420,10 +419,10 @@
         .btn-submit { background: #3ea6ff; color: #0f0f0f; }
         .btn-submit:hover { background: #65b8ff; }
 
-        /* Player Overlay - Diubah posisinya ke ATAS halaman */
+        /* Player Overlay - Di Atas Halaman */
         .player-overlay {
             position: fixed;
-            top: 56px; /* Tepat di bawah header */
+            top: 56px;
             right: 0;
             width: 100%;
             max-width: 450px;
@@ -466,12 +465,13 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 250px;
+            max-width: 200px;
         }
 
         .player-controls-btns {
             display: flex;
             gap: 12px;
+            align-items: center;
         }
 
         .player-controls-btns button {
@@ -504,22 +504,37 @@
             margin-bottom: 2px;
         }
 
+        /* Bagian Daftar Putar Antrean (Disembunyikan secara default, muncul dari bawah player sampai bawah layar) */
         .playlist-section {
-            max-height: 150px;
+            position: absolute;
+            top: 100%; /* Mulai tepat di bawah player-overlay */
+            left: 0;
+            width: 100%;
+            height: calc(100vh - 56px - 100%); /* Membentang dari bawah player sampai bawah layar */
+            max-height: 0; /* Tersembunyi */
             overflow-y: auto;
             background: #181818;
             border-top: 1px solid #333;
-            padding: 8px;
+            padding: 0 12px;
+            transition: max-height 0.3s ease-in-out, padding 0.3s ease;
+            z-index: 2005;
+        }
+
+        .playlist-section.show {
+            max-height: calc(100vh - 250px); /* Terbuka */
+            padding: 12px;
         }
 
         .playlist-item {
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 6px;
-            font-size: 11px;
-            border-radius: 4px;
+            padding: 8px;
+            font-size: 12px;
+            border-radius: 6px;
             cursor: pointer;
+            margin-bottom: 6px;
+            background: #212121;
         }
 
         .playlist-item:hover {
@@ -534,12 +549,12 @@
         .playlist-item-left {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 10px;
             overflow: hidden;
         }
 
         .playlist-item img {
-            width: 50px;
+            width: 60px;
             aspect-ratio: 16/9;
             object-fit: cover;
             border-radius: 4px;
@@ -568,6 +583,9 @@
                 height: 135px;
                 bottom: 12px;
                 top: auto;
+            }
+            .playlist-section.show {
+                max-height: calc(100vh - 280px);
             }
         }
     </style>
@@ -648,11 +666,13 @@
         </div>
     </div>
 
-    <!-- Player Overlay (Diposisikan di Atas) -->
+    <!-- Player Overlay -->
     <div class="player-overlay" id="player-overlay">
         <div class="player-header">
             <span id="current-video-title">Memutar Video...</span>
             <div class="player-controls-btns">
+                <!-- Tombol Toggle Daftar Putar Antrean -->
+                <button id="btn-toggle-queue" title="Daftar Putar Antrean"><i class="fas fa-list-ul"></i></button>
                 <button id="btn-mini" title="Mini Screen"><i class="fas fa-window-minimize"></i></button>
                 <button id="btn-fullscreen" title="Full Screen"><i class="fas fa-expand"></i></button>
                 <button id="btn-close" title="Tutup"><i class="fas fa-times"></i></button>
@@ -665,8 +685,9 @@
             <h4 id="meta-title">Judul Video</h4>
             <p id="meta-channel" style="color: #aaa; font-size: 11px;">Nama Channel</p>
         </div>
+        <!-- Panel Daftar Putar Antrean Tersembunyi -->
         <div class="playlist-section" id="playlist-container">
-            <h5 style="font-size: 11px; margin-bottom: 4px; color: #aaa;">Daftar Putar Antrean</h5>
+            <h5 style="font-size: 12px; margin-bottom: 8px; color: #aaa; font-weight: 500;">Daftar Putar Antrean</h5>
         </div>
     </div>
 
@@ -1039,7 +1060,7 @@
 
         function renderPlaylistQueueUI() {
             const container = document.getElementById('playlist-container');
-            container.innerHTML = `<h5 style="font-size: 11px; margin-bottom: 4px; color: #aaa;">Daftar Putar Antrean</h5>`;
+            container.innerHTML = `<h5 style="font-size: 12px; margin-bottom: 8px; color: #aaa; font-weight: 500;">Daftar Putar Antrean</h5>`;
             
             queuePlaylist.forEach((item, idx) => {
                 const pItem = document.createElement('div');
@@ -1055,10 +1076,18 @@
                 `;
                 pItem.addEventListener('click', () => {
                     playVideo(item, idx);
+                    // Tutup antrean setelah video diklik
+                    document.getElementById('playlist-container').classList.remove('show');
                 });
                 container.appendChild(pItem);
             });
         }
+
+        // Toggle Buka/Tutup Daftar Putar Antrean dari tombol di header player
+        document.getElementById('btn-toggle-queue').addEventListener('click', () => {
+            const queueContainer = document.getElementById('playlist-container');
+            queueContainer.classList.toggle('show');
+        });
 
         document.getElementById('btn-mini').addEventListener('click', () => {
             const overlay = document.getElementById('player-overlay');
@@ -1066,6 +1095,7 @@
             if (isMiniScreen) {
                 overlay.classList.add('miniscreen');
                 document.getElementById('btn-mini').innerHTML = '<i class="fas fa-window-maximize"></i>';
+                document.getElementById('playlist-container').classList.remove('show');
             } else {
                 overlay.classList.remove('miniscreen');
                 document.getElementById('btn-mini').innerHTML = '<i class="fas fa-window-minimize"></i>';
@@ -1084,6 +1114,7 @@
         document.getElementById('btn-close').addEventListener('click', () => {
             const overlay = document.getElementById('player-overlay');
             overlay.style.display = 'none';
+            document.getElementById('playlist-container').classList.remove('show');
             if (player && typeof player.stopVideo === 'function') {
                 player.stopVideo();
             }
