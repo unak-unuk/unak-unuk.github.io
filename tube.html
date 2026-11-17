@@ -637,9 +637,9 @@
             <h3>Simpan video ke...</h3>
             <div id="modal-playlist-options" style="max-height: 150px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;"></div>
             
-            <!-- Perubahan Tata Letak: Tombol Tambah di Kiri Bawah, Tutup di Kanan Bawah -->
+            <!-- Tombol Simpan di Kiri Bawah, Tutup di Kanan Bawah -->
             <div class="modal-buttons">
-                <button class="btn-submit" id="modal-open-create-from-popup" style="font-size: 13px; padding: 6px 12px;"><i class="fas fa-plus"></i> Tambah Playlist</button>
+                <button class="btn-submit" id="modal-confirm-save-btn"><i class="fas fa-plus"></i> Simpan</button>
                 <button class="btn-cancel" id="modal-add-cancel-btn">Tutup</button>
             </div>
         </div>
@@ -695,6 +695,7 @@
         }
 
         let activeVideoToSave = null;
+        let selectedPlaylistIndex = null; // Menyimpan playlist yang dipilih
 
         const menuToggleBtn = document.getElementById('menu-toggle-btn');
         const sidebar = document.getElementById('sidebar');
@@ -894,13 +895,6 @@
             document.getElementById('modal-create-playlist').style.display = 'none';
         });
 
-        // Tombol "Tambah Playlist" di dalam pop-up penyimpanan video
-        document.getElementById('modal-open-create-from-popup').addEventListener('click', () => {
-            document.getElementById('modal-add-to-playlist').style.display = 'none';
-            document.getElementById('modal-create-playlist').style.display = 'flex';
-            document.getElementById('playlist-name-input').value = '';
-        });
-
         window.openAddToPlaylistModal = function(videoId) {
             let foundVid = defaultVideos.find(v => v.id === videoId) || currentVideosList.find(v => v.id === videoId);
             if (!foundVid) {
@@ -910,46 +904,66 @@
                 }
             }
             activeVideoToSave = foundVid;
+            selectedPlaylistIndex = null; // Reset pilihan
 
             const container = document.getElementById('modal-playlist-options');
             container.innerHTML = "";
 
             if (customPlaylists.length === 0) {
-                container.innerHTML = `<p style="font-size:13px; color:#aaa;">Belum ada playlist. Buat terlebih dahulu melalui tombol di bawah atau menu sidebar.</p>`;
+                container.innerHTML = `<p style="font-size:13px; color:#aaa;">Belum ada playlist. Buat terlebih dahulu melalui menu sidebar.</p>`;
             } else {
-                customPlaylists.forEach((pl) => {
+                customPlaylists.forEach((pl, idx) => {
                     const isAlreadyIn = pl.videos.some(v => v.id === videoId);
                     const item = document.createElement('div');
-                    item.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#181818; padding:8px 12px; border-radius:6px; cursor:pointer;";
+                    item.className = 'playlist-option-row';
+                    item.style.cssText = "display:flex; justify-content:space-between; align-items:center; background:#181818; padding:10px 12px; border-radius:6px; cursor:pointer; border: 1px solid transparent;";
                     item.innerHTML = `
                         <span style="font-size:13px;">${pl.name} (${pl.videos.length})</span>
-                        <span style="font-size:12px; color: ${isAlreadyIn ? '#3ea6ff' : '#aaa'};">${isAlreadyIn ? 'Sudah Ada' : '+ Simpan'}</span>
+                        <span style="font-size:12px; color: ${isAlreadyIn ? '#3ea6ff' : '#aaa'};">${isAlreadyIn ? 'Sudah Ada' : 'Pilih'}</span>
                     `;
+                    
                     item.addEventListener('click', () => {
-                        if (!isAlreadyIn && activeVideoToSave) {
-                            pl.videos.push(activeVideoToSave);
-                            savePlaylists();
-                            document.getElementById('modal-add-to-playlist').style.display = 'none';
-                            
-                            Swal.fire({
-                                icon: 'success',
-                                title: 'Berhasil!',
-                                text: `Video ditambahkan ke "${pl.name}"`,
-                                timer: 1500,
-                                showConfirmButton: false,
-                                background: '#212121',
-                                color: '#fff'
-                            });
-                        } else if (isAlreadyIn) {
-                            Swal.fire({ icon: 'info', title: 'Informasi', text: 'Video sudah ada di dalam playlist ini.', background: '#212121', color: '#fff' });
-                        }
+                        // Highlight pilihan aktif
+                        document.querySelectorAll('.playlist-option-row').forEach(el => el.style.borderColor = 'transparent');
+                        item.style.borderColor = '#3ea6ff';
+                        selectedPlaylistIndex = idx;
                     });
+                    
                     container.appendChild(item);
                 });
             }
 
             document.getElementById('modal-add-to-playlist').style.display = 'flex';
         };
+
+        // Tombol Simpan di Kiri Bawah Modal untuk memasukkan video ke playlist yang dipilih
+        document.getElementById('modal-confirm-save-btn').addEventListener('click', () => {
+            if (selectedPlaylistIndex === null) {
+                Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Silakan pilih salah satu playlist terlebih dahulu!', background: '#212121', color: '#fff' });
+                return;
+            }
+
+            const targetPl = customPlaylists[selectedPlaylistIndex];
+            const isAlreadyIn = targetPl.videos.some(v => v.id === activeVideoToSave.id);
+
+            if (!isAlreadyIn && activeVideoToSave) {
+                targetPl.videos.push(activeVideoToSave);
+                savePlaylists();
+                document.getElementById('modal-add-to-playlist').style.display = 'none';
+                
+                Swal.fire({
+                    icon: 'success',
+                    title: 'Berhasil!',
+                    text: `Video ditambahkan ke "${targetPl.name}"`,
+                    timer: 1500,
+                    showConfirmButton: false,
+                    background: '#212121',
+                    color: '#fff'
+                });
+            } else {
+                Swal.fire({ icon: 'info', title: 'Informasi', text: 'Video sudah ada di dalam playlist ini.', background: '#212121', color: '#fff' });
+            }
+        });
 
         document.getElementById('modal-add-cancel-btn').addEventListener('click', () => {
             document.getElementById('modal-add-to-playlist').style.display = 'none';
