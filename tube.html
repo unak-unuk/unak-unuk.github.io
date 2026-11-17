@@ -432,7 +432,7 @@
             z-index: 2000;
             display: none;
             flex-direction: column;
-            overflow: hidden;
+            overflow: visible; /* Diubah agar panel list bisa keluar dengan leluasa */
             transition: all 0.3s ease;
         }
 
@@ -443,6 +443,7 @@
             bottom: 12px;
             right: 12px;
             border-radius: 8px;
+            overflow: hidden;
         }
 
         .player-overlay.miniscreen .playlist-section,
@@ -457,6 +458,8 @@
             align-items: center;
             background: #181818;
             padding: 8px 12px;
+            border-top-left-radius: inherit;
+            border-top-right-radius: inherit;
         }
 
         .player-header span {
@@ -504,25 +507,27 @@
             margin-bottom: 2px;
         }
 
-        /* Bagian Daftar Putar Antrean (Disembunyikan secara default, muncul dari bawah player sampai bawah layar) */
+        /* Perbaikan Panel Daftar Putar Antrean */
         .playlist-section {
             position: absolute;
-            top: 100%; /* Mulai tepat di bawah player-overlay */
+            top: 100%; /* Persis di bawah player-overlay */
             left: 0;
             width: 100%;
-            height: calc(100vh - 56px - 100%); /* Membentang dari bawah player sampai bawah layar */
-            max-height: 0; /* Tersembunyi */
+            max-height: 0;
             overflow-y: auto;
             background: #181818;
             border-top: 1px solid #333;
             padding: 0 12px;
-            transition: max-height 0.3s ease-in-out, padding 0.3s ease;
-            z-index: 2005;
+            visibility: hidden;
+            transition: max-height 0.3s ease-in-out, padding 0.3s ease, visibility 0.3s;
+            z-index: 2500;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8);
         }
 
         .playlist-section.show {
-            max-height: calc(100vh - 250px); /* Terbuka */
+            max-height: calc(100vh - 300px); /* Terbentang dari bawah player sampai batas layar */
             padding: 12px;
+            visibility: visible;
         }
 
         .playlist-item {
@@ -585,7 +590,7 @@
                 top: auto;
             }
             .playlist-section.show {
-                max-height: calc(100vh - 280px);
+                max-height: calc(100vh - 270px);
             }
         }
     </style>
@@ -685,7 +690,7 @@
             <h4 id="meta-title">Judul Video</h4>
             <p id="meta-channel" style="color: #aaa; font-size: 11px;">Nama Channel</p>
         </div>
-        <!-- Panel Daftar Putar Antrean Tersembunyi -->
+        <!-- Panel Daftar Putar Antrean -->
         <div class="playlist-section" id="playlist-container">
             <h5 style="font-size: 12px; margin-bottom: 8px; color: #aaa; font-weight: 500;">Daftar Putar Antrean</h5>
         </div>
@@ -1076,14 +1081,13 @@
                 `;
                 pItem.addEventListener('click', () => {
                     playVideo(item, idx);
-                    // Tutup antrean setelah video diklik
                     document.getElementById('playlist-container').classList.remove('show');
                 });
                 container.appendChild(pItem);
             });
         }
 
-        // Toggle Buka/Tutup Daftar Putar Antrean dari tombol di header player
+        // Toggle Buka/Tutup Daftar Putar Antrean dari tombol list di player
         document.getElementById('btn-toggle-queue').addEventListener('click', () => {
             const queueContainer = document.getElementById('playlist-container');
             queueContainer.classList.toggle('show');
