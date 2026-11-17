@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Web Player</title>
+    <title>YouTube Web Player Mobile Responsive</title>
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -41,7 +41,43 @@
         .header-left, .header-right {
             display: flex;
             align-items: center;
-            gap: 16px;
+            gap: 12px;
+        }
+
+        /* Tombol Hamburger dengan Animasi Menjadi X */
+        .menu-toggle {
+            background: none;
+            border: none;
+            cursor: pointer;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            z-index: 1100;
+        }
+
+        .menu-toggle span {
+            display: block;
+            width: 100%;
+            height: 3px;
+            background-color: #f1f1f1;
+            border-radius: 2px;
+            transition: all 0.3s ease-in-out;
+        }
+
+        /* Animasi Hamburger berubah menjadi 'X' */
+        .menu-toggle.active span:nth-child(1) {
+            transform: translateY(8px) rotate(45deg);
+        }
+
+        .menu-toggle.active span:nth-child(2) {
+            opacity: 0;
+        }
+
+        .menu-toggle.active span:nth-child(3) {
+            transform: translateY(-8px) rotate(-45deg);
         }
 
         .logo {
@@ -49,7 +85,7 @@
             align-items: center;
             gap: 4px;
             font-weight: 700;
-            font-size: 20px;
+            font-size: 18px;
             cursor: pointer;
             color: #fff;
             text-decoration: none;
@@ -57,7 +93,15 @@
 
         .logo i {
             color: #ff0000;
-            font-size: 24px;
+            font-size: 22px;
+        }
+
+        /* Search Box */
+        .search-container {
+            display: flex;
+            flex-grow: 1;
+            max-width: 600px;
+            margin: 0 16px;
         }
 
         .search-box {
@@ -67,7 +111,7 @@
             border: 1px solid #303030;
             border-radius: 40px 0 0 40px;
             padding: 0 16px;
-            width: 500px;
+            width: 100%;
             height: 40px;
         }
 
@@ -77,7 +121,7 @@
             border: none;
             color: #fff;
             outline: none;
-            font-size: 16px;
+            font-size: 14px;
         }
 
         .search-btn {
@@ -85,11 +129,12 @@
             border: 1px solid #303030;
             border-left: none;
             border-radius: 0 40px 40px 0;
-            width: 64px;
+            width: 50px;
             height: 40px;
             cursor: pointer;
             color: #aaa;
-            font-size: 16px;
+            font-size: 14px;
+            flex-shrink: 0;
         }
 
         .search-btn:hover {
@@ -102,15 +147,27 @@
             display: flex;
             margin-top: 56px;
             height: calc(100vh - 56px);
+            position: relative;
         }
 
-        /* Sidebar */
+        /* Sidebar Responsive */
         sidebar {
+            position: fixed;
+            top: 56px;
+            left: -240px; /* Tersembunyi secara default di HP */
             width: 240px;
+            height: calc(100vh - 56px);
             background-color: #0f0f0f;
             padding: 12px;
             overflow-y: auto;
             flex-shrink: 0;
+            z-index: 999;
+            transition: left 0.3s ease-in-out;
+            box-shadow: 2px 0 10px rgba(0,0,0,0.5);
+        }
+
+        sidebar.open {
+            left: 0; /* Muncul saat kelas open aktif */
         }
 
         .sidebar-item {
@@ -144,12 +201,13 @@
         /* Content Area */
         .content {
             flex-grow: 1;
-            padding: 24px;
+            padding: 16px;
             overflow-y: auto;
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
             gap: 16px;
             align-content: start;
+            width: 100%;
         }
 
         .video-card {
@@ -204,15 +262,16 @@
             margin-top: 4px;
         }
 
-        /* Player Overlay / Modal / Mini Screen Mode */
+        /* Player Overlay / Mini Screen Mode */
         .player-overlay {
             position: fixed;
             bottom: 0;
-            right: 24px;
-            width: 400px;
+            right: 0;
+            width: 100%;
+            max-width: 400px;
             background: #212121;
             border-radius: 12px 12px 0 0;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 20px rgba(0,0,0,0.8);
             z-index: 2000;
             display: none;
             flex-direction: column;
@@ -221,10 +280,10 @@
         }
 
         .player-overlay.miniscreen {
-            width: 320px;
-            height: 180px;
-            bottom: 16px;
-            right: 16px;
+            max-width: 280px;
+            height: 160px;
+            bottom: 12px;
+            right: 12px;
             border-radius: 8px;
         }
 
@@ -240,7 +299,6 @@
             align-items: center;
             background: #181818;
             padding: 8px 12px;
-            cursor: move;
         }
 
         .player-header span {
@@ -249,12 +307,12 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 250px;
+            max-width: 200px;
         }
 
         .player-controls-btns {
             display: flex;
-            gap: 10px;
+            gap: 12px;
         }
 
         .player-controls-btns button {
@@ -278,18 +336,18 @@
         }
 
         .player-meta {
-            padding: 12px;
+            padding: 10px 12px;
             background: #1f1f1f;
         }
 
         .player-meta h4 {
-            font-size: 14px;
-            margin-bottom: 4px;
+            font-size: 13px;
+            margin-bottom: 2px;
         }
 
         /* Playlist Section inside Player */
         .playlist-section {
-            max-height: 150px;
+            max-height: 130px;
             overflow-y: auto;
             background: #181818;
             border-top: 1px solid #333;
@@ -301,7 +359,7 @@
             align-items: center;
             gap: 8px;
             padding: 6px;
-            font-size: 12px;
+            font-size: 11px;
             border-radius: 4px;
             cursor: pointer;
         }
@@ -316,10 +374,35 @@
         }
 
         .playlist-item img {
-            width: 60px;
+            width: 50px;
             aspect-ratio: 16/9;
             object-fit: cover;
             border-radius: 4px;
+        }
+
+        /* Media Queries untuk Layar Sangat Kecil / HP */
+        @media (max-width: 768px) {
+            .search-container {
+                max-width: none;
+                margin: 0 8px;
+            }
+            .header-right .fa-video, 
+            .header-right .fa-bell {
+                display: none; /* Sembunyikan ikon tidak penting di HP kecil */
+            }
+            .content {
+                grid-template-columns: 1fr; /* 1 kolom penuh di layar HP */
+                padding: 8px;
+            }
+            .player-overlay {
+                width: 100%;
+                max-width: 100%;
+                border-radius: 0;
+            }
+            .player-overlay.miniscreen {
+                max-width: 240px;
+                height: 135px;
+            }
         }
     </style>
 </head>
@@ -328,25 +411,31 @@
     <!-- Header -->
     <header>
         <div class="header-left">
+            <!-- Tombol Hamburger -->
+            <button class="menu-toggle" id="menu-toggle-btn">
+                <span></span>
+                <span></span>
+                <span></span>
+            </button>
             <a href="#" class="logo"><i class="fab fa-youtube"></i>YouTube</a>
         </div>
-        <div class="search-container" style="display: flex;">
+        <div class="search-container">
             <div class="search-box">
                 <input type="text" id="search-input" placeholder="Telusuri...">
             </div>
             <button class="search-btn" id="search-submit"><i class="fas fa-search"></i></button>
         </div>
         <div class="header-right">
-            <i class="fas fa-video" style="cursor:pointer; font-size: 18px;"></i>
-            <i class="fas fa-bell" style="cursor:pointer; font-size: 18px;"></i>
-            <div class="channel-avatar" style="width: 32px; height: 32px;"></div>
+            <i class="fas fa-video" style="cursor:pointer; font-size: 16px;"></i>
+            <i class="fas fa-bell" style="cursor:pointer; font-size: 16px;"></i>
+            <div class="channel-avatar" style="width: 28px; height: 28px;"></div>
         </div>
     </header>
 
     <!-- Main Container -->
     <div class="main-container">
-        <!-- Sidebar -->
-        <sidebar>
+        <!-- Sidebar dengan Animasi Buka/Tutup -->
+        <sidebar id="sidebar">
             <a href="#" class="sidebar-item active"><i class="fas fa-home"></i>Beranda</a>
             <a href="#" class="sidebar-item"><i class="fas fa-bolt"></i>Shorts</a>
             <a href="#" class="sidebar-item"><i class="fas fa-subscriptions"></i>Subscription</a>
@@ -354,12 +443,12 @@
             <a href="#" class="sidebar-item"><i class="fas fa-history"></i>Histori</a>
             <a href="#" class="sidebar-item"><i class="fas fa-play-circle"></i>Video Anda</a>
             <a href="#" class="sidebar-item"><i class="fas fa-clock"></i>Tonton Nanti</a>
-            <a href="#" class="sidebar-item" id="open-queue-btn"><i class="fas fa-list"></i>Daftar Putar (Antrean)</a>
+            <a href="#" class="sidebar-item"><i class="fas fa-list"></i>Daftar Putar</a>
         </sidebar>
 
         <!-- Video Grid Content -->
         <div class="content" id="video-grid">
-            <!-- Video cards akan dimuat secara dinamis via Javascript -->
+            <!-- Video cards dimuat dinamis via JS -->
         </div>
     </div>
 
@@ -378,27 +467,25 @@
         </div>
         <div class="player-meta">
             <h4 id="meta-title">Judul Video</h4>
-            <p id="meta-channel" style="color: #aaa; font-size: 12px;">Nama Channel</p>
+            <p id="meta-channel" style="color: #aaa; font-size: 11px;">Nama Channel</p>
         </div>
         <!-- Playlist antrean video -->
         <div class="playlist-section" id="playlist-container">
-            <h5 style="font-size: 12px; margin-bottom: 6px; color: #aaa;">Daftar Putar Antrean</h5>
-            <!-- Item playlist dimasukkan lewat JS -->
+            <h5 style="font-size: 11px; margin-bottom: 4px; color: #aaa;">Daftar Putar Antrean</h5>
         </div>
     </div>
 
-    <!-- YouTube IFrame API Script -->
+    <!-- Script JavaScript -->
     <script>
         const YT_API_KEY = "AIzaSyDgu2BS4TTqCPNJV6GgkkHr7k9IzLIActo";
         
-        // Data video awal (Contoh video populer/trending)
         const defaultVideos = [
-            { id: "jfKfPfyJRdk", title: "Lofi Hip Hop Radio - Beats to Relax/Study to", channel: "Lofi Girl", views: "10RB xon", thumb: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" },
-            { id: "5qap5aO4i9A", title: "Lofi Hip Hop Radio - Live 24/7 Music", channel: "Lofi Girl", views: "5JT xon", thumb: "https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg" },
-            { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give You Up (Official Music Video)", channel: "Rick Astley", views: "1.5M xon", thumb: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
-            { id: "9bZkp7q19f0", title: "PSY - GANGNAM STYLE(강남스타일) M/V", channel: "officialpsy", views: "5M xon", thumb: "https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg" },
-            { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito ft. Daddy Yankee", channel: "Luis Fonsi", views: "8.3M xon", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg" },
-            { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You (Official Music Video)", channel: "Ed Sheeran", views: "6.1M xon", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg" }
+            { id: "jfKfPfyJRdk", title: "Lofi Hip Hop Radio - Beats to Relax/Study to", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" },
+            { id: "5qap5aO4i9A", title: "Lofi Hip Hop Radio - Live 24/7 Music", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg" },
+            { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give You Up", channel: "Rick Astley", thumb: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
+            { id: "9bZkp7q19f0", title: "PSY - GANGNAM STYLE M/V", channel: "officialpsy", thumb: "https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg" },
+            { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito ft. Daddy Yankee", channel: "Luis Fonsi", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg" },
+            { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", channel: "Ed Sheeran", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg" }
         ];
 
         let playlist = [...defaultVideos];
@@ -406,17 +493,32 @@
         let player;
         let isMiniScreen = false;
 
-        // Muat API YouTube IFrame secara dinamis
+        // Toggle Sidebar & Animasi Hamburger Menu (Berubah jadi X)
+        const menuToggleBtn = document.getElementById('menu-toggle-btn');
+        const sidebar = document.getElementById('sidebar');
+
+        menuToggleBtn.addEventListener('click', () => {
+            menuToggleBtn.classList.toggle('active');
+            sidebar.classList.toggle('open');
+        });
+
+        // Tutup sidebar otomatis jika mengklik area konten di HP
+        document.getElementById('video-grid').addEventListener('click', () => {
+            if (window.innerWidth <= 768 && sidebar.classList.contains('open')) {
+                sidebar.classList.remove('open');
+                menuToggleBtn.classList.remove('active');
+            }
+        });
+
+        // Muat YouTube API
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
         firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
 
-        function onYouTubeIframeAPIReady() {
-            // Player diinisialisasi saat video pertama kali diklik
-        }
+        function onYouTubeIframeAPIReady() {}
 
-        // Render Grid Video Utama
+        // Render Grid Video
         function renderVideos(videos) {
             const grid = document.getElementById('video-grid');
             grid.innerHTML = "";
@@ -436,7 +538,6 @@
                     </div>
                 `;
                 card.addEventListener('click', () => {
-                    // Tambahkan ke playlist jika belum ada, lalu putar
                     playVideo(vid, index);
                 });
                 grid.appendChild(card);
@@ -459,36 +560,29 @@
                     height: '100%',
                     width: '100%',
                     videoId: videoObj.id,
-                    playerVars: {
-                        'autoplay': 1,
-                        'controls': 1
-                    },
-                    events: {
-                        'onStateChange': onPlayerStateChange
-                    }
+                    playerVars: { 'autoplay': 1, 'controls': 1 },
+                    events: { 'onStateChange': onPlayerStateChange }
                 });
             } else {
                 player.loadVideoById(videoObj.id);
             }
         }
 
-        // Otomatis putar video berikutnya di playlist saat selesai
         function onPlayerStateChange(event) {
             if (event.data == YT.PlayerState.ENDED) {
                 currentIndex++;
                 if (currentIndex < playlist.length) {
                     playVideo(playlist[currentIndex], currentIndex);
                 } else {
-                    currentIndex = 0; // Ulang dari awal
+                    currentIndex = 0;
                     playVideo(playlist[currentIndex], currentIndex);
                 }
             }
         }
 
-        // Render UI Daftar Putar (Antrean)
         function renderPlaylistUI() {
             const container = document.getElementById('playlist-container');
-            container.innerHTML = `<h5 style="font-size: 12px; margin-bottom: 6px; color: #aaa;">Daftar Putar Antrean</h5>`;
+            container.innerHTML = `<h5 style="font-size: 11px; margin-bottom: 4px; color: #aaa;">Daftar Putar Antrean</h5>`;
             
             playlist.forEach((item, idx) => {
                 const pItem = document.createElement('div');
@@ -497,7 +591,7 @@
                     <img src="${item.thumb}" alt="">
                     <div style="overflow: hidden;">
                         <div style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-weight: 500;">${item.title}</div>
-                        <div style="color: #aaa; font-size: 11px;">${item.channel}</div>
+                        <div style="color: #aaa; font-size: 10px;">${item.channel}</div>
                     </div>
                 `;
                 pItem.addEventListener('click', () => {
@@ -507,7 +601,7 @@
             });
         }
 
-        // Kontrol Tombol Mini Screen & Fullscreen & Close
+        // Kontrol Mini Screen, Fullscreen, & Close
         document.getElementById('btn-mini').addEventListener('click', () => {
             const overlay = document.getElementById('player-overlay');
             isMiniScreen = !isMiniScreen;
@@ -524,12 +618,8 @@
             const playerWrapper = document.querySelector('.player-wrapper');
             if (playerWrapper.requestFullscreen) {
                 playerWrapper.requestFullscreen();
-            } else if (playerWrapper.mozRequestFullScreen) {
-                playerWrapper.mozRequestFullScreen();
             } else if (playerWrapper.webkitRequestFullscreen) {
                 playerWrapper.webkitRequestFullscreen();
-            } else if (playerWrapper.msRequestFullscreen) {
-                playerWrapper.msRequestFullscreen();
             }
         });
 
@@ -544,7 +634,7 @@
             document.getElementById('btn-mini').innerHTML = '<i class="fas fa-window-minimize"></i>';
         });
 
-        // Fitur Pencarian YouTube API
+        // Pencarian YouTube API
         async function searchYouTube(query) {
             if (!query.trim()) return;
             const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=12&q=${encodeURIComponent(query)}&type=video&key=${YT_API_KEY}`;
@@ -559,20 +649,18 @@
                         channel: item.snippet.channelTitle,
                         thumb: item.snippet.thumbnails.high ? item.snippet.thumbnails.high.url : item.snippet.thumbnails.default.url
                     }));
-                    playlist = searchResults; // Ganti antrean dengan hasil pencarian
+                    playlist = searchResults;
                     renderVideos(searchResults);
                 } else if (data.error) {
                     alert("Pemberitahuan API: " + data.error.message);
                 }
             } catch (error) {
                 console.error("Gagal melakukan pencarian:", error);
-                alert("Terjadi kesalahan saat mencari video.");
             }
         }
 
         document.getElementById('search-submit').addEventListener('click', () => {
-            const query = document.getElementById('search-input').value;
-            searchYouTube(query);
+            searchYouTube(document.getElementById('search-input').value);
         });
 
         document.getElementById('search-input').addEventListener('keypress', (e) => {
@@ -581,7 +669,6 @@
             }
         });
 
-        // Inisialisasi tampilan awal
         renderVideos(defaultVideos);
     </script>
 </body>
