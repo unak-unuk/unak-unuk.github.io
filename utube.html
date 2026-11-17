@@ -1,127 +1,146 @@
 <!DOCTYPE html>
-<html lang="id" class="dark">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube MusicStream - Ad-Free Experience</title>
+    <title>YouTube - MusicStream Client</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        yt: { red: '#FF0000', dark: '#0f0f0f', surface: '#212121', hover: '#3f3f3f', border: '#303030' }
-                    }
-                }
-            }
+    <style>
+        /* Custom scrollbar ala YouTube */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
         }
-    </script>
+        ::-webkit-scrollbar-track {
+            background: #0f0f0f;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #272727;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3f3f3f;
+        }
+    </style>
 </head>
-<body class="bg-yt-dark text-white min-h-screen flex flex-col font-sans select-none">
+<body class="bg-[#0f0f0f] text-white min-h-screen flex flex-col font-sans">
 
-    <!-- Top Navigation Bar -->
-    <header class="bg-yt-dark border-b border-yt-border px-4 py-2 flex justify-between items-center sticky top-0 z-50">
+    <!-- Top Navbar (Header YouTube) -->
+    <header class="bg-[#0f0f0f] border-b border-[#272727] px-4 py-2.5 flex justify-between items-center sticky top-0 z-50">
+        <!-- Logo & Brand -->
         <div class="flex items-center space-x-4">
-            <div class="flex items-center space-x-1 cursor-pointer" onclick="location.reload()">
-                <div class="bg-yt-red text-white px-2.5 py-1 rounded-xl flex items-center justify-center">
-                    <i class="fa-solid fa-play text-xs"></i>
-                </div>
-                <span class="font-bold text-lg tracking-tighter">MusicStream<span class="text-xs align-super text-red-500 font-normal ml-0.5">Ad-Free</span></span>
+            <button class="text-gray-400 hover:text-white p-2 rounded-full hover:bg-[#272727] transition">
+                <i class="fa-solid fa-bars text-lg"></i>
+            </button>
+            <div class="flex items-center space-x-1 cursor-pointer" onclick="searchMusic('Top Music')">
+                <i class="fa-brands fa-youtube text-red-600 text-3xl"></i>
+                <span class="font-bold text-xl tracking-tighter">YouTube <span class="text-xs bg-red-600 text-white px-1.5 py-0.5 rounded font-normal align-top">Music</span></span>
             </div>
         </div>
 
         <!-- Search Bar -->
         <div class="flex items-center flex-1 max-w-xl mx-4">
-            <div class="flex w-full bg-[#121212] border border-yt-border rounded-l-full px-4 py-2 focus-within:border-red-500">
-                <input type="text" id="searchInput" placeholder="Cari lagu atau artis..." 
+            <div class="flex w-full bg-[#121212] border border-[#303030] rounded-l-full px-4 py-2 focus-within:border-blue-500">
+                <input type="text" id="searchInput" placeholder="Telusuri..." 
                     class="w-full bg-transparent text-white focus:outline-none text-sm">
             </div>
-            <button id="searchBtn" class="bg-yt-hover border border-l-0 border-yt-border px-6 py-2 rounded-r-full hover:bg-gray-700 text-gray-300">
+            <button id="searchBtn" class="bg-[#222222] border border-l-0 border-[#303030] px-6 py-2 rounded-r-full hover:bg-[#272727] text-gray-300 transition">
                 <i class="fa-solid fa-magnifying-glass"></i>
             </button>
         </div>
 
+        <!-- User / Status Badge -->
         <div class="flex items-center space-x-3">
-            <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center font-bold text-sm">M</div>
+            <div class="hidden sm:flex items-center text-xs bg-[#272727] text-green-400 px-3 py-1.5 rounded-full font-medium border border-green-500/20">
+                <i class="fa-solid fa-shield-halved mr-1.5"></i> Ad-Free Active
+            </div>
         </div>
     </header>
 
-    <!-- Genre Chips Bar -->
-    <nav class="flex overflow-x-auto space-x-2 px-4 py-3 bg-yt-dark border-b border-yt-border scrollbar-none sticky top-14 z-40">
-        <button onclick="filterGenre('Indonesian Reggae Slow')" class="bg-white text-black font-medium text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Reggae</button>
-        <button onclick="filterGenre('Pop Indonesia Terbaru')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Pop Indonesia</button>
-        <button onclick="filterGenre('Rock Klasik 90an')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Rock</button>
-        <button onclick="filterGenre('Dangdut Koplo Terbaru')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Dangdut</button>
-        <button onclick="filterGenre('Relaxing Jazz Acoustic')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Jazz</button>
-        <button onclick="filterGenre('EDM Festival Remix')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">EDM</button>
-    </nav>
-
-    <!-- Main Layout -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Main Container -->
+    <div class="flex flex-1 overflow-hidden">
         
-        <!-- Left Column: Player & Search Results Panel -->
-        <div class="lg:col-span-2 flex flex-col space-y-3">
-            <!-- Video Player Frame -->
-            <div class="bg-black rounded-2xl overflow-hidden shadow-2xl relative aspect-video border border-yt-border">
-                <div id="player" class="w-full h-full"></div>
-            </div>
+        <!-- Sidebar Kiri -->
+        <aside class="w-64 bg-[#0f0f0f] p-3 hidden md:flex flex-col space-y-1 border-r border-[#272727] shrink-0">
+            <a href="#" onclick="searchMusic('Top Music')" class="flex items-center space-x-6 px-3 py-2.5 rounded-xl bg-[#272727] text-white font-medium text-sm">
+                <i class="fa-solid fa-house text-lg w-6"></i> <span>Beranda</span>
+            </a>
+            <a href="#" onclick="searchMusic('Trending Music')" class="flex items-center space-x-6 px-3 py-2.5 rounded-xl hover:bg-[#272727]/60 text-gray-300 hover:text-white transition text-sm">
+                <i class="fa-solid fa-bolt text-lg w-6"></i> <span>Eksplorasi</span>
+            </a>
+            <a href="#" onclick="searchMusic('Live Music Mix')" class="flex items-center space-x-6 px-3 py-2.5 rounded-xl hover:bg-[#272727]/60 text-gray-300 hover:text-white transition text-sm">
+                <i class="fa-solid fa-music text-lg w-6"></i> <span>Musik</span>
+            </a>
+            <hr class="border-[#272727] my-2">
+            <div class="px-3 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Koleksi Anda</div>
+            <a href="#" onclick="searchMusic('Favorite Playlist')" class="flex items-center space-x-6 px-3 py-2.5 rounded-xl hover:bg-[#272727]/60 text-gray-300 hover:text-white transition text-sm">
+                <i class="fa-solid fa-list-ul text-lg w-6"></i> <span>Antrean Aktif</span>
+            </a>
+        </aside>
 
-            <!-- Video Title & Controls -->
-            <div>
-                <h1 id="currentTitle" class="text-lg font-bold text-white line-clamp-2">Pilih lagu untuk mulai memutar</h1>
-                <div class="flex justify-between items-center mt-3 flex-wrap gap-4">
-                    <div class="flex items-center space-x-3">
-                        <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center font-bold">YT</div>
-                        <div>
-                            <p id="currentChannel" class="font-semibold text-sm text-gray-200">Channel Resmi</p>
-                            <p class="text-xs text-gray-400">Pemutar Musik Utama</p>
+        <!-- Main Content Area -->
+        <main class="flex-1 p-4 md:p-6 overflow-y-auto flex flex-col lg:flex-row gap-6">
+            
+            <!-- Kolom Kiri: Player & Info Video -->
+            <div class="flex-1 flex flex-col gap-4 max-w-4xl mx-auto w-full">
+                <!-- Video Player -->
+                <div class="bg-black rounded-2xl overflow-hidden shadow-2xl relative aspect-video border border-[#272727]">
+                    <div id="player" class="w-full h-full"></div>
+                    <div id="playerOverlay" class="absolute inset-0 bg-transparent pointer-events-none"></div>
+                </div>
+
+                <!-- Judul & Info Lagu -->
+                <div class="flex flex-col gap-2">
+                    <h1 id="currentTitle" class="font-bold text-xl text-white">Pilih lagu untuk mulai memutar</h1>
+                    <div class="flex justify-between items-center bg-[#1f1f1f] p-4 rounded-xl border border-[#272727]">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center font-bold text-white shadow" id="channelAvatar">
+                                <i class="fa-solid fa-microphone-lines"></i>
+                            </div>
+                            <div>
+                                <p id="currentChannel" class="font-semibold text-sm text-gray-200">-</p>
+                                <span class="text-xs text-gray-400">Channel Resmi</span>
+                            </div>
+                        </div>
+                        <!-- Tombol Kontrol Media -->
+                        <div class="flex items-center gap-2">
+                            <button id="prevBtn" class="bg-[#272727] hover:bg-[#3f3f3f] px-4 py-2.5 rounded-full transition text-sm flex items-center gap-2">
+                                <i class="fa-solid fa-backward-step"></i> <span class="hidden sm:inline">Sebelumnya</span>
+                            </button>
+                            <button id="nextBtn" class="bg-white text-black hover:bg-gray-200 px-5 py-2.5 rounded-full transition font-semibold text-sm flex items-center gap-2 shadow">
+                                <i class="fa-solid fa-forward-step"></i> <span>Selanjutnya</span>
+                            </button>
                         </div>
                     </div>
-                    <!-- Player Controls -->
-                    <div class="flex items-center space-x-3 bg-yt-surface px-5 py-2.5 rounded-full border border-yt-border">
-                        <button id="prevBtn" class="hover:text-red-500 transition"><i class="fa-solid fa-backward-step text-lg"></i></button>
-                        <span class="text-gray-600">|</span>
-                        <button id="nextBtn" class="hover:text-red-500 transition"><i class="fa-solid fa-forward-step text-lg"></i></button>
-                    </div>
                 </div>
             </div>
 
-            <!-- Search Results Panel (Tidak mengganggu pemutar utama) -->
-            <div id="searchResultSection" class="bg-yt-surface p-4 rounded-xl border border-yt-border hidden mt-4">
-                <div class="flex justify-between items-center mb-3">
-                    <h3 class="font-bold text-sm text-gray-300 flex items-center gap-2">
-                        <i class="fa-solid fa-magnifying-glass text-red-500"></i> Hasil Pencarian Baru
+            <!-- Kolom Kanan: Daftar Antrean / Rekomendasi (Gaya YouTube Sidebar) -->
+            <div class="w-full lg:w-96 flex flex-col gap-3">
+                <div class="flex items-center justify-between">
+                    <h3 class="font-bold text-base text-gray-200 flex items-center gap-2">
+                        <i class="fa-solid fa-list text-red-500"></i> Antrean Musik Berikutnya
                     </h3>
-                    <button onclick="closeSearchResults()" class="text-gray-400 hover:text-white text-xs bg-yt-hover px-2 py-1 rounded">Tutup</button>
+                    <span class="text-xs text-gray-400" id="queueCount">0 lagu</span>
                 </div>
-                <div id="searchResultContainer" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+                
+                <div id="playlistContainer" class="space-y-2 overflow-y-auto max-h-[600px] pr-1">
+                    <!-- Daftar lagu akan dimuat secara dinamis di sini -->
+                </div>
             </div>
-        </div>
 
-        <!-- Right Column: Queue / Playlist Sidebar -->
-        <div class="flex flex-col space-y-3">
-            <div class="flex justify-between items-center">
-                <h3 class="font-bold text-sm text-gray-200">Antrean Musik (Up Next)</h3>
-                <span class="text-xs text-red-500 font-semibold bg-red-500/10 px-2 py-0.5 rounded">Auto-Play Active</span>
-            </div>
-            
-            <div id="playlistContainer" class="space-y-2.5 overflow-y-auto max-h-[calc(100vh-200px)] pr-1">
-                <!-- Daftar antrean -->
-            </div>
-        </div>
+        </main>
+    </div>
 
-    </main>
-
-    <!-- YouTube IFrame API Script -->
+    <!-- YouTube IFrame API Script & Logic -->
     <script>
         let player;
-        let playlist = []; 
-        let searchResults = []; 
+        let playlist = [];
         let currentIndex = 0;
         const apiKey = "AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk"; // Kunci API Anda
 
+        // Load YouTube IFrame Player API
         const tag = document.createElement('script');
         tag.src = "https://www.youtube.com/iframe_api";
         const firstScriptTag = document.getElementsByTagName('script')[0];
@@ -135,8 +154,7 @@
                     'playsinline': 1,
                     'controls': 1,
                     'rel': 0,
-                    'iv_load_policy': 3,
-                    'autoplay': 1
+                    'iv_load_policy': 3
                 },
                 events: {
                     'onReady': onPlayerReady,
@@ -146,17 +164,17 @@
         }
 
         function onPlayerReady(event) {
-            fetchDefaultPlaylist("Indonesian Reggae Slow");
+            console.log("Player siap.");
+            searchMusic("Top Pop Hits Indonesia");
         }
 
         function onPlayerStateChange(event) {
-            // Ketika video selesai, otomatis lanjut ke lagu berikutnya di antrean
             if (event.data == YT.PlayerState.ENDED) {
                 playNext();
             }
         }
 
-        async function fetchDefaultPlaylist(query) {
+        async function searchMusic(query) {
             try {
                 const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`;
                 const response = await fetch(url);
@@ -164,6 +182,7 @@
                 
                 if (data.items) {
                     playlist = data.items;
+                    document.getElementById('queueCount').innerText = `${playlist.length} lagu`;
                     renderPlaylist();
                     if (playlist.length > 0) {
                         playSong(0);
@@ -172,60 +191,6 @@
             } catch (error) {
                 console.error("Gagal mengambil data YouTube:", error);
             }
-        }
-
-        async function searchMusic(query) {
-            try {
-                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`;
-                const response = await fetch(url);
-                const data = await response.json();
-                
-                if (data.items) {
-                    searchResults = data.items;
-                    renderSearchResults();
-                }
-            } catch (error) {
-                console.error("Gagal mencari video:", error);
-            }
-        }
-
-        function filterGenre(genreName) {
-            fetchDefaultPlaylist(genreName);
-        }
-
-        function renderSearchResults() {
-            const section = document.getElementById('searchResultSection');
-            const container = document.getElementById('searchResultContainer');
-            section.classList.remove('hidden');
-            container.innerHTML = '';
-
-            searchResults.forEach((item, index) => {
-                const div = document.createElement('div');
-                div.className = "p-2 rounded-xl flex items-center space-x-3 cursor-pointer bg-yt-dark hover:bg-yt-hover transition";
-                div.innerHTML = `
-                    <img src="${item.snippet.thumbnails.default.url}" class="w-24 h-14 object-cover rounded-lg shrink-0">
-                    <div class="flex-1 overflow-hidden">
-                        <p class="font-semibold text-xs text-white line-clamp-1">${item.snippet.title}</p>
-                        <p class="text-[11px] text-gray-400 mt-0.5">${item.snippet.channelTitle}</p>
-                    </div>
-                    <button class="bg-red-600 hover:bg-red-700 text-xs px-2.5 py-1 rounded-full text-white shrink-0">
-                        <i class="fa-solid fa-plus"></i>
-                    </button>
-                `;
-                div.onclick = () => addAndPlayFromSearch(index);
-                container.appendChild(div);
-            });
-        }
-
-        function closeSearchResults() {
-            document.getElementById('searchResultSection').classList.add('hidden');
-        }
-
-        function addAndPlayFromSearch(index) {
-            const selectedVideo = searchResults[index];
-            playlist.unshift(selectedVideo);
-            renderPlaylist();
-            playSong(0);
         }
 
         function playSong(index) {
@@ -237,7 +202,7 @@
             player.loadVideoById(videoId);
             document.getElementById('currentTitle').innerText = video.snippet.title;
             document.getElementById('currentChannel').innerText = video.snippet.channelTitle;
-            renderPlaylist();
+            renderPlaylist(); // Update status aktif di antrean
         }
 
         function playNext() {
@@ -254,13 +219,17 @@
             const container = document.getElementById('playlistContainer');
             container.innerHTML = '';
             playlist.forEach((item, index) => {
+                const isActive = index === currentIndex;
                 const div = document.createElement('div');
-                div.className = `flex space-x-3 p-2 rounded-xl cursor-pointer transition ${index === currentIndex ? 'bg-yt-hover border border-yt-border' : 'hover:bg-yt-surface'}`;
+                div.className = `p-2 rounded-xl flex items-center gap-3 cursor-pointer transition group ${isActive ? 'bg-[#272727] border border-red-500/30' : 'hover:bg-[#1f1f1f]'}`;
                 div.innerHTML = `
-                    <img src="${item.snippet.thumbnails.default.url}" class="w-28 h-16 object-cover rounded-lg shrink-0">
-                    <div class="flex-1 overflow-hidden flex flex-col justify-center">
-                        <p class="font-semibold text-xs text-white line-clamp-2 leading-snug">${item.snippet.title}</p>
-                        <p class="text-[11px] text-gray-400 mt-1">${item.snippet.channelTitle}</p>
+                    <div class="relative w-28 aspect-video shrink-0 rounded-lg overflow-hidden bg-gray-800">
+                        <img src="${item.snippet.thumbnails.medium.url}" class="w-full h-full object-cover group-hover:scale-105 transition duration-300">
+                        ${isActive ? '<div class="absolute inset-0 bg-red-600/30 flex items-center justify-center"><i class="fa-solid fa-volume-high text-white text-xs"></i></div>' : ''}
+                    </div>
+                    <div class="flex-1 overflow-hidden">
+                        <p class="font-medium text-xs sm:text-sm line-clamp-2 ${isActive ? 'text-red-400 font-semibold' : 'text-gray-200'}">${item.snippet.title}</p>
+                        <p class="text-xs text-gray-400 mt-1 truncate">${item.snippet.channelTitle}</p>
                     </div>
                 `;
                 div.onclick = () => playSong(index);
