@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MusicStream - Ad-Free Experience</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-900 text-white min-h-screen flex flex-col">
+
+    <!-- Header / Navbar -->
+    <header class="bg-gray-800 border-b border-gray-700 p-4 flex justify-between items-center shadow-md">
+        <div class="flex items-center space-x-2">
+            <i class="fa-solid fa-music text-red-500 text-2xl"></i>
+            <span class="font-bold text-xl tracking-wider">MusicStream</span>
+        </div>
+        <div class="text-xs bg-red-600 px-3 py-1 rounded-full font-semibold">
+            <i class="fa-solid fa-shield-halved mr-1"></i> Anti-Ad Optimized
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-4xl w-full mx-auto p-4 flex flex-col gap-6">
+        
+        <!-- Search & Controller Section -->
+        <div class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 flex gap-2">
+            <input type="text" id="searchInput" placeholder="Cari judul lagu atau artis..." 
+                class="flex-1 bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-white focus:outline-none focus:border-red-500">
+            <button id="searchBtn" class="bg-red-600 hover:bg-red-700 px-5 py-2 rounded-lg font-semibold transition flex items-center gap-2">
+                <i class="fa-solid fa-magnifying-glass"></i> Cari
+            </button>
+        </div>
+
+        <!-- Video Player Container (Hidden iframe trick or optimized wrapper) -->
+        <div class="bg-black rounded-xl overflow-hidden shadow-2xl relative aspect-video border border-gray-800">
+            <div id="player" class="w-full h-full"></div>
+            <!-- Overlay untuk menangkap interaksi jika diperlukan -->
+            <div id="playerOverlay" class="absolute inset-0 bg-transparent pointer-events-none"></div>
+        </div>
+
+        <!-- Current Playing Info -->
+        <div class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 flex justify-between items-center">
+            <div>
+                <h2 id="currentTitle" class="font-bold text-lg text-gray-200">Pilih lagu untuk mulai memutar</h2>
+                <p id="currentChannel" class="text-sm text-gray-400">-</p>
+            </div>
+            <div class="flex items-center gap-3">
+                <button id="prevBtn" class="bg-gray-700 hover:bg-gray-600 p-3 rounded-full transition"><i class="fa-solid fa-backward-step"></i></button>
+                <button id="nextBtn" class="bg-red-600 hover:bg-red-700 p-3 rounded-full transition shadow-lg"><i class="fa-solid fa-forward-step"></i></button>
+            </div>
+        </div>
+
+        <!-- Playlist Queue -->
+        <div class="bg-gray-800 p-4 rounded-xl shadow-lg border border-gray-700 flex-1">
+            <h3 class="font-bold text-md mb-3 text-gray-300 flex items-center gap-2">
+                <i class="fa-solid fa-list-ul text-red-500"></i> Antrean Musik
+            </h3>
+            <div id="playlistContainer" class="space-y-2 max-h-64 overflow-y-auto pr-2">
+                <!-- Daftar lagu akan muncul di sini -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- YouTube IFrame API Script -->
+    <script>
+        let player;
+        let playlist = [];
+        let currentIndex = 0;
+        const apiKey = "AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk"; // Kunci API Anda
+
+        // Load YouTube IFrame Player API
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    'playsinline': 1,
+                    'controls': 1,
+                    'rel': 0,
+                    'iv_load_policy': 3
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            console.log("Player siap.");
+            // Muat lagu default atau pencarian awal
+            searchMusic("Relaxing Reggae Acoustic");
+        }
+
+        function onPlayerStateChange(event) {
+            // Jika video selesai (YT.PlayerState.ENDED), otomatis lanjut ke lagu berikutnya
+            if (event.data == YT.PlayerState.ENDED) {
+                playNext();
+            }
+        }
+
+        async function searchMusic(query) {
+            try {
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.items) {
+                    playlist = data.items;
+                    renderPlaylist();
+                    if (playlist.length > 0) {
+                        playSong(0);
+                    }
+                }
+            } catch (error) {
+                console.error("Gagal mengambil data YouTube:", error);
+            }
+        }
+
+        function playSong(index) {
+            if (index < 0 || index >= playlist.length) return;
+            currentIndex = index;
+            const video = playlist[currentIndex];
+            const videoId = video.id.videoId;
+            
+            player.loadVideoById(videoId);
+            document.getElementById('currentTitle').innerText = video.snippet.title;
+            document.getElementById('currentChannel').innerText = video.snippet.channelTitle;
+        }
+
+        function playNext() {
+            currentIndex = (currentIndex + 1) % playlist.length;
+            playSong(currentIndex);
+        }
+
+        function playPrev() {
+            currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+            playSong(currentIndex);
+        }
+
+        function renderPlaylist() {
+            const container = document.getElementById('playlistContainer');
+            container.innerHTML = '';
+            playlist.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `p-3 rounded-lg flex items-center gap-3 cursor-pointer transition ${index === currentIndex ? 'bg-red-900/40 border border-red-500/50' : 'bg-gray-900 hover:bg-gray-700'}`;
+                div.innerHTML = `
+                    <img src="${item.snippet.thumbnails.default.url}" class="w-16 h-12 object-cover rounded">
+                    <div class="flex-1 overflow-hidden">
+                        <p class="font-semibold text-sm truncate text-gray-200">${item.snippet.title}</p>
+                        <p class="text-xs text-gray-400">${item.snippet.channelTitle}</p>
+                    </div>
+                `;
+                div.onclick = () => playSong(index);
+                container.appendChild(div);
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('searchBtn').onclick = () => {
+            const query = document.getElementById('searchInput').value;
+            if (query) searchMusic(query);
+        };
+
+        document.getElementById('searchInput').onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('searchBtn').click();
+            }
+        };
+
+        document.getElementById('nextBtn').onclick = playNext;
+        document.getElementById('prevBtn').onclick = playPrev;
+    </script>
+</body>
+</html>
