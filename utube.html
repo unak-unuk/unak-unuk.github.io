@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube MusicStream</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        yt: { red: '#FF0000', dark: '#0f0f0f', surface: '#212121', hover: '#3f3f3f', border: '#303030' }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-yt-dark text-white min-h-screen flex flex-col font-sans select-none">
+
+    <!-- Top Navigation Bar (YouTube Header) -->
+    <header class="bg-yt-dark border-b border-yt-border px-4 py-2 flex justify-between items-center sticky top-0 z-50">
+        <div class="flex items-center space-x-4">
+            <button class="text-gray-300 hover:text-white p-2 rounded-full hover:bg-yt-hover"><i class="fa-solid fa-bars text-lg"></i></button>
+            <div class="flex items-center space-x-1 cursor-pointer" onclick="location.reload()">
+                <div class="bg-yt-red text-white px-2.5 py-1 rounded-xl flex items-center justify-center">
+                    <i class="fa-solid fa-play text-xs"></i>
+                </div>
+                <span class="font-bold text-lg tracking-tighter">YouTube<span class="text-xs align-super text-gray-400 font-normal ml-0.5">ID</span></span>
+            </div>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="flex items-center flex-1 max-w-xl mx-4">
+            <div class="flex w-full bg-[#121212] border border-yt-border rounded-l-full px-4 py-2 focus-within:border-blue-500">
+                <input type="text" id="searchInput" placeholder="Telusuri..." 
+                    class="w-full bg-transparent text-white focus:outline-none text-sm">
+            </div>
+            <button id="searchBtn" class="bg-yt-hover border border-l-0 border-yt-border px-6 py-2 rounded-r-full hover:bg-gray-700 text-gray-300">
+                <i class="fa-solid fa-magnifying-glass"></i>
+            </button>
+        </div>
+
+        <div class="flex items-center space-x-3">
+            <div class="w-8 h-8 rounded-full bg-red-600 flex items-center justify-center font-bold text-sm">M</div>
+        </div>
+    </header>
+
+    <!-- Genre Chips Bar -->
+    <nav class="flex overflow-x-auto space-x-2 px-4 py-3 bg-yt-dark border-b border-yt-border scrollbar-none sticky top-14 z-40">
+        <button onclick="filterGenre('Semua Musik')" class="bg-white text-black font-medium text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Semua</button>
+        <button onclick="filterGenre('Indonesian Reggae Slow')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Reggae</button>
+        <button onclick="filterGenre('Pop Indonesia Terbaru')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Pop Indonesia</button>
+        <button onclick="filterGenre('Rock Klasik 90an')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Rock</button>
+        <button onclick="filterGenre('Dangdut Koplo Terbaru')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Dangdut</button>
+        <button onclick="filterGenre('Relaxing Jazz Acoustic')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">Jazz</button>
+        <button onclick="filterGenre('EDM Remix Festival')" class="bg-yt-surface hover:bg-yt-hover text-gray-300 text-xs px-3 py-1.5 rounded-lg whitespace-nowrap transition">EDM</button>
+    </nav>
+
+    <!-- Main App Layout (YouTube Style Watch Page) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left/Main Column: Video Player & Info -->
+        <div class="lg:col-span-2 flex flex-col space-y-3">
+            <!-- Video Player Frame -->
+            <div class="bg-black rounded-2xl overflow-hidden shadow-2xl relative aspect-video border border-yt-border">
+                <div id="player" class="w-full h-full"></div>
+            </div>
+
+            <!-- Video Title & Details -->
+            <div>
+                <h1 id="currentTitle" class="text-lg font-bold text-white line-clamp-2">Pilih lagu untuk mulai memutar</h1>
+                <div class="flex justify-between items-center mt-3 flex-wrap gap-4">
+                    <div class="flex items-center space-x-3">
+                        <div class="w-10 h-10 rounded-full bg-red-600 flex items-center justify-center font-bold">YT</div>
+                        <div>
+                            <p id="currentChannel" class="font-semibold text-sm text-gray-200">Channel Resmi</p>
+                            <p class="text-xs text-gray-400">Aktif & Tanpa Jeda</p>
+                        </div>
+                        <button class="bg-white text-black font-semibold text-xs px-4 py-2 rounded-full hover:bg-gray-200 ml-4">Subscribe</button>
+                    </div>
+                    <!-- Player Controls / Actions -->
+                    <div class="flex items-center space-x-2 bg-yt-surface px-4 py-2 rounded-full border border-yt-border">
+                        <button id="prevBtn" class="hover:text-red-500 p-1 px-2"><i class="fa-solid fa-backward-step text-base"></i></button>
+                        <span class="text-gray-600">|</span>
+                        <button id="nextBtn" class="hover:text-red-500 p-1 px-2"><i class="fa-solid fa-forward-step text-base"></i></button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Search Results Panel (Muncul jika melakukan pencarian baru tanpa mengganggu pemutar utama) -->
+            <div id="searchResultSection" class="bg-yt-surface p-4 rounded-xl border border-yt-border hidden mt-4">
+                <div class="flex justify-between items-center mb-3">
+                    <h3 class="font-bold text-sm text-gray-300 flex items-center gap-2">
+                        <i class="fa-solid fa-magnifying-glass text-red-500"></i> Hasil Pencarian Lainnya
+                    </h3>
+                    <button onclick="closeSearchResults()" class="text-gray-400 hover:text-white text-xs bg-yt-hover px-2 py-1 rounded">Tutup</button>
+                </div>
+                <div id="searchResultContainer" class="space-y-2 max-h-60 overflow-y-auto pr-1"></div>
+            </div>
+        </div>
+
+        <!-- Right Column: Up Next / Playlist Queue (YouTube Sidebar Feed) -->
+        <div class="flex flex-col space-y-3">
+            <div class="flex justify-between items-center">
+                <h3 class="font-bold text-sm text-gray-200">Berikutnya (Antrean Utama)</h3>
+                <span class="text-xs text-red-500 font-semibold bg-red-500/10 px-2 py-0.5 rounded">Autoplay On</span>
+            </div>
+            
+            <div id="playlistContainer" class="space-y-2.5 overflow-y-auto max-h-[calc(100vh-200px)] pr-1">
+                <!-- Item antrean dimuat secara dinamis -->
+            </div>
+        </div>
+
+    </main>
+
+    <!-- YouTube IFrame API Script -->
+    <script>
+        let player;
+        let playlist = []; 
+        let searchResults = []; 
+        let currentIndex = 0;
+        const apiKey = "AIzaSyCrogZjjtH00X5MsDYs79ZCnB9ljI2bdRk"; // Kunci API Anda
+
+        const tag = document.createElement('script');
+        tag.src = "https://www.youtube.com/iframe_api";
+        const firstScriptTag = document.getElementsByTagName('script')[0];
+        firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+
+        function onYouTubeIframeAPIReady() {
+            player = new YT.Player('player', {
+                height: '100%',
+                width: '100%',
+                playerVars: {
+                    'playsinline': 1,
+                    'controls': 1,
+                    'rel': 0,
+                    'iv_load_policy': 3
+                },
+                events: {
+                    'onReady': onPlayerReady,
+                    'onStateChange': onPlayerStateChange
+                }
+            });
+        }
+
+        function onPlayerReady(event) {
+            fetchDefaultPlaylist("Indonesian Reggae Slow");
+        }
+
+        function onPlayerStateChange(event) {
+            if (event.data == YT.PlayerState.ENDED) {
+                playNext();
+            }
+        }
+
+        async function fetchDefaultPlaylist(query) {
+            try {
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=15&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.items) {
+                    playlist = data.items;
+                    renderPlaylist();
+                    if (playlist.length > 0) {
+                        playSong(0);
+                    }
+                }
+            } catch (error) {
+                console.error("Gagal mengambil data YouTube:", error);
+            }
+        }
+
+        async function searchMusic(query) {
+            try {
+                const url = `https://www.googleapis.com/youtube/v3/search?part=snippet&maxResults=10&q=${encodeURIComponent(query)}&type=video&key=${apiKey}`;
+                const response = await fetch(url);
+                const data = await response.json();
+                
+                if (data.items) {
+                    searchResults = data.items;
+                    renderSearchResults();
+                }
+            } catch (error) {
+                console.error("Gagal mencari video:", error);
+            }
+        }
+
+        function filterGenre(genreName) {
+            fetchDefaultPlaylist(genreName);
+        }
+
+        function renderSearchResults() {
+            const section = document.getElementById('searchResultSection');
+            const container = document.getElementById('searchResultContainer');
+            section.classList.remove('hidden');
+            container.innerHTML = '';
+
+            searchResults.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = "p-2 rounded-xl flex items-center space-x-3 cursor-pointer bg-yt-dark hover:bg-yt-hover transition";
+                div.innerHTML = `
+                    <img src="${item.snippet.thumbnails.default.url}" class="w-24 h-14 object-cover rounded-lg shrink-0">
+                    <div class="flex-1 overflow-hidden">
+                        <p class="font-semibold text-xs text-white line-clamp-1">${item.snippet.title}</p>
+                        <p class="text-[11px] text-gray-400 mt-0.5">${item.snippet.channelTitle}</p>
+                    </div>
+                    <button class="bg-yt-red hover:bg-red-700 text-xs px-2.5 py-1 rounded-full text-white shrink-0">
+                        <i class="fa-solid fa-plus"></i>
+                    </button>
+                `;
+                div.onclick = () => addAndPlayFromSearch(index);
+                container.appendChild(div);
+            });
+        }
+
+        function closeSearchResults() {
+            document.getElementById('searchResultSection').classList.add('hidden');
+        }
+
+        function addAndPlayFromSearch(index) {
+            const selectedVideo = searchResults[index];
+            playlist.unshift(selectedVideo);
+            renderPlaylist();
+            playSong(0);
+        }
+
+        function playSong(index) {
+            if (index < 0 || index >= playlist.length) return;
+            currentIndex = index;
+            const video = playlist[currentIndex];
+            const videoId = video.id.videoId;
+            
+            player.loadVideoById(videoId);
+            document.getElementById('currentTitle').innerText = video.snippet.title;
+            document.getElementById('currentChannel').innerText = video.snippet.channelTitle;
+            renderPlaylist();
+        }
+
+        function playNext() {
+            currentIndex = (currentIndex + 1) % playlist.length;
+            playSong(currentIndex);
+        }
+
+        function playPrev() {
+            currentIndex = (currentIndex - 1 + playlist.length) % playlist.length;
+            playSong(currentIndex);
+        }
+
+        function renderPlaylist() {
+            const container = document.getElementById('playlistContainer');
+            container.innerHTML = '';
+            playlist.forEach((item, index) => {
+                const div = document.createElement('div');
+                div.className = `flex space-x-3 p-2 rounded-xl cursor-pointer transition ${index === currentIndex ? 'bg-yt-hover border border-yt-border' : 'hover:bg-yt-surface'}`;
+                div.innerHTML = `
+                    <img src="${item.snippet.thumbnails.default.url}" class="w-28 h-16 object-cover rounded-lg shrink-0">
+                    <div class="flex-1 overflow-hidden flex flex-col justify-center">
+                        <p class="font-semibold text-xs text-white line-clamp-2 leading-snug">${item.snippet.title}</p>
+                        <p class="text-[11px] text-gray-400 mt-1">${item.snippet.channelTitle}</p>
+                    </div>
+                `;
+                div.onclick = () => playSong(index);
+                container.appendChild(div);
+            });
+        }
+
+        // Event Listeners
+        document.getElementById('searchBtn').onclick = () => {
+            const query = document.getElementById('searchInput').value;
+            if (query) searchMusic(query);
+        };
+
+        document.getElementById('searchInput').onkeypress = (e) => {
+            if (e.key === 'Enter') {
+                document.getElementById('searchBtn').click();
+            }
+        };
+
+        document.getElementById('nextBtn').onclick = playNext;
+        document.getElementById('prevBtn').onclick = playPrev;
+    </script>
+</body>
+</html>
