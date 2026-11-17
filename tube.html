@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>YouTube Web Player - Modern UI</title>
+    <title>YouTube Web Player - Smart Recommendations</title>
     <!-- Google Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -507,7 +507,7 @@
             margin-bottom: 2px;
         }
 
-        /* Panel Daftar Putar Antrean (Membentang Penuh Sampai Bawah Layar) */
+        /* Panel Daftar Putar Antrean */
         .playlist-section {
             position: absolute;
             top: 100%;
@@ -654,7 +654,7 @@
         <!-- Dynamic Content Area -->
         <div class="content" id="main-content-area">
             <div class="section-header">
-                <h2>Video Rekomendasi</h2>
+                <h2 id="home-section-title">Video Rekomendasi</h2>
             </div>
             <div class="video-grid" id="video-grid"></div>
         </div>
@@ -703,7 +703,7 @@
             <h4 id="meta-title">Judul Video</h4>
             <p id="meta-channel" style="color: #aaa; font-size: 11px;">Nama Channel</p>
         </div>
-        <!-- Panel Daftar Putar Antrean Membentang Sampai Bawah -->
+        <!-- Panel Daftar Putar Antrean -->
         <div class="playlist-section" id="playlist-container">
             <h5 style="font-size: 12px; margin-bottom: 8px; color: #aaa; font-weight: 500;">Daftar Putar Antrean</h5>
         </div>
@@ -714,12 +714,12 @@
         const YT_API_KEY = "AIzaSyDgu2BS4TTqCPNJV6GgkkHr7k9IzLIActo";
         
         const defaultVideos = [
-            { id: "jfKfPfyJRdk", title: "Lofi Hip Hop Radio - Beats to Relax/Study to", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" },
-            { id: "5qap5aO4i9A", title: "Lofi Hip Hop Radio - Live 24/7 Music", channel: "Lofi Girl", thumb: "https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg" },
-            { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give You Up", channel: "Rick Astley", thumb: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
-            { id: "9bZkp7q19f0", title: "PSY - GANGNAM STYLE M/V", channel: "officialpsy", thumb: "https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg" },
-            { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito ft. Daddy Yankee", channel: "Luis Fonsi", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg" },
-            { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", channel: "Ed Sheeran", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg" }
+            { id: "jfKfPfyJRdk", title: "Lofi Hip Hop Radio - Beats to Relax/Study to", channel: "Lofi Girl", category: "Lofi", thumb: "https://i.ytimg.com/vi/jfKfPfyJRdk/hqdefault.jpg" },
+            { id: "5qap5aO4i9A", title: "Lofi Hip Hop Radio - Live 24/7 Music", channel: "Lofi Girl", category: "Lofi", thumb: "https://i.ytimg.com/vi/5qap5aO4i9A/hqdefault.jpg" },
+            { id: "dQw4w9WgXcQ", title: "Rick Astley - Never Gonna Give You Up", channel: "Rick Astley", category: "Pop", thumb: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg" },
+            { id: "9bZkp7q19f0", title: "PSY - GANGNAM STYLE M/V", channel: "officialpsy", category: "Pop", thumb: "https://i.ytimg.com/vi/9bZkp7q19f0/hqdefault.jpg" },
+            { id: "kJQP7kiw5Fk", title: "Luis Fonsi - Despacito ft. Daddy Yankee", channel: "Luis Fonsi", category: "Latin", thumb: "https://i.ytimg.com/vi/kJQP7kiw5Fk/hqdefault.jpg" },
+            { id: "JGwWNGJdvx8", title: "Ed Sheeran - Shape of You", channel: "Ed Sheeran", category: "Pop", thumb: "https://i.ytimg.com/vi/JGwWNGJdvx8/hqdefault.jpg" }
         ];
 
         let currentVideosList = [...defaultVideos];
@@ -728,6 +728,32 @@
         let player;
         let isMiniScreen = false;
         let adBlockInterval = null;
+
+        // Sistem Histori Kategori Sering Diputar
+        let watchHistory = JSON.parse(localStorage.getItem('yt_watch_history')) || [];
+
+        function recordCategoryWatch(category) {
+            if (!category) return;
+            watchHistory.unshift(category);
+            // Batasi histori 20 rekaman terakhir
+            if (watchHistory.length > 20) watchHistory.pop();
+            localStorage.setItem('yt_watch_history', JSON.stringify(watchHistory));
+        }
+
+        // Ambil kategori yang paling sering diputar
+        function getMostFrequentCategory() {
+            if (watchHistory.length === 0) return null;
+            const counts = {};
+            let maxCat = watchHistory[0], maxCount = 0;
+            for (const cat of watchHistory) {
+                counts[cat] = (counts[cat] || 0) + 1;
+                if (counts[cat] > maxCount) {
+                    maxCount = counts[cat];
+                    maxCat = cat;
+                }
+            }
+            return maxCat;
+        }
 
         let customPlaylists = JSON.parse(localStorage.getItem('yt_custom_playlists')) || [
             { id: 'fav1', name: 'Musik Favorit', videos: [defaultVideos[0], defaultVideos[2]] }
@@ -762,17 +788,32 @@
 
         function onYouTubeIframeAPIReady() {}
 
-        function renderHomeView(videos = defaultVideos, title = "Video Rekomendasi") {
+        // Menampilkan Rekomendasi Berdasarkan Kategori Sering Diputar atau Default
+        function renderHomeView() {
             const mainArea = document.getElementById('main-content-area');
+            const frequentCat = getMostFrequentCategory();
+            
+            let displayVideos = defaultVideos;
+            let sectionTitle = "Video Rekomendasi Terbaru";
+
+            if (frequentCat) {
+                // Filter video default/terbaru yang sesuai dengan kategori yang sering diputar
+                const matched = defaultVideos.filter(v => v.category === frequentCat);
+                if (matched.length > 0) {
+                    displayVideos = matched;
+                    sectionTitle = `Terbaru dari Kategori Sering Diputar: ${frequentCat}`;
+                }
+            }
+
             mainArea.innerHTML = `
                 <div class="section-header">
-                    <h2>${title}</h2>
+                    <h2>${sectionTitle}</h2>
                 </div>
                 <div class="video-grid" id="video-grid"></div>
             `;
             const grid = document.getElementById('video-grid');
             
-            videos.forEach((vid, index) => {
+            displayVideos.forEach((vid, index) => {
                 const card = document.createElement('div');
                 card.className = 'video-card';
                 card.innerHTML = `
@@ -784,7 +825,7 @@
                             <div style="width:32px; height:32px; background:#555; border-radius:50%; flex-shrink:0;"></div>
                             <div class="video-details">
                                 <h3>${vid.title}</h3>
-                                <p>${vid.channel}</p>
+                                <p>${vid.channel} • <span style="color:#3ea6ff;">${vid.category || 'Umum'}</span></p>
                             </div>
                         </div>
                         <button class="btn-options" title="Opsi" onclick="event.stopPropagation(); openAddToPlaylistModal('${vid.id}')">
@@ -793,7 +834,8 @@
                     </div>
                 `;
                 card.addEventListener('click', () => {
-                    queuePlaylist = [...videos];
+                    recordCategoryWatch(vid.category || 'Umum');
+                    queuePlaylist = [...displayVideos];
                     playVideo(vid, index);
                 });
                 grid.appendChild(card);
@@ -802,13 +844,13 @@
 
         document.getElementById('logo-home').addEventListener('click', (e) => {
             e.preventDefault();
-            renderHomeView(defaultVideos, "Video Rekomendasi");
+            renderHomeView();
             closeSidebarMobile();
         });
 
         document.getElementById('nav-home').addEventListener('click', (e) => {
             e.preventDefault();
-            renderHomeView(defaultVideos, "Video Rekomendasi");
+            renderHomeView();
             closeSidebarMobile();
         });
 
@@ -911,6 +953,7 @@
                     </div>
                 `;
                 card.addEventListener('click', () => {
+                    recordCategoryWatch(vid.category || 'Umum');
                     queuePlaylist = [...playlistObj.videos];
                     playVideo(vid, index);
                 });
@@ -1134,6 +1177,7 @@
                     </div>
                 `;
                 pItem.addEventListener('click', () => {
+                    recordCategoryWatch(item.category || 'Umum');
                     playVideo(item, idx);
                     document.getElementById('playlist-container').classList.remove('show');
                 });
@@ -1193,10 +1237,46 @@
                         id: item.id.videoId,
                         title: item.snippet.title,
                         channel: item.snippet.channelTitle,
+                        category: "Pencarian",
                         thumb: item.snippet.thumbnails.high ? item.snippet.thumbnails.high.url : item.snippet.thumbnails.default.url
                     }));
                     currentVideosList = searchResults;
-                    renderHomeView(searchResults, `Hasil Pencarian: "${query}"`);
+                    
+                    const mainArea = document.getElementById('main-content-area');
+                    mainArea.innerHTML = `
+                        <div class="section-header">
+                            <h2>Hasil Pencarian: "${query}"</h2>
+                        </div>
+                        <div class="video-grid" id="video-grid"></div>
+                    `;
+                    const grid = document.getElementById('video-grid');
+                    searchResults.forEach((vid, index) => {
+                        const card = document.createElement('div');
+                        card.className = 'video-card';
+                        card.innerHTML = `
+                            <div class="thumbnail-container">
+                                <img src="${vid.thumb}" alt="${vid.title}">
+                            </div>
+                            <div class="video-info">
+                                <div style="display:flex; gap:10px; overflow:hidden;">
+                                    <div style="width:32px; height:32px; background:#555; border-radius:50%; flex-shrink:0;"></div>
+                                    <div class="video-details">
+                                        <h3>${vid.title}</h3>
+                                        <p>${vid.channel}</p>
+                                    </div>
+                                </div>
+                                <button class="btn-options" title="Opsi" onclick="event.stopPropagation(); openAddToPlaylistModal('${vid.id}')">
+                                    <i class="fas fa-ellipsis-vertical"></i>
+                                </button>
+                            </div>
+                        `;
+                        card.addEventListener('click', () => {
+                            queuePlaylist = searchResults;
+                            playVideo(vid, index);
+                        });
+                        grid.appendChild(card);
+                    });
+
                 } else if (data.error) {
                     Swal.fire({ icon: 'error', title: 'Error API', text: data.error.message, background: '#212121', color: '#fff' });
                 }
@@ -1215,7 +1295,8 @@
             }
         });
 
-        renderHomeView(defaultVideos, "Video Rekomendasi");
+        // Inisialisasi Tampilan Awal Beranda
+        renderHomeView();
     </script>
 </body>
 </html>
