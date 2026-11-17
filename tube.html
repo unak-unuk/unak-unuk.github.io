@@ -420,15 +420,15 @@
         .btn-submit { background: #3ea6ff; color: #0f0f0f; }
         .btn-submit:hover { background: #65b8ff; }
 
-        /* Player Overlay */
+        /* Player Overlay - Diubah posisinya ke ATAS halaman */
         .player-overlay {
             position: fixed;
-            bottom: 0;
+            top: 56px; /* Tepat di bawah header */
             right: 0;
             width: 100%;
-            max-width: 400px;
+            max-width: 450px;
             background: #212121;
-            border-radius: 12px 12px 0 0;
+            border-radius: 0 0 12px 12px;
             box-shadow: 0 4px 20px rgba(0,0,0,0.8);
             z-index: 2000;
             display: none;
@@ -440,6 +440,7 @@
         .player-overlay.miniscreen {
             max-width: 280px;
             height: 160px;
+            top: auto;
             bottom: 12px;
             right: 12px;
             border-radius: 8px;
@@ -465,7 +466,7 @@
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
-            max-width: 200px;
+            max-width: 250px;
         }
 
         .player-controls-btns {
@@ -504,7 +505,7 @@
         }
 
         .playlist-section {
-            max-height: 130px;
+            max-height: 150px;
             overflow-y: auto;
             background: #181818;
             border-top: 1px solid #333;
@@ -560,10 +561,13 @@
                 width: 100%;
                 max-width: 100%;
                 border-radius: 0;
+                top: 56px;
             }
             .player-overlay.miniscreen {
                 max-width: 240px;
                 height: 135px;
+                bottom: 12px;
+                top: auto;
             }
         }
     </style>
@@ -637,7 +641,6 @@
             <h3>Simpan video ke...</h3>
             <div id="modal-playlist-options" style="max-height: 150px; overflow-y: auto; margin-bottom: 16px; display: flex; flex-direction: column; gap: 8px;"></div>
             
-            <!-- Tombol Simpan di Kiri Bawah, Tutup di Kanan Bawah -->
             <div class="modal-buttons">
                 <button class="btn-submit" id="modal-confirm-save-btn"><i class="fas fa-plus"></i> Simpan</button>
                 <button class="btn-cancel" id="modal-add-cancel-btn">Tutup</button>
@@ -645,7 +648,7 @@
         </div>
     </div>
 
-    <!-- Player Overlay -->
+    <!-- Player Overlay (Diposisikan di Atas) -->
     <div class="player-overlay" id="player-overlay">
         <div class="player-header">
             <span id="current-video-title">Memutar Video...</span>
@@ -695,7 +698,7 @@
         }
 
         let activeVideoToSave = null;
-        let selectedPlaylistIndex = null; // Menyimpan playlist yang dipilih
+        let selectedPlaylistIndex = null;
 
         const menuToggleBtn = document.getElementById('menu-toggle-btn');
         const sidebar = document.getElementById('sidebar');
@@ -875,7 +878,6 @@
             });
         }
 
-        // Aksi Modalnya
         document.getElementById('modal-create-btn').addEventListener('click', () => {
             const name = document.getElementById('playlist-name-input').value.trim();
             if (!name) {
@@ -904,7 +906,7 @@
                 }
             }
             activeVideoToSave = foundVid;
-            selectedPlaylistIndex = null; // Reset pilihan
+            selectedPlaylistIndex = null;
 
             const container = document.getElementById('modal-playlist-options');
             container.innerHTML = "";
@@ -923,7 +925,6 @@
                     `;
                     
                     item.addEventListener('click', () => {
-                        // Highlight pilihan aktif
                         document.querySelectorAll('.playlist-option-row').forEach(el => el.style.borderColor = 'transparent');
                         item.style.borderColor = '#3ea6ff';
                         selectedPlaylistIndex = idx;
@@ -936,7 +937,6 @@
             document.getElementById('modal-add-to-playlist').style.display = 'flex';
         };
 
-        // Tombol Simpan di Kiri Bawah Modal untuk memasukkan video ke playlist yang dipilih
         document.getElementById('modal-confirm-save-btn').addEventListener('click', () => {
             if (selectedPlaylistIndex === null) {
                 Swal.fire({ icon: 'warning', title: 'Perhatian', text: 'Silakan pilih salah satu playlist terlebih dahulu!', background: '#212121', color: '#fff' });
