@@ -2,8 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Video Player - Fullscreen Landscape</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Player</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -12,31 +12,29 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            background: #000000;
-            overflow: hidden;
-            user-select: none;
+            background: #121212;
+            color: #ffffff;
+            overflow-x: hidden;
         }
 
-        /* Default Fullscreen Landscape Stage */
-        .landscape-stage {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            width: 100vw;
-            height: 100vh;
-            transform: translate(-50%, -50%);
-            background: #000000;
-            z-index: 10;
-            overflow: hidden;
+        .player-wrapper {
+            width: 100%;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
         }
 
-        /* Rotasi paksa ke landscape jika perangkat sedang portrait */
-        @media screen and (orientation: portrait) {
-            .landscape-stage {
-                width: 100vh;
-                height: 100vw;
-                transform: translate(-50%, -50%) rotate(90deg);
-            }
+        .player-stage {
+            position: relative;
+            width: 100%;
+            max-width: 960px;
+            aspect-ratio: 16 / 9;
+            background: #000000;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 10px 28px rgba(0, 0, 0, 0.45);
         }
 
         #yt-player {
@@ -53,15 +51,46 @@
             inset: 0;
             width: 100%;
             height: 100%;
-            background: #0b0d12;
+            background: #1c1e24;
             color: #ffffff;
             display: flex;
             flex-direction: column;
             justify-content: center;
             align-items: center;
             text-align: center;
-            padding: 24px;
+            padding: 20px;
             z-index: 3;
+        }
+
+        /* Saat masuk mode fullscreen: paksa tampilan landscape */
+        body.is-fullscreen .player-wrapper {
+            position: fixed;
+            inset: 0;
+            width: 100vw;
+            height: 100vh;
+            padding: 0;
+            background: #000000;
+            z-index: 9990;
+        }
+
+        body.is-fullscreen .player-stage {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            width: 100vw;
+            height: 100vh;
+            max-width: none;
+            aspect-ratio: auto;
+            border-radius: 0;
+            transform: translate(-50%, -50%);
+        }
+
+        @media screen and (orientation: portrait) {
+            body.is-fullscreen .player-stage {
+                width: 100vh;
+                height: 100vw;
+                transform: translate(-50%, -50%) rotate(90deg);
+            }
         }
 
         /* Mode Offline Total */
@@ -92,13 +121,15 @@
         </div>
     </div>
 
-    <!-- Stage Pemutar Fullscreen Landscape -->
-    <div id="landscape-stage" class="landscape-stage" onclick="tryEnterDeviceLandscapeFullscreen()">
-        <div id="yt-player"></div>
-        <div id="placeholder-video" class="placeholder-box">
-            <i class="fa-brands fa-youtube text-danger fa-3x mb-3"></i>
-            <h5 class="fw-bold mb-1">Menunggu Antrean Video</h5>
-            <p class="text-white-50 small mb-0">Video akan otomatis tampil dan diputar saat antrean tersedia.</p>
+    <!-- Container Player Default -->
+    <div id="player-wrapper" class="player-wrapper">
+        <div id="player-stage" class="player-stage">
+            <div id="yt-player"></div>
+            <div id="placeholder-video" class="placeholder-box">
+                <i class="fa-brands fa-youtube text-danger fa-3x mb-3"></i>
+                <h5 class="fw-bold mb-1">Menunggu Antrean Video</h5>
+                <p class="text-white-50 small mb-0">Video akan otomatis tampil dan diputar saat antrean tersedia.</p>
+            </div>
         </div>
     </div>
 
@@ -174,22 +205,29 @@
             }
         }
 
-        async function tryEnterDeviceLandscapeFullscreen() {
-            try {
-                if (!document.fullscreenElement && document.documentElement.requestFullscreen) {
-                    await document.documentElement.requestFullscreen();
-                }
-            } catch (e) {}
+        async function handleFullscreenChange() {
+            let isFs = Boolean(document.fullscreenElement || document.webkitFullscreenElement);
+            document.body.classList.toggle('is-fullscreen', isFs);
 
-            try {
-                if (screen.orientation && typeof screen.orientation.lock === 'function') {
-                    await screen.orientation.lock('landscape');
-                }
-            } catch (e) {}
+            if (isFs) {
+                try {
+                    if (screen.orientation && typeof screen.orientation.lock === 'function') {
+                        await screen.orientation.lock('landscape');
+                    }
+                } catch (e) {}
+            } else {
+                try {
+                    if (screen.orientation && typeof screen.orientation.unlock === 'function') {
+                        screen.orientation.unlock();
+                    }
+                } catch (e) {}
+            }
         }
 
+        document.addEventListener("fullscreenchange", handleFullscreenChange);
+        document.addEventListener("webkitfullscreenchange", handleFullscreenChange);
+
         document.addEventListener("DOMContentLoaded", () => {
-            tryEnterDeviceLandscapeFullscreen();
             fetchData();
             setInterval(fetchData, 4000);
         });
@@ -266,7 +304,6 @@
                 return appData.playlists[pIdx].videos[vIdx];
             }
 
-            // Cari kategori pertama yang memiliki video
             for (let p = 0; p < appData.playlists.length; p++) {
                 let pl = appData.playlists[p];
                 if (pl && Array.isArray(pl.videos) && pl.videos.length > 0) {
@@ -298,7 +335,6 @@
         async function handleVideoEndedAndPlayNext() {
             isProcessingEnded = true;
             try {
-                // Ambil data terbaru dari JSONBin agar sinkron dengan antrean terkini
                 let latestRes = await fetch(JSONBIN_URL + "/latest", {
                     headers: { "X-Master-Key": MASTER_KEY }
                 });
@@ -323,15 +359,12 @@
                         ? vIdx
                         : 0;
 
-                    // Hapus video yang baru selesai diputar dari database
                     appData.playlists[pIdx].videos.splice(removeIndex, 1);
 
-                    // Tentukan video berikutnya
                     if (appData.playlists[pIdx].videos.length > 0) {
                         appData.activePlaylist = pIdx;
                         appData.activeVideo = removeIndex < appData.playlists[pIdx].videos.length ? removeIndex : 0;
                     } else {
-                        // Cari kategori berikutnya yang masih punya video
                         let nextFound = false;
                         for (let nextP = 0; nextP < appData.playlists.length; nextP++) {
                             let candidatePl = appData.playlists[nextP];
