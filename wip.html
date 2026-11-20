@@ -1,0 +1,1516 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>CEK WIP - Final Inspection</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Html5-Qrcode Scanner -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <style>
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background-color: #f3f4f8;
+      -webkit-tap-highlight-color: transparent;
+      user-select: none;
+    }
+
+    /* OVO Signature Gradient */
+    .ovo-gradient {
+      background: linear-gradient(135deg, #4c2a86 0%, #683ab7 55%, #8454d6 100%);
+    }
+    .ovo-card-shadow {
+      box-shadow: 0 10px 25px -5px rgba(76, 42, 134, 0.22), 0 4px 10px -2px rgba(0, 0, 0, 0.05);
+    }
+
+    /* Hamburger to X Animation */
+    .hamburger-line {
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      transform-origin: center;
+    }
+    .hamburger-active .line-1 {
+      transform: translateY(7px) rotate(45deg);
+    }
+    .hamburger-active .line-2 {
+      opacity: 0;
+      transform: scaleX(0);
+    }
+    .hamburger-active .line-3 {
+      transform: translateY(-7px) rotate(-45deg);
+    }
+
+    /* Custom Scrollbar */
+    ::-webkit-scrollbar {
+      width: 4px;
+      height: 4px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+
+    /* Bottom Scan Button Pulse */
+    .scan-btn-ring {
+      box-shadow: 0 8px 20px rgba(76, 42, 134, 0.45);
+    }
+
+    @keyframes popIn {
+      0% { opacity: 0; transform: scale(0.94) translateY(10px); }
+      100% { opacity: 1; transform: scale(1) translateY(0); }
+    }
+    .animate-pop {
+      animation: popIn 0.22s ease-out forwards;
+    }
+  </style>
+</head>
+<body class="text-slate-800 pb-24">
+
+  <!-- ==================== SCREEN 1: LOGIN / PIC SETUP ==================== -->
+  <div id="loginScreen" class="fixed inset-0 z-50 ovo-gradient flex flex-col justify-between p-6 text-white overflow-y-auto">
+    <div class="mt-8 text-center">
+      <div class="w-16 h-16 mx-auto bg-white/15 backdrop-blur-md rounded-2xl flex items-center justify-center mb-4 border border-white/25 shadow-lg">
+        <i data-lucide="shield-check" class="w-9 h-9 text-cyan-300"></i>
+      </div>
+      <h1 class="text-2xl font-extrabold tracking-tight">CEK WIP</h1>
+      <p class="text-purple-200 text-xs mt-1">Quality Control Final & WIP Verification</p>
+    </div>
+
+    <div class="bg-white text-slate-800 rounded-3xl p-6 shadow-2xl my-auto">
+      <h2 class="text-lg font-bold text-purple-950 mb-1">Mulai Sesi Pengecekan</h2>
+      <p class="text-xs text-slate-500 mb-5">Masukkan identitas PIC dan area pengecekan unit.</p>
+
+      <div class="space-y-4">
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">PIC Cek</label>
+          <div class="relative">
+            <i data-lucide="user" class="w-4 h-4 text-purple-600 absolute left-3.5 top-3.5"></i>
+            <input type="text" id="inputPic" placeholder="Nama PIC..."
+              class="w-full pl-10 pr-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-purple-600 focus:bg-white transition" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-bold text-slate-600 uppercase tracking-wider mb-1.5">Lokasi Cek</label>
+          <div class="grid grid-cols-3 gap-2" id="lokasiSelector">
+            <button type="button" data-loc="FINAL" onclick="selectLokasi('FINAL')"
+              class="loc-btn py-2.5 px-2 rounded-xl text-xs font-bold border-2 border-purple-600 bg-purple-50 text-purple-800 transition">
+              FINAL
+            </button>
+            <button type="button" data-loc="RM0" onclick="selectLokasi('RM0')"
+              class="loc-btn py-2.5 px-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-600 transition">
+              RM0
+            </button>
+            <button type="button" data-loc="INSPECTION" onclick="selectLokasi('INSPECTION')"
+              class="loc-btn py-2.5 px-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-600 transition">
+              INSPECTION
+            </button>
+          </div>
+        </div>
+
+        <button onclick="handleLogin()"
+          class="w-full mt-2 py-3.5 ovo-gradient text-white font-bold rounded-xl shadow-lg shadow-purple-900/30 active:scale-[0.98] transition flex items-center justify-center gap-2">
+          <span>MULAI</span>
+          <i data-lucide="arrow-right" class="w-4 h-4"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="text-center text-[11px] text-purple-200/80">
+      &copy; 2026 Quality Control WIP System
+    </div>
+  </div>
+
+  <!-- ==================== MAIN APP ==================== -->
+  <div id="mainApp" class="hidden min-h-screen flex flex-col">
+
+    <!-- STICKY TOP NAVBAR -->
+    <header class="sticky top-0 z-30 ovo-gradient text-white px-4 py-3.5 shadow-md">
+      <div class="max-w-md mx-auto flex items-center justify-between">
+        <div class="flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-xl bg-white/15 flex items-center justify-center border border-white/20">
+            <i data-lucide="check-circle-2" class="w-5 h-5 text-cyan-300"></i>
+          </div>
+          <div>
+            <h1 class="text-base font-extrabold tracking-wide leading-none">CEK WIP</h1>
+            <span id="headerBadgeInfo" class="text-[10px] text-purple-200 font-medium">PIC: - | FINAL</span>
+          </div>
+        </div>
+
+        <div class="flex items-center gap-2">
+          <!-- Sync Indicator -->
+          <button onclick="syncFromCloud(true)" id="syncBtn" title="Sinkronisasi JSONBin"
+            class="p-2 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 transition">
+            <i data-lucide="refresh-cw" id="syncIcon" class="w-4 h-4 text-cyan-300"></i>
+          </button>
+
+          <!-- Hamburger Button (Animates to X) -->
+          <button id="hamburgerBtn" onclick="toggleDrawer()" aria-label="Menu"
+            class="w-10 h-10 rounded-xl bg-white/10 hover:bg-white/20 flex flex-col items-center justify-center gap-[5px] transition">
+            <span class="hamburger-line line-1 w-5 h-[2px] bg-white rounded-full"></span>
+            <span class="hamburger-line line-2 w-5 h-[2px] bg-white rounded-full"></span>
+            <span class="hamburger-line line-3 w-5 h-[2px] bg-white rounded-full"></span>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <!-- SLIDE DOWN MENU DRAWER -->
+    <div id="navDrawer" class="hidden fixed inset-x-0 top-[64px] z-20 px-4 pt-2 pb-4 bg-purple-950/95 backdrop-blur-md text-white shadow-2xl border-b border-purple-700/50 animate-pop">
+      <div class="max-w-md mx-auto space-y-2">
+        <button onclick="openAddItemModal(); toggleDrawer(false);"
+          class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 active:scale-[0.99] transition">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-cyan-400/20 text-cyan-300 flex items-center justify-center">
+              <i data-lucide="list-plus" class="w-5 h-5"></i>
+            </div>
+            <div class="text-left">
+              <div class="text-sm font-bold">Tambah Item Cek</div>
+              <div class="text-[11px] text-purple-200">Atur daftar poin pemeriksaan unit</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-purple-300"></i>
+        </button>
+
+        <button onclick="openWaConfigModal(); toggleDrawer(false);"
+          class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 active:scale-[0.99] transition">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-emerald-400/20 text-emerald-300 flex items-center justify-center">
+              <i data-lucide="message-circle" class="w-5 h-5"></i>
+            </div>
+            <div class="text-left">
+              <div class="text-sm font-bold">Nomor WA per Lokasi</div>
+              <div class="text-[11px] text-purple-200">Atur tujuan WA FINAL, RM0 & INSPECTION</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-purple-300"></i>
+        </button>
+
+        <button onclick="openJsonBinModal(); toggleDrawer(false);"
+          class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-white/10 hover:bg-white/15 active:scale-[0.99] transition">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-amber-400/20 text-amber-300 flex items-center justify-center">
+              <i data-lucide="database" class="w-5 h-5"></i>
+            </div>
+            <div class="text-left">
+              <div class="text-sm font-bold">Pengaturan JSONBin.io</div>
+              <div class="text-[11px] text-purple-200">Bin ID & X-Master-Key Cloud</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-purple-300"></i>
+        </button>
+
+        <button onclick="logoutSession(); toggleDrawer(false);"
+          class="w-full flex items-center justify-between p-3.5 rounded-2xl bg-rose-500/20 hover:bg-rose-500/30 active:scale-[0.99] transition">
+          <div class="flex items-center gap-3">
+            <div class="w-9 h-9 rounded-xl bg-rose-500/30 text-rose-200 flex items-center justify-center">
+              <i data-lucide="log-out" class="w-5 h-5"></i>
+            </div>
+            <div class="text-left">
+              <div class="text-sm font-bold text-rose-100">Ganti PIC / Lokasi</div>
+              <div class="text-[11px] text-rose-200/80">Kembali ke layar awal sesi</div>
+            </div>
+          </div>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-rose-300"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- HERO HEADER & SHIFT CARD (OVO STYLE) -->
+    <div class="ovo-gradient pt-2 pb-12 px-4 rounded-b-[2rem] text-white">
+      <div class="max-w-md mx-auto">
+        <div class="flex items-center justify-between bg-white/10 backdrop-blur-sm border border-white/15 rounded-2xl px-4 py-3">
+          <div>
+            <div class="text-[11px] text-purple-200 font-medium">Jadwal Operasional</div>
+            <div id="shiftDateDisplay" class="text-sm font-bold text-white mt-0.5">Sabtu, 21 November 2026</div>
+          </div>
+          <div class="text-right">
+            <span id="shiftBadge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-cyan-400 text-purple-950 shadow">
+              <i data-lucide="sun" class="w-3.5 h-3.5"></i>
+              <span>DAY SHIFT</span>
+            </span>
+            <div id="liveClockDisplay" class="text-[10px] text-purple-200 mt-1 font-mono">07:15 WIB</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- FLOATING SUMMARY & LOCATION WA CARD (OVO WALLET CARD STYLE) -->
+    <div class="max-w-md w-full mx-auto px-4 -mt-8">
+      <div class="bg-white rounded-2xl p-4 ovo-card-shadow border border-purple-100 space-y-3">
+        <!-- Location Tabs + Kirim WA per Lokasi -->
+        <div>
+          <div class="flex items-center justify-between mb-1.5">
+            <span class="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">Lokasi & Kirim WA</span>
+            <button onclick="openWaConfigModal()" class="text-[10px] font-bold text-purple-700 hover:underline">
+              Atur No. WA
+            </button>
+          </div>
+          <div class="grid grid-cols-3 gap-1.5" id="locationTabsBar">
+            <button type="button" data-tab-loc="FINAL" onclick="switchActiveLocation('FINAL')"
+              class="loc-tab py-2 px-2 rounded-xl text-[11px] font-extrabold border-2 border-purple-600 bg-purple-50 text-purple-900 transition">
+              FINAL
+            </button>
+            <button type="button" data-tab-loc="RM0" onclick="switchActiveLocation('RM0')"
+              class="loc-tab py-2 px-2 rounded-xl text-[11px] font-extrabold border border-slate-200 bg-slate-50 text-slate-600 transition">
+              RM0
+            </button>
+            <button type="button" data-tab-loc="INSPECTION" onclick="switchActiveLocation('INSPECTION')"
+              class="loc-tab py-2 px-2 rounded-xl text-[11px] font-extrabold border border-slate-200 bg-slate-50 text-slate-600 transition">
+              INSPECTION
+            </button>
+          </div>
+
+          <!-- Tombol Kirim WA Khusus Lokasi Aktif -->
+          <button onclick="sendLocationReportToWA(activeLocation)" id="btnSendWaLokasi"
+            class="mt-2.5 w-full py-2.5 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 active:scale-[0.99] text-white font-extrabold text-xs shadow-md shadow-emerald-600/25 flex items-center justify-center gap-2 transition">
+            <i data-lucide="send" class="w-4 h-4"></i>
+            <span id="btnSendWaText">Kirim Rekap WA Lokasi FINAL</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-3 divide-x divide-slate-100 text-center pt-2 border-t border-slate-100">
+          <div>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase">Total Cek</div>
+            <div id="statTotal" class="text-xl font-extrabold text-purple-900 mt-0.5">0</div>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase">Unit OK</div>
+            <div id="statOk" class="text-xl font-extrabold text-emerald-600 mt-0.5">0</div>
+          </div>
+          <div>
+            <div class="text-[11px] font-semibold text-slate-400 uppercase">Unit NG</div>
+            <div id="statNg" class="text-xl font-extrabold text-rose-600 mt-0.5">0</div>
+          </div>
+        </div>
+
+        <!-- Filter Shift / Semua -->
+        <div class="pt-2.5 border-t border-slate-100 flex items-center justify-between gap-2">
+          <div class="flex bg-slate-100 p-1 rounded-xl text-xs font-bold">
+            <button onclick="setFilterMode('SHIFT')" id="filterShiftBtn"
+              class="px-3 py-1 rounded-lg bg-white text-purple-800 shadow-sm transition">
+              Shift Ini
+            </button>
+            <button onclick="setFilterMode('ALL')" id="filterAllBtn"
+              class="px-3 py-1 rounded-lg text-slate-500 transition">
+              Semua Data
+            </button>
+          </div>
+          <div class="text-[11px] text-slate-400 flex items-center gap-1">
+            <i data-lucide="hand" class="w-3.5 h-3.5 text-purple-500"></i>
+            <span>Tahan kartu: Edit/Hapus</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UNIT LIST SECTION -->
+    <main class="max-w-md w-full mx-auto px-4 mt-5 flex-1">
+      <div class="flex items-center justify-between mb-3">
+        <h2 id="listHeadingTitle" class="text-sm font-extrabold text-slate-700 uppercase tracking-wider">Daftar Data • FINAL</h2>
+        <span id="activeItemsCount" class="text-[11px] font-semibold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+          0 Item Cek Aktif
+        </span>
+      </div>
+
+      <!-- Empty State -->
+      <div id="emptyState" class="hidden bg-white rounded-2xl p-8 text-center border border-slate-100 shadow-sm">
+        <div class="w-14 h-14 mx-auto bg-purple-50 text-purple-500 rounded-2xl flex items-center justify-center mb-3">
+          <i data-lucide="qr-code" class="w-7 h-7"></i>
+        </div>
+        <h3 class="text-sm font-bold text-slate-700">Belum Ada Data Unit</h3>
+        <p class="text-xs text-slate-400 mt-1">Tekan tombol <b>Scan</b> di tengah bawah untuk memulai pengecekan unit.</p>
+      </div>
+
+      <!-- Unit Cards Container -->
+      <div id="unitListContainer" class="space-y-2.5"></div>
+    </main>
+
+    <!-- BOTTOM NAVIGATION BAR (OVO CENTER SCAN BUTTON) -->
+    <nav class="fixed bottom-0 inset-x-0 z-30 bg-white border-t border-slate-200/80 px-6 py-2 shadow-[0_-4px_20px_rgba(0,0,0,0.05)]">
+      <div class="max-w-md mx-auto flex items-center justify-between relative">
+        <!-- Left Action: Item Cek -->
+        <button onclick="openAddItemModal()" class="flex flex-col items-center justify-center text-slate-500 hover:text-purple-700 active:scale-95 transition py-1 w-20">
+          <i data-lucide="clipboard-list" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[10px] font-bold">Item Cek</span>
+        </button>
+
+        <!-- Center Floating Scan Button -->
+        <div class="relative -top-5 flex flex-col items-center">
+          <button onclick="openScannerModal()"
+            class="w-16 h-16 rounded-full ovo-gradient text-white flex items-center justify-center scan-btn-ring border-4 border-white active:scale-90 transition">
+            <i data-lucide="scan-barcode" class="w-7 h-7"></i>
+          </button>
+          <span class="text-[11px] font-extrabold text-purple-900 mt-1">SCAN</span>
+        </div>
+
+        <!-- Right Action: Kirim WA Lokasi -->
+        <button onclick="sendLocationReportToWA(activeLocation)" class="flex flex-col items-center justify-center text-emerald-600 hover:text-emerald-700 active:scale-95 transition py-1 w-20">
+          <i data-lucide="message-circle" class="w-5 h-5 mb-0.5"></i>
+          <span class="text-[10px] font-bold">Kirim WA</span>
+        </button>
+      </div>
+    </nav>
+  </div>
+
+  <!-- ==================== MODAL 1: SCANNER & INPUT CEK UNIT ==================== -->
+  <div id="scannerModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center">
+    <div class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl max-h-[92vh] flex flex-col overflow-hidden shadow-2xl animate-pop">
+      <!-- Modal Header -->
+      <div class="ovo-gradient text-white px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="scan-line" class="w-5 h-5 text-cyan-300"></i>
+          <h3 class="font-bold text-base">Scan & Cek Unit WIP</h3>
+        </div>
+        <button onclick="closeScannerModal()" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <!-- Modal Body -->
+      <div class="p-5 overflow-y-auto space-y-4">
+        <!-- Camera Viewport -->
+        <div id="cameraSection" class="relative rounded-2xl overflow-hidden bg-slate-950 border-2 border-purple-200">
+          <div id="qrReader" class="w-full"></div>
+          <div id="cameraStatus" class="text-center text-[11px] text-slate-300 py-2 bg-slate-900">
+            Arahkan kamera ke barcode VIN 17 karakter
+          </div>
+        </div>
+
+        <!-- Full VIN & Parsed Fields -->
+        <div class="bg-purple-50/70 border border-purple-100 rounded-2xl p-3.5 space-y-3">
+          <div>
+            <label class="block text-[10px] font-bold text-purple-800 uppercase mb-1">Barcode VIN (17 Karakter)</label>
+            <div class="flex gap-2">
+              <input type="text" id="scanVinInput" maxlength="17" oninput="handleManualVinInput(this.value)"
+                placeholder="Scan atau ketik 17 digit VIN..."
+                class="flex-1 px-3 py-2 bg-white border border-purple-200 rounded-xl text-xs font-mono font-bold uppercase focus:outline-none focus:border-purple-600" />
+              <button type="button" onclick="restartCamera()" title="Scan Ulang"
+                class="px-3 py-2 bg-purple-100 text-purple-700 rounded-xl text-xs font-bold hover:bg-purple-200">
+                <i data-lucide="camera" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Suffix (Ke-6 & 5 Blk)</label>
+              <input type="text" id="scanSuffixInput" placeholder="--"
+                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-extrabold text-purple-900 uppercase focus:outline-none focus:border-purple-600" />
+            </div>
+            <div>
+              <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">No. Unit (Ke-12..17)</label>
+              <input type="text" id="scanUnitInput" placeholder="------"
+                class="w-full px-3 py-2 bg-white border border-slate-200 rounded-xl text-sm font-extrabold text-purple-900 uppercase focus:outline-none focus:border-purple-600" />
+            </div>
+          </div>
+
+          <!-- Tombol CEK (Muncul jika Suffix & Nomor Unit terisi) -->
+          <button id="btnTriggerCheck" onclick="revealCheckItems()"
+            class="hidden w-full py-3 bg-cyan-500 hover:bg-cyan-600 text-purple-950 font-extrabold rounded-xl shadow-md active:scale-[0.98] transition flex items-center justify-center gap-2">
+            <i data-lucide="clipboard-check" class="w-5 h-5"></i>
+            <span>CEK UNIT SEKARANG</span>
+          </button>
+        </div>
+
+        <!-- Checklist Items Container (Muncul setelah tombol CEK ditekan) -->
+        <div id="checklistStepSection" class="hidden space-y-3 animate-pop">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-extrabold text-slate-700 uppercase tracking-wider">Konfirmasi Item Cek</h4>
+            <span id="checkProgressBadge" class="text-[11px] font-bold text-purple-700 bg-purple-100 px-2.5 py-0.5 rounded-full">
+              0 / 0 Terkonfirmasi
+            </span>
+          </div>
+
+          <div id="scanChecklistContainer" class="space-y-2"></div>
+
+          <!-- Tombol SIMPAN (Muncul setelah SEMUA item cek terkonfirmasi OK/NG) -->
+          <button id="btnSaveUnit" onclick="saveCheckedUnit()"
+            class="hidden w-full py-3.5 ovo-gradient text-white font-extrabold rounded-xl shadow-lg shadow-purple-900/30 active:scale-[0.98] transition flex items-center justify-center gap-2 mt-2">
+            <i data-lucide="save" class="w-5 h-5 text-cyan-300"></i>
+            <span>SIMPAN DATA UNIT</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 2: TAMBAH / KELOLA ITEM CEK ==================== -->
+  <div id="addItemModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-pop">
+      <div class="ovo-gradient text-white px-5 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <i data-lucide="list-checks" class="w-5 h-5 text-cyan-300"></i>
+          <h3 class="font-bold text-base">Daftar Item Cek WIP</h3>
+        </div>
+        <button onclick="closeAddItemModal()" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div class="flex gap-2">
+          <input type="text" id="newItemNameInput" placeholder="Nama item cek (misal: Double Blower)..."
+            onkeypress="if(event.key==='Enter') addCheckItem()"
+            class="flex-1 px-3.5 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-sm font-semibold focus:outline-none focus:border-purple-600" />
+          <button onclick="addCheckItem()"
+            class="px-4 py-2.5 ovo-gradient text-white font-bold rounded-xl text-sm shadow active:scale-95 transition">
+            Tambah
+          </button>
+        </div>
+
+        <div class="max-h-64 overflow-y-auto space-y-2" id="masterItemList"></div>
+
+        <button onclick="closeAddItemModal()"
+          class="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-sm transition">
+          Selesai
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 3: DETAIL INFO UNIT (TAP) ==================== -->
+  <div id="detailModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-pop">
+      <div class="ovo-gradient text-white px-5 py-4 flex items-center justify-between">
+        <div>
+          <span class="text-[10px] uppercase tracking-wider text-purple-200 font-bold">Detail Hasil Pengecekan</span>
+          <h3 id="detailTitle" class="font-extrabold text-lg leading-tight">Unit #------</h3>
+        </div>
+        <button onclick="closeDetailModal()" class="p-1.5 rounded-xl bg-white/15 hover:bg-white/25">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+
+      <div class="p-5 space-y-4">
+        <div class="grid grid-cols-2 gap-2 bg-slate-50 p-3 rounded-2xl border border-slate-100 text-xs">
+          <div>
+            <span class="text-slate-400 block text-[10px]">Suffix</span>
+            <span id="detailSuffix" class="font-extrabold text-purple-900 text-sm">-</span>
+          </div>
+          <div>
+            <span class="text-slate-400 block text-[10px]">PIC & Lokasi</span>
+            <span id="detailPicLoc" class="font-bold text-slate-700">-</span>
+          </div>
+          <div class="col-span-2 pt-1 border-t border-slate-200/70">
+            <span class="text-slate-400 block text-[10px]">Shift & Waktu Cek</span>
+            <span id="detailShiftTime" class="font-semibold text-slate-700">-</span>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="text-xs font-extrabold text-slate-600 uppercase mb-2">Status Item Cek</h4>
+          <div id="detailItemsList" class="space-y-2 max-h-60 overflow-y-auto"></div>
+        </div>
+
+        <button onclick="closeDetailModal()"
+          class="w-full py-3 ovo-gradient text-white font-bold rounded-xl text-sm shadow">
+          Tutup
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 4: LONG PRESS ACTION MENU ==================== -->
+  <div id="longPressModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-end sm:items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl p-5 shadow-2xl animate-pop space-y-3">
+      <div class="text-center pb-2 border-b border-slate-100">
+        <span class="text-[10px] font-bold uppercase text-purple-600">Opsi Data Unit</span>
+        <h3 id="lpUnitTitle" class="text-base font-extrabold text-slate-800">Unit #------</h3>
+      </div>
+
+      <button onclick="openEditUnitModal()"
+        class="w-full flex items-center gap-3 p-3.5 rounded-2xl bg-purple-50 hover:bg-purple-100 text-purple-900 font-bold text-sm transition">
+        <div class="w-9 h-9 rounded-xl bg-purple-600 text-white flex items-center justify-center">
+          <i data-lucide="edit-3" class="w-4 h-4"></i>
+        </div>
+        <span>Edit Data & Status Item Cek</span>
+      </button>
+
+      <button onclick="deleteSelectedUnit()"
+        class="w-full flex items-center gap-3 p-3.5 rounded-2xl bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-sm transition">
+        <div class="w-9 h-9 rounded-xl bg-rose-600 text-white flex items-center justify-center">
+          <i data-lucide="trash-2" class="w-4 h-4"></i>
+        </div>
+        <span>Hapus Data Unit</span>
+      </button>
+
+      <button onclick="closeLongPressModal()"
+        class="w-full py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-sm">
+        Batal
+      </button>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 5: EDIT UNIT MODAL ==================== -->
+  <div id="editUnitModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-pop">
+      <div class="ovo-gradient text-white px-5 py-4 flex items-center justify-between">
+        <h3 class="font-bold text-base">Edit Data Unit</h3>
+        <button onclick="closeEditUnitModal()" class="p-1.5 rounded-xl bg-white/15">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">Suffix</label>
+            <input type="text" id="editSuffixInput" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold uppercase" />
+          </div>
+          <div>
+            <label class="block text-[10px] font-bold text-slate-500 uppercase mb-1">No. Unit</label>
+            <input type="text" id="editUnitNoInput" class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-sm font-bold uppercase" />
+          </div>
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-500 uppercase mb-2">Ubah Status Item Cek</label>
+          <div id="editChecklistContainer" class="space-y-2 max-h-56 overflow-y-auto"></div>
+        </div>
+        <button onclick="saveEditedUnit()" class="w-full py-3.5 ovo-gradient text-white font-bold rounded-xl shadow-lg">
+          Simpan Perubahan
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 6: WA PER LOKASI CONFIG ==================== -->
+  <div id="waConfigModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-pop">
+      <div class="ovo-gradient text-white px-5 py-4 flex items-center justify-between">
+        <h3 class="font-bold text-base">Nomor WA per Lokasi</h3>
+        <button onclick="closeWaConfigModal()" class="p-1.5 rounded-xl bg-white/15">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-3">
+        <p class="text-xs text-slate-500">Isi nomor WhatsApp tujuan (format internasional, contoh: <b>6281234567890</b>). Kosongkan jika ingin memilih kontak manual di WA.</p>
+        <div>
+          <label class="block text-[10px] font-bold text-purple-800 uppercase mb-1">WA Lokasi FINAL</label>
+          <input type="tel" id="cfgWaFinal" placeholder="628..."
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-purple-800 uppercase mb-1">WA Lokasi RM0</label>
+          <input type="tel" id="cfgWaRm0" placeholder="628..."
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-purple-800 uppercase mb-1">WA Lokasi INSPECTION</label>
+          <input type="tel" id="cfgWaInspection" placeholder="628..."
+            class="w-full px-3 py-2 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono font-bold" />
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button onclick="saveWaConfig()" class="flex-1 py-3 bg-emerald-600 text-white font-bold rounded-xl text-xs shadow">
+            Simpan Nomor WA
+          </button>
+          <button onclick="closeWaConfigModal()" class="px-4 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ==================== MODAL 7: JSONBIN CONFIG ==================== -->
+  <div id="jsonBinModal" class="hidden fixed inset-0 z-50 bg-slate-900/75 backdrop-blur-sm flex items-center justify-center p-4">
+    <div class="bg-white w-full max-w-md rounded-3xl overflow-hidden shadow-2xl animate-pop">
+      <div class="ovo-gradient text-white px-5 py-4 flex items-center justify-between">
+        <h3 class="font-bold text-base">Koneksi JSONBin.io</h3>
+        <button onclick="closeJsonBinModal()" class="p-1.5 rounded-xl bg-white/15">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div class="p-5 space-y-3">
+        <p class="text-xs text-slate-500">Masukkan <b>Bin ID</b> dan <b>X-Master-Key</b> akun JSONBin.io Anda agar data tersinkronisasi online.</p>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">Bin ID</label>
+          <input type="text" id="cfgBinId" placeholder="Contoh: 6b00cbb0ffd5d16053d23cae"
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono" />
+        </div>
+        <div>
+          <label class="block text-[10px] font-bold text-slate-600 uppercase mb-1">X-Master-Key</label>
+          <input type="password" id="cfgMasterKey" placeholder="$2a$10$..."
+            class="w-full px-3 py-2.5 bg-slate-50 border border-slate-200 rounded-xl text-xs font-mono" />
+        </div>
+        <div class="flex gap-2 pt-2">
+          <button onclick="saveJsonBinConfig()" class="flex-1 py-3 ovo-gradient text-white font-bold rounded-xl text-xs shadow">
+            Simpan & Sinkronkan
+          </button>
+          <button onclick="closeJsonBinModal()" class="px-4 py-3 bg-slate-100 text-slate-600 font-bold rounded-xl text-xs">
+            Tutup
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION -->
+  <div id="toastBox" class="fixed top-20 left-1/2 -translate-x-1/2 z-[60] hidden">
+    <div id="toastMsg" class="px-4 py-2.5 rounded-full bg-slate-900/90 text-white text-xs font-bold shadow-xl backdrop-blur-md flex items-center gap-2">
+      <span>Tersimpan</span>
+    </div>
+  </div>
+
+  <script>
+    // ==================== STATE & STORAGE KEYS ====================
+    const STORAGE_KEYS = {
+      SESSION: 'cekwip_session_v1',
+      DATA: 'cekwip_records_v1',
+      ITEMS: 'cekwip_master_items_v1',
+      JSONBIN: 'cekwip_jsonbin_cfg_v1',
+      WA_NUMBERS: 'cekwip_wa_numbers_v1'
+    };
+
+    const DEFAULT_JSONBIN = {
+      binId: '6b00cbb0ffd5d16053d23cae',
+      masterKey: '$2a$10$0BpRHzIbZs2lJrRBcWGn0ewzEm0lXTbYFzA4zSCM0oXlTJNlcpq/y'
+    };
+
+    let jsonBinCfg = JSON.parse(localStorage.getItem(STORAGE_KEYS.JSONBIN)) || { ...DEFAULT_JSONBIN };
+    if (!jsonBinCfg.binId) jsonBinCfg.binId = DEFAULT_JSONBIN.binId;
+    if (!jsonBinCfg.masterKey) jsonBinCfg.masterKey = DEFAULT_JSONBIN.masterKey;
+
+    let waNumbers = JSON.parse(localStorage.getItem(STORAGE_KEYS.WA_NUMBERS)) || {
+      FINAL: '',
+      RM0: '',
+      INSPECTION: ''
+    };
+
+    let session = JSON.parse(localStorage.getItem(STORAGE_KEYS.SESSION)) || {
+      pic: '',
+      lokasi: 'FINAL',
+      loggedIn: false
+    };
+
+    let activeLocation = session.lokasi || 'FINAL';
+
+    let masterItems = JSON.parse(localStorage.getItem(STORAGE_KEYS.ITEMS)) || [
+      'Kelengkapan Part Eksterior',
+      'Fungsi Kelistrikan & Lampu',
+      'Kondisi Interior & Jok',
+      'Kesesuaian Label & Dokumen'
+    ];
+
+    let unitRecords = JSON.parse(localStorage.getItem(STORAGE_KEYS.DATA)) || [];
+    let filterMode = 'SHIFT'; // 'SHIFT' or 'ALL'
+    let html5QrCode = null;
+    let currentScanDraft = {
+      vin: '',
+      suffix: '',
+      unitNo: '',
+      checks: {} // { itemName: 'OK' | 'NG' }
+    };
+    let selectedUnitId = null;
+    let editDraftChecks = {};
+
+    // ==================== INITIALIZATION ====================
+    document.addEventListener('DOMContentLoaded', () => {
+      lucide.createIcons();
+      updateClockAndShift();
+      setInterval(updateClockAndShift, 15000);
+
+      if (session.loggedIn && session.pic) {
+        showMainApp();
+      } else {
+        selectLokasi(session.lokasi || 'FINAL');
+        document.getElementById('inputPic').value = session.pic || '';
+      }
+    });
+
+    function showToast(text, isError = false) {
+      const box = document.getElementById('toastBox');
+      const msg = document.getElementById('toastMsg');
+      msg.className = `px-4 py-2.5 rounded-full text-white text-xs font-bold shadow-xl backdrop-blur-md flex items-center gap-2 ${
+        isError ? 'bg-rose-600/95' : 'bg-purple-950/95 border border-purple-500/40'
+      }`;
+      msg.innerHTML = `<span>${text}</span>`;
+      box.classList.remove('hidden');
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => box.classList.add('hidden'), 2600);
+    }
+
+    // ==================== LOGIN & SESSION ====================
+    function selectLokasi(loc) {
+      session.lokasi = loc;
+      activeLocation = loc;
+      document.querySelectorAll('.loc-btn').forEach(btn => {
+        if (btn.dataset.loc === loc) {
+          btn.className = 'loc-btn py-2.5 px-2 rounded-xl text-xs font-bold border-2 border-purple-600 bg-purple-50 text-purple-800 transition';
+        } else {
+          btn.className = 'loc-btn py-2.5 px-2 rounded-xl text-xs font-bold border border-slate-200 bg-slate-50 text-slate-600 transition';
+        }
+      });
+    }
+
+    function handleLogin() {
+      const picVal = document.getElementById('inputPic').value.trim();
+      if (!picVal) {
+        showToast('Nama PIC Cek wajib diisi!', true);
+        return;
+      }
+      session.pic = picVal.toUpperCase();
+      session.loggedIn = true;
+      activeLocation = session.lokasi || 'FINAL';
+      localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      showMainApp();
+    }
+
+    function logoutSession() {
+      session.loggedIn = false;
+      localStorage.setItem(STORAGE_KEYS.SESSION, JSON.stringify(session));
+      document.getElementById('mainApp').classList.add('hidden');
+      document.getElementById('loginScreen').classList.remove('hidden');
+      document.getElementById('inputPic').value = session.pic;
+      selectLokasi(session.lokasi);
+    }
+
+    function showMainApp() {
+      document.getElementById('loginScreen').classList.add('hidden');
+      document.getElementById('mainApp').classList.remove('hidden');
+      document.getElementById('headerBadgeInfo').textContent = `PIC: ${session.pic} | ${session.lokasi}`;
+      switchActiveLocation(activeLocation);
+      renderMasterItems();
+      renderUnitList();
+      if (jsonBinCfg.binId && jsonBinCfg.masterKey) {
+        syncFromCloud(false);
+      }
+    }
+
+    // ==================== LOCATION TABS & WA SENDER ====================
+    function switchActiveLocation(loc) {
+      activeLocation = loc;
+      document.querySelectorAll('.loc-tab').forEach(btn => {
+        if (btn.dataset.tabLoc === loc) {
+          btn.className = 'loc-tab py-2 px-2 rounded-xl text-[11px] font-extrabold border-2 border-purple-600 bg-purple-50 text-purple-900 transition';
+        } else {
+          btn.className = 'loc-tab py-2 px-2 rounded-xl text-[11px] font-extrabold border border-slate-200 bg-slate-50 text-slate-600 transition';
+        }
+      });
+      document.getElementById('btnSendWaText').textContent = `Kirim Rekap WA Lokasi ${loc}`;
+      document.getElementById('listHeadingTitle').textContent = `Daftar Data • ${loc}`;
+      renderUnitList();
+    }
+
+    function openWaConfigModal() {
+      document.getElementById('cfgWaFinal').value = waNumbers.FINAL || '';
+      document.getElementById('cfgWaRm0').value = waNumbers.RM0 || '';
+      document.getElementById('cfgWaInspection').value = waNumbers.INSPECTION || '';
+      document.getElementById('waConfigModal').classList.remove('hidden');
+    }
+
+    function closeWaConfigModal() {
+      document.getElementById('waConfigModal').classList.add('hidden');
+    }
+
+    function saveWaConfig() {
+      waNumbers = {
+        FINAL: document.getElementById('cfgWaFinal').value.trim().replace(/\D/g, ''),
+        RM0: document.getElementById('cfgWaRm0').value.trim().replace(/\D/g, ''),
+        INSPECTION: document.getElementById('cfgWaInspection').value.trim().replace(/\D/g, '')
+      };
+      localStorage.setItem(STORAGE_KEYS.WA_NUMBERS, JSON.stringify(waNumbers));
+      closeWaConfigModal();
+      showToast('Nomor WA per lokasi disimpan');
+    }
+
+    function sendLocationReportToWA(loc) {
+      const shiftInfo = getShiftInfo();
+      const locRecords = unitRecords.filter(r => {
+        const matchLoc = (r.lokasi || 'FINAL') === loc;
+        const matchShift = filterMode === 'SHIFT' ? r.shiftKey === shiftInfo.shiftKey : true;
+        return matchLoc && matchShift;
+      });
+
+      if (locRecords.length === 0) {
+        showToast(`Tidak ada data unit di lokasi ${loc} (${filterMode === 'SHIFT' ? 'Shift Ini' : 'Semua Data'})`, true);
+        return;
+      }
+
+      const okTotal = locRecords.filter(r => r.overallStatus === 'OK').length;
+      const ngTotal = locRecords.filter(r => r.overallStatus === 'NG').length;
+
+      const unitLines = locRecords.map((r, i) => {
+        const ngItems = Object.entries(r.items || {})
+          .filter(([, st]) => st === 'NG')
+          .map(([k]) => k);
+        const ngNote = ngItems.length > 0 ? ` [NG: ${ngItems.join(', ')}]` : '';
+        return `${i + 1}. *${r.unitNo}* (SFX: ${r.suffix}) - *${r.overallStatus}*${ngNote} (${r.timestamp})`;
+      }).join('\n');
+
+      const message = [
+        `*LAPORAN CEK WIP - ${loc}*`,
+        `Tanggal : ${shiftInfo.formattedDate}`,
+        `Shift   : ${shiftInfo.shift} Shift`,
+        `PIC     : ${session.pic || '-'}`,
+        `------------------------`,
+        `Total Unit : ${locRecords.length}`,
+        `Unit OK    : ${okTotal}`,
+        `Unit NG    : ${ngTotal}`,
+        `------------------------`,
+        `*Daftar Unit:*`,
+        unitLines
+      ].join('\n');
+
+      const targetPhone = (waNumbers[loc] || '').replace(/\D/g, '');
+      const waUrl = targetPhone
+        ? `https://wa.me/${targetPhone}?text=${encodeURIComponent(message)}`
+        : `https://wa.me/?text=${encodeURIComponent(message)}`;
+
+      window.open(waUrl, '_blank');
+    }
+
+    // ==================== SHIFT & INDONESIAN DATE LOGIC ====================
+    function getShiftInfo(dateObj = new Date()) {
+      const hours = dateObj.getHours();
+      const minutes = dateObj.getMinutes();
+      const totalMinutes = hours * 60 + minutes;
+
+      // Day Shift: 07:15 (435) - 20:00 (1200)
+      // Night Shift: 21:00 (1260) - 07:15 (435), where 00:00 - 07:15 belongs to previous calendar date
+      let shift = 'Day';
+      let effectiveDate = new Date(dateObj);
+
+      if (totalMinutes >= 435 && totalMinutes <= 1200) {
+        shift = 'Day';
+      } else {
+        shift = 'Night';
+        if (totalMinutes < 435) {
+          effectiveDate.setDate(effectiveDate.getDate() - 1);
+        }
+      }
+
+      const hariArr = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+      const bulanArr = [
+        'Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni',
+        'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'
+      ];
+
+      const hari = hariArr[effectiveDate.getDay()];
+      const tgl = String(effectiveDate.getDate()).padStart(2, '0');
+      const bulan = bulanArr[effectiveDate.getMonth()];
+      const tahun = effectiveDate.getFullYear();
+
+      const formattedDate = `${hari}, ${tgl} ${bulan} ${tahun}`;
+      const shiftKey = `${tahun}-${String(effectiveDate.getMonth() + 1).padStart(2, '0')}-${tgl}_${shift}`;
+
+      return { shift, formattedDate, shiftKey };
+    }
+
+    function updateClockAndShift() {
+      const now = new Date();
+      const info = getShiftInfo(now);
+      document.getElementById('shiftDateDisplay').textContent = info.formattedDate;
+
+      const badge = document.getElementById('shiftBadge');
+      if (info.shift === 'Day') {
+        badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-cyan-400 text-purple-950 shadow';
+        badge.innerHTML = `<i data-lucide="sun" class="w-3.5 h-3.5"></i><span>DAY SHIFT</span>`;
+      } else {
+        badge.className = 'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold bg-amber-400 text-purple-950 shadow';
+        badge.innerHTML = `<i data-lucide="moon" class="w-3.5 h-3.5"></i><span>NIGHT SHIFT</span>`;
+      }
+
+      const hh = String(now.getHours()).padStart(2, '0');
+      const mm = String(now.getMinutes()).padStart(2, '0');
+      document.getElementById('liveClockDisplay').textContent = `${hh}:${mm} WIB`;
+      lucide.createIcons();
+    }
+
+    // ==================== HAMBURGER DRAWER ====================
+    function toggleDrawer(forceState) {
+      const btn = document.getElementById('hamburgerBtn');
+      const drawer = document.getElementById('navDrawer');
+      const isOpen = !drawer.classList.contains('hidden');
+      const nextState = typeof forceState === 'boolean' ? forceState : !isOpen;
+
+      if (nextState) {
+        btn.classList.add('hamburger-active');
+        drawer.classList.remove('hidden');
+      } else {
+        btn.classList.remove('hamburger-active');
+        drawer.classList.add('hidden');
+      }
+    }
+
+    // ==================== MASTER ITEM CEK MANAGEMENT ====================
+    function openAddItemModal() {
+      renderMasterItems();
+      document.getElementById('addItemModal').classList.remove('hidden');
+    }
+
+    function closeAddItemModal() {
+      document.getElementById('addItemModal').classList.add('hidden');
+      renderUnitList();
+    }
+
+    function renderMasterItems() {
+      const container = document.getElementById('masterItemList');
+      document.getElementById('activeItemsCount').textContent = `${masterItems.length} Item Cek Aktif`;
+
+      if (masterItems.length === 0) {
+        container.innerHTML = `<p class="text-xs text-center text-slate-400 py-4">Belum ada item cek. Tambahkan di atas.</p>`;
+        return;
+      }
+
+      container.innerHTML = masterItems.map((item, idx) => `
+        <div class="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
+          <div class="flex items-center gap-2.5">
+            <span class="w-5 h-5 rounded-full bg-purple-100 text-purple-800 text-[11px] font-bold flex items-center justify-center">${idx + 1}</span>
+            <span class="text-xs font-bold text-slate-700">${item}</span>
+          </div>
+          <button onclick="removeCheckItem(${idx})" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg transition">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      `).join('');
+      lucide.createIcons();
+    }
+
+    function addCheckItem() {
+      const input = document.getElementById('newItemNameInput');
+      const val = input.value.trim();
+      if (!val) return;
+      if (masterItems.includes(val)) {
+        showToast('Item cek sudah ada!', true);
+        return;
+      }
+      masterItems.push(val);
+      localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(masterItems));
+      input.value = '';
+      renderMasterItems();
+      syncToCloud();
+      showToast('Item cek ditambahkan');
+    }
+
+    function removeCheckItem(index) {
+      masterItems.splice(index, 1);
+      localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(masterItems));
+      renderMasterItems();
+      syncToCloud();
+    }
+
+    // ==================== BARCODE SCANNER & VIN PARSING ====================
+    function openScannerModal() {
+      if (masterItems.length === 0) {
+        showToast('Tambahkan minimal 1 Item Cek terlebih dahulu!', true);
+        openAddItemModal();
+        return;
+      }
+
+      currentScanDraft = { vin: '', suffix: '', unitNo: '', checks: {} };
+      document.getElementById('scanVinInput').value = '';
+      document.getElementById('scanSuffixInput').value = '';
+      document.getElementById('scanUnitInput').value = '';
+      document.getElementById('btnTriggerCheck').classList.add('hidden');
+      document.getElementById('checklistStepSection').classList.add('hidden');
+      document.getElementById('btnSaveUnit').classList.add('hidden');
+
+      document.getElementById('scannerModal').classList.remove('hidden');
+      startCameraScanner();
+    }
+
+    function closeScannerModal() {
+      stopCameraScanner();
+      document.getElementById('scannerModal').classList.add('hidden');
+    }
+
+    function startCameraScanner() {
+      const statusEl = document.getElementById('cameraStatus');
+      statusEl.textContent = 'Membuka kamera perangkat...';
+
+      if (html5QrCode) {
+        stopCameraScanner().then(() => initHtml5Qr());
+      } else {
+        initHtml5Qr();
+      }
+    }
+
+    function initHtml5Qr() {
+      html5QrCode = new Html5Qrcode("qrReader");
+      const config = { fps: 12, qrbox: { width: 250, height: 110 } };
+
+      html5QrCode.start(
+        { facingMode: "environment" },
+        config,
+        (decodedText) => {
+          const cleanVin = decodedText.trim().toUpperCase();
+          if (cleanVin.length >= 17) {
+            if (navigator.vibrate) navigator.vibrate(100);
+            document.getElementById('scanVinInput').value = cleanVin;
+            parseVinCode(cleanVin);
+            stopCameraScanner();
+            document.getElementById('cameraStatus').textContent = 'Barcode VIN berhasil terbaca!';
+          }
+        },
+        () => {}
+      ).then(() => {
+        document.getElementById('cameraStatus').textContent = 'Arahkan kamera ke barcode VIN 17 karakter';
+      }).catch(() => {
+        document.getElementById('cameraStatus').textContent = 'Kamera tidak tersedia / izin ditolak. Gunakan input manual.';
+      });
+    }
+
+    function restartCamera() {
+      startCameraScanner();
+    }
+
+    async function stopCameraScanner() {
+      if (html5QrCode && html5QrCode.isScanning) {
+        try {
+          await html5QrCode.stop();
+          html5QrCode.clear();
+        } catch (e) {}
+      }
+    }
+
+    function handleManualVinInput(val) {
+      const clean = val.trim().toUpperCase();
+      if (clean.length >= 17) {
+        parseVinCode(clean);
+      } else {
+        checkReadyForCheckButton();
+      }
+    }
+
+    function parseVinCode(vin) {
+      const suffix = vin.slice(-6, -4);
+      const unitNo = vin.slice(11, 17);
+
+      currentScanDraft.vin = vin;
+      currentScanDraft.suffix = suffix;
+      currentScanDraft.unitNo = unitNo;
+
+      document.getElementById('scanSuffixInput').value = suffix;
+      document.getElementById('scanUnitInput').value = unitNo;
+
+      checkReadyForCheckButton();
+    }
+
+    function checkReadyForCheckButton() {
+      const sfx = document.getElementById('scanSuffixInput').value.trim();
+      const unit = document.getElementById('scanUnitInput').value.trim();
+      const btn = document.getElementById('btnTriggerCheck');
+      if (sfx && unit) {
+        btn.classList.remove('hidden');
+      } else {
+        btn.classList.add('hidden');
+      }
+    }
+
+    document.addEventListener('input', (e) => {
+      if (e.target.id === 'scanSuffixInput' || e.target.id === 'scanUnitInput') {
+        checkReadyForCheckButton();
+      }
+    });
+
+    function revealCheckItems() {
+      currentScanDraft.suffix = document.getElementById('scanSuffixInput').value.trim().toUpperCase();
+      currentScanDraft.unitNo = document.getElementById('scanUnitInput').value.trim().toUpperCase();
+      currentScanDraft.vin = document.getElementById('scanVinInput').value.trim().toUpperCase() || `${currentScanDraft.suffix}-${currentScanDraft.unitNo}`;
+      currentScanDraft.checks = {};
+
+      document.getElementById('checklistStepSection').classList.remove('hidden');
+      renderScanChecklist();
+    }
+
+    function renderScanChecklist() {
+      const container = document.getElementById('scanChecklistContainer');
+      const total = masterItems.length;
+      const confirmedCount = Object.keys(currentScanDraft.checks).length;
+
+      document.getElementById('checkProgressBadge').textContent = `${confirmedCount} / ${total} Terkonfirmasi`;
+
+      container.innerHTML = masterItems.map((item, idx) => {
+        const status = currentScanDraft.checks[item];
+        const okActive = status === 'OK'
+          ? 'bg-emerald-600 text-white border-emerald-600 shadow-sm'
+          : 'bg-white text-slate-600 border-slate-200 hover:bg-emerald-50';
+        const ngActive = status === 'NG'
+          ? 'bg-rose-600 text-white border-rose-600 shadow-sm'
+          : 'bg-white text-slate-600 border-slate-200 hover:bg-rose-50';
+
+        return `
+          <div class="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border ${status ? 'border-purple-200 bg-purple-50/30' : 'border-slate-200'}">
+            <span class="text-xs font-bold text-slate-700 pr-2 flex-1">${idx + 1}. ${item}</span>
+            <div class="flex items-center gap-1.5 shrink-0">
+              <button type="button" onclick="setItemCheckStatus(${idx}, 'OK')"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold border transition ${okActive}">
+                OK
+              </button>
+              <button type="button" onclick="setItemCheckStatus(${idx}, 'NG')"
+                class="px-3.5 py-1.5 rounded-xl text-xs font-extrabold border transition ${ngActive}">
+                NG
+              </button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      const saveBtn = document.getElementById('btnSaveUnit');
+      if (total > 0 && confirmedCount === total) {
+        saveBtn.classList.remove('hidden');
+      } else {
+        saveBtn.classList.add('hidden');
+      }
+    }
+
+    function setItemCheckStatus(idx, status) {
+      const itemName = masterItems[idx];
+      currentScanDraft.checks[itemName] = status;
+      renderScanChecklist();
+    }
+
+    function saveCheckedUnit() {
+      const now = new Date();
+      const shiftInfo = getShiftInfo(now);
+      const hasNg = Object.values(currentScanDraft.checks).includes('NG');
+      const targetLoc = activeLocation || session.lokasi || 'FINAL';
+
+      const record = {
+        id: 'WIP-' + Date.now(),
+        vin: currentScanDraft.vin,
+        suffix: currentScanDraft.suffix,
+        unitNo: currentScanDraft.unitNo,
+        pic: session.pic,
+        lokasi: targetLoc,
+        shift: shiftInfo.shift,
+        shiftDate: shiftInfo.formattedDate,
+        shiftKey: shiftInfo.shiftKey,
+        timestamp: now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) + ' WIB',
+        overallStatus: hasNg ? 'NG' : 'OK',
+        items: { ...currentScanDraft.checks }
+      };
+
+      unitRecords.unshift(record);
+      localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(unitRecords));
+
+      closeScannerModal();
+      renderUnitList();
+      syncToCloud();
+      showToast(`Unit ${record.unitNo} (${record.overallStatus}) disimpan ke ${targetLoc}!`);
+    }
+
+    // ==================== RENDER UNIT LIST & INTERACTIONS (TAP & LONG PRESS) ====================
+    function setFilterMode(mode) {
+      filterMode = mode;
+      const shiftBtn = document.getElementById('filterShiftBtn');
+      const allBtn = document.getElementById('filterAllBtn');
+
+      if (mode === 'SHIFT') {
+        shiftBtn.className = 'px-3 py-1 rounded-lg bg-white text-purple-800 shadow-sm transition';
+        allBtn.className = 'px-3 py-1 rounded-lg text-slate-500 transition';
+      } else {
+        allBtn.className = 'px-3 py-1 rounded-lg bg-white text-purple-800 shadow-sm transition';
+        shiftBtn.className = 'px-3 py-1 rounded-lg text-slate-500 transition';
+      }
+      renderUnitList();
+    }
+
+    function renderUnitList() {
+      const container = document.getElementById('unitListContainer');
+      const emptyState = document.getElementById('emptyState');
+      const currentShiftKey = getShiftInfo().shiftKey;
+
+      const filtered = unitRecords.filter(r => {
+        const matchLoc = (r.lokasi || 'FINAL') === activeLocation;
+        const matchShift = filterMode === 'SHIFT' ? r.shiftKey === currentShiftKey : true;
+        return matchLoc && matchShift;
+      });
+
+      const total = filtered.length;
+      const okCount = filtered.filter(r => r.overallStatus === 'OK').length;
+      const ngCount = filtered.filter(r => r.overallStatus === 'NG').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statOk').textContent = okCount;
+      document.getElementById('statNg').textContent = ngCount;
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+      container.innerHTML = filtered.map(rec => {
+        const isOk = rec.overallStatus === 'OK';
+        const statusBadge = isOk
+          ? `<span class="px-2.5 py-1 rounded-lg bg-emerald-100 text-emerald-700 text-xs font-extrabold">OK</span>`
+          : `<span class="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-700 text-xs font-extrabold">NG</span>`;
+
+        const itemCount = Object.keys(rec.items || {}).length;
+        const ngItemsCount = Object.values(rec.items || {}).filter(v => v === 'NG').length;
+
+        return `
+          <div data-id="${rec.id}"
+            onpointerdown="handleCardPointerDown(event, '${rec.id}')"
+            onpointerup="handleCardPointerUp(event, '${rec.id}')"
+            onpointerleave="cancelLongPress()"
+            oncontextmenu="event.preventDefault();"
+            class="unit-card bg-white rounded-2xl p-3.5 border border-slate-100 shadow-sm active:scale-[0.98] transition cursor-pointer flex items-center justify-between">
+            <div class="flex items-center gap-3">
+              <div class="w-11 h-11 rounded-xl ${isOk ? 'bg-purple-50 text-purple-800' : 'bg-rose-50 text-rose-700'} flex flex-col items-center justify-center border ${isOk ? 'border-purple-100' : 'border-rose-200'}">
+                <span class="text-[9px] font-bold uppercase opacity-70">SFX</span>
+                <span class="text-sm font-extrabold leading-none">${rec.suffix}</span>
+              </div>
+              <div>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-extrabold text-slate-800 tracking-wide">${rec.unitNo}</span>
+                  <span class="text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 text-slate-600">${rec.lokasi}</span>
+                </div>
+                <div class="text-[11px] text-slate-400 mt-0.5">
+                  ${rec.timestamp} • PIC: <b class="text-slate-600">${rec.pic}</b>
+                </div>
+                <div class="text-[10px] mt-0.5 ${ngItemsCount > 0 ? 'text-rose-600 font-bold' : 'text-slate-400'}">
+                  ${ngItemsCount > 0 ? `${ngItemsCount} dari ${itemCount} item NG` : `${itemCount} item cek terkonfirmasi OK`}
+                </div>
+              </div>
+            </div>
+            <div class="flex items-center gap-2">
+              ${statusBadge}
+              <i data-lucide="chevron-right" class="w-4 h-4 text-slate-300"></i>
+            </div>
+          </div>
+        `;
+      }).join('');
+      lucide.createIcons();
+    }
+
+    // ==================== TAP VS LONG PRESS HANDLER ====================
+    let pressTimer = null;
+    let isLongPressTriggered = false;
+
+    function handleCardPointerDown(e, id) {
+      isLongPressTriggered = false;
+      pressTimer = setTimeout(() => {
+        isLongPressTriggered = true;
+        if (navigator.vibrate) navigator.vibrate(60);
+        openLongPressMenu(id);
+      }, 550);
+    }
+
+    function handleCardPointerUp(e, id) {
+      clearTimeout(pressTimer);
+      if (!isLongPressTriggered) {
+        openDetailModal(id);
+      }
+    }
+
+    function cancelLongPress() {
+      clearTimeout(pressTimer);
+    }
+
+    // ==================== DETAIL MODAL (TAP) ====================
+    function openDetailModal(id) {
+      const rec = unitRecords.find(r => r.id === id);
+      if (!rec) return;
+
+      document.getElementById('detailTitle').textContent = `Unit #${rec.unitNo}`;
+      document.getElementById('detailSuffix').textContent = rec.suffix;
+      document.getElementById('detailPicLoc').textContent = `${rec.pic} (${rec.lokasi})`;
+      document.getElementById('detailShiftTime').textContent = `${rec.shiftDate} • ${rec.shift} Shift (${rec.timestamp})`;
+
+      const itemsEntries = Object.entries(rec.items || {});
+      document.getElementById('detailItemsList').innerHTML = itemsEntries.map(([name, status]) => {
+        const isOk = status === 'OK';
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-100">
+            <span class="text-xs font-semibold text-slate-700">${name}</span>
+            <span class="px-2.5 py-0.5 rounded-md text-[11px] font-extrabold ${
+              isOk ? 'bg-emerald-100 text-emerald-700' : 'bg-rose-100 text-rose-700'
+            }">${status}</span>
+          </div>
+        `;
+      }).join('');
+
+      document.getElementById('detailModal').classList.remove('hidden');
+    }
+
+    function closeDetailModal() {
+      document.getElementById('detailModal').classList.add('hidden');
+    }
+
+    // ==================== LONG PRESS MENU, EDIT & DELETE ====================
+    function openLongPressMenu(id) {
+      selectedUnitId = id;
+      const rec = unitRecords.find(r => r.id === id);
+      if (!rec) return;
+      document.getElementById('lpUnitTitle').textContent = `Unit #${rec.unitNo} (Suffix: ${rec.suffix})`;
+      document.getElementById('longPressModal').classList.remove('hidden');
+    }
+
+    function closeLongPressModal() {
+      document.getElementById('longPressModal').classList.add('hidden');
+    }
+
+    function deleteSelectedUnit() {
+      if (!selectedUnitId) return;
+      unitRecords = unitRecords.filter(r => r.id !== selectedUnitId);
+      localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(unitRecords));
+      closeLongPressModal();
+      renderUnitList();
+      syncToCloud();
+      showToast('Data unit dihapus');
+    }
+
+    function openEditUnitModal() {
+      closeLongPressModal();
+      const rec = unitRecords.find(r => r.id === selectedUnitId);
+      if (!rec) return;
+
+      document.getElementById('editSuffixInput').value = rec.suffix;
+      document.getElementById('editUnitNoInput').value = rec.unitNo;
+      editDraftChecks = { ...rec.items };
+
+      renderEditChecklist();
+      document.getElementById('editUnitModal').classList.remove('hidden');
+    }
+
+    function closeEditUnitModal() {
+      document.getElementById('editUnitModal').classList.add('hidden');
+    }
+
+    function renderEditChecklist() {
+      const container = document.getElementById('editChecklistContainer');
+      const keys = Object.keys(editDraftChecks);
+      container.innerHTML = keys.map((name) => {
+        const st = editDraftChecks[name];
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl bg-slate-50 border border-slate-200">
+            <span class="text-xs font-bold text-slate-700 pr-2">${name}</span>
+            <div class="flex gap-1.5">
+              <button type="button" onclick="toggleEditItem('${name.replace(/'/g, "\\'")}', 'OK')"
+                class="px-3 py-1 rounded-lg text-xs font-extrabold border ${st === 'OK' ? 'bg-emerald-600 text-white border-emerald-600' : 'bg-white text-slate-600 border-slate-200'}">OK</button>
+              <button type="button" onclick="toggleEditItem('${name.replace(/'/g, "\\'")}', 'NG')"
+                class="px-3 py-1 rounded-lg text-xs font-extrabold border ${st === 'NG' ? 'bg-rose-600 text-white border-rose-600' : 'bg-white text-slate-600 border-slate-200'}">NG</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleEditItem(name, status) {
+      editDraftChecks[name] = status;
+      renderEditChecklist();
+    }
+
+    function saveEditedUnit() {
+      const idx = unitRecords.findIndex(r => r.id === selectedUnitId);
+      if (idx === -1) return;
+
+      const newSuffix = document.getElementById('editSuffixInput').value.trim().toUpperCase();
+      const newUnitNo = document.getElementById('editUnitNoInput').value.trim().toUpperCase();
+      if (!newSuffix || !newUnitNo) {
+        showToast('Suffix dan No. Unit tidak boleh kosong!', true);
+        return;
+      }
+
+      const hasNg = Object.values(editDraftChecks).includes('NG');
+      unitRecords[idx] = {
+        ...unitRecords[idx],
+        suffix: newSuffix,
+        unitNo: newUnitNo,
+        items: { ...editDraftChecks },
+        overallStatus: hasNg ? 'NG' : 'OK'
+      };
+
+      localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(unitRecords));
+      closeEditUnitModal();
+      renderUnitList();
+      syncToCloud();
+      showToast('Perubahan disimpan');
+    }
+
+    // ==================== JSONBIN.IO CLOUD SYNC ====================
+    function openJsonBinModal() {
+      document.getElementById('cfgBinId').value = jsonBinCfg.binId || '';
+      document.getElementById('cfgMasterKey').value = jsonBinCfg.masterKey || '';
+      document.getElementById('jsonBinModal').classList.remove('hidden');
+    }
+
+    function closeJsonBinModal() {
+      document.getElementById('jsonBinModal').classList.add('hidden');
+    }
+
+    function saveJsonBinConfig() {
+      jsonBinCfg.binId = document.getElementById('cfgBinId').value.trim();
+      jsonBinCfg.masterKey = document.getElementById('cfgMasterKey').value.trim();
+      localStorage.setItem(STORAGE_KEYS.JSONBIN, JSON.stringify(jsonBinCfg));
+      closeJsonBinModal();
+      if (jsonBinCfg.binId && jsonBinCfg.masterKey) {
+        syncFromCloud(true);
+      } else {
+        showToast('Konfigurasi lokal disimpan');
+      }
+    }
+
+    async function syncToCloud() {
+      if (!jsonBinCfg.binId || !jsonBinCfg.masterKey) return;
+      const icon = document.getElementById('syncIcon');
+      icon.classList.add('animate-spin');
+
+      try {
+        await fetch(`https://api.jsonbin.io/v3/b/${jsonBinCfg.binId}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'X-Master-Key': jsonBinCfg.masterKey
+          },
+          body: JSON.stringify({
+            masterItems,
+            unitRecords,
+            updatedAt: new Date().toISOString()
+          })
+        });
+      } catch (err) {
+        console.error('JSONBin PUT error:', err);
+      } finally {
+        icon.classList.remove('animate-spin');
+      }
+    }
+
+    async function syncFromCloud(notify = false) {
+      if (!jsonBinCfg.binId || !jsonBinCfg.masterKey) {
+        if (notify) openJsonBinModal();
+        return;
+      }
+
+      const icon = document.getElementById('syncIcon');
+      icon.classList.add('animate-spin');
+
+      try {
+        const res = await fetch(`https://api.jsonbin.io/v3/b/${jsonBinCfg.binId}/latest`, {
+          headers: {
+            'X-Master-Key': jsonBinCfg.masterKey
+          }
+        });
+        if (!res.ok) throw new Error('Gagal mengambil data JSONBin');
+        const data = await res.json();
+        const record = data.record || {};
+
+        if (Array.isArray(record.masterItems) && record.masterItems.length > 0) {
+          masterItems = record.masterItems;
+          localStorage.setItem(STORAGE_KEYS.ITEMS, JSON.stringify(masterItems));
+        }
+        if (Array.isArray(record.unitRecords)) {
+          unitRecords = record.unitRecords;
+          localStorage.setItem(STORAGE_KEYS.DATA, JSON.stringify(unitRecords));
+        }
+
+        renderMasterItems();
+        renderUnitList();
+        if (notify) showToast('Data tersinkron dengan JSONBin!');
+      } catch (err) {
+        if (notify) showToast('Gagal koneksi ke JSONBin.io', true);
+      } finally {
+        icon.classList.remove('animate-spin');
+      }
+    }
+  </script>
+</body>
+</html>
